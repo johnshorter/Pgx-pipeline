@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacogenomic Report – Clinical Summary</title>
+<style>
+  /* ── Colorblind-safe palette (shared with patient report) ─── */
+  :root {
+    --action:      #1565C0;
+    --action-bg:   #E3F2FD;
+    --review:      #E65100;
+    --review-bg:   #FFF3E0;
+    --normal:      #757575;
+    --normal-bg:   #F5F5F5;
+    --nodata:      #BDBDBD;
+    --nodata-bg:   #FAFAFA;
+    --primary:     #1A237E;
+    --accent:      #283593;
+    --border:      #BDBDBD;
+    --text:        #212121;
+    --text-light:  #616161;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.5;
+    color: var(--text);
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-size: 14px;
+  }
+
+  /* ── Header ─────────────────────────────────────────────────── */
+  .header {
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+  }
+  .header h1 { color: var(--primary); font-size: 24px; margin-bottom: 5px; }
+  .header .subtitle { color: var(--accent); font-size: 16px; font-weight: 600; }
+  .header .meta { color: var(--text-light); font-size: 13px; margin-top: 8px; }
+  .header .meta span { margin-right: 20px; }
+
+  h2 {
+    color: var(--primary);
+    font-size: 18px;
+    margin: 25px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 { font-size: 15px; margin: 15px 0 8px; color: #333; }
+
+  /* ── Symbols (same as patient report) ───────────────────────── */
+  .sym {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .sym-action  { background: var(--action-bg);  color: var(--action);  border: 2px solid var(--action); }
+  .sym-review  { background: var(--review-bg);  color: var(--review);  border: 2px solid var(--review); }
+  .sym-normal  { background: var(--normal-bg);  color: var(--normal);  border: 2px solid var(--normal); }
+  .sym-nodata  { background: var(--nodata-bg);  color: var(--nodata);  border: 2px solid var(--nodata); }
+
+  .sym-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
+  /* ── Tags ────────────────────────────────────────────────────── */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .tag-action  { background: var(--action-bg); color: var(--action); border: 1px solid var(--action); }
+  .tag-review  { background: var(--review-bg); color: var(--review); border: 1px solid var(--review); }
+  .tag-normal  { background: var(--normal-bg); color: var(--normal); border: 1px solid var(--normal); }
+  .tag-nodata  { background: var(--nodata-bg); color: var(--nodata); border: 1px solid var(--nodata); }
+
+  /* ── Legend bar ──────────────────────────────────────────────── */
+  .legend-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 10px 15px;
+    background: #ECEFF1;
+    border-radius: 6px;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .legend-bar .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── Tables ─────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  th {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr:nth-child(even) { background: #fafafa; }
+  code { font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; }
+
+  /* ── Category sections ──────────────────────────────────────── */
+  .cat-section {
+    margin: 20px 0;
+  }
+  .cat-header {
+    background: var(--accent);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .cat-desc {
+    background: #E8EAF6;
+    padding: 8px 15px;
+    font-size: 13px;
+    color: #37474F;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  /* ── Gene detail sections ───────────────────────────────────── */
+  .gene-section {
+    border: 1px solid var(--border);
+    border-top: none;
+    overflow: hidden;
+  }
+  .gene-section:last-child { border-radius: 0 0 6px 6px; }
+
+  .gene-section-header {
+    background: #ECEFF1;
+    padding: 10px 15px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .gene-section-header .gene-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .gene-section-body { padding: 12px 15px; }
+  .gene-section-body table { margin: 8px 0; }
+  .gene-section-body table th { background: #455A64; }
+
+  .caveat-box {
+    background: var(--review-bg);
+    border-left: 3px solid var(--review);
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+
+  /* ── Drug recommendations ───────────────────────────────────── */
+  .drug-rec {
+    border-left: 4px solid var(--border);
+    padding: 10px 15px;
+    margin: 10px 0;
+    background: #fafafa;
+  }
+  .drug-rec-action  { border-color: var(--action); }
+  .drug-rec-review  { border-color: var(--review); }
+  .drug-rec-normal  { border-color: var(--normal); }
+
+  .drug-rec h4 { font-size: 14px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+  .drug-rec .detail { font-size: 13px; color: #555; margin: 3px 0; }
+  .drug-rec .detail strong { color: #333; }
+
+  .link { color: var(--primary); text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+
+  /* ── Missing genes ──────────────────────────────────────────── */
+  .missing-genes {
+    background: var(--nodata-bg);
+    padding: 12px 15px;
+    border-radius: 4px;
+    border: 1px dashed var(--nodata);
+    font-size: 13px;
+    color: var(--text-light);
+  }
+
+  /* ── Methodology ────────────────────────────────────────────── */
+  .methodology {
+    background: var(--normal-bg);
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin: 15px 0;
+  }
+  .methodology ul { padding-left: 20px; margin: 5px 0; }
+
+  /* ── Disclaimer ─────────────────────────────────────────────── */
+  .disclaimer {
+    border-top: 2px solid var(--border);
+    margin-top: 30px;
+    padding-top: 15px;
+    font-size: 12px;
+    color: var(--text-light);
+  }
+
+  @media print {
+    body { max-width: 100%; padding: 15px; font-size: 12px; }
+    .gene-section { break-inside: avoid; }
+    .drug-rec { break-inside: avoid; }
+    .cat-section { break-inside: avoid; }
+    th { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Pharmacogenomic Report</h1>
+  <div class="subtitle">Clinical Summary</div>
+  <div class="meta">
+    <span>Report Date: {{ report_date }}</span>
+    {% if sample_id %}<span>Sample ID: {{ sample_id }}</span>{% endif %}
+    <span>Analysis Tool: PharmCAT</span>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <div class="legend-item"><span class="sym sym-action">&#9650;</span> Action Needed</div>
+  <div class="legend-item"><span class="sym sym-review">&#9670;</span> Review / Monitor</div>
+  <div class="legend-item"><span class="sym sym-normal">&#10003;</span> Normal</div>
+  <div class="legend-item"><span class="sym sym-nodata">&mdash;</span> No Data</div>
+</div>
+
+<h2>Gene Summary</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:40px"></th>
+      <th>Gene</th>
+      <th>Category</th>
+      <th>Diplotype</th>
+      <th>Phenotype</th>
+      <th>Activity Score</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for gene in gene_results %}
+    <tr>
+      <td style="text-align:center"><span class="sym-inline sym-{{ gene.risk_level }}">{{ gene.symbol }}</span></td>
+      <td><strong>{{ gene.gene }}</strong></td>
+      <td style="font-size:11px;color:#757575">{{ gene.category }}</td>
+      <td><code>{{ gene.diplotype }}</code></td>
+      <td>{{ gene.phenotype }}</td>
+      <td>{{ gene.activity_score or "N/A" }}</td>
+      <td><span class="tag tag-{{ gene.risk_level }}">{{ gene.risk_level | upper }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Detailed Gene Results by Category</h2>
+{% for cat_name, genes in categories.items() %}
+<div class="cat-section">
+  <div class="cat-header">{{ cat_name }}</div>
+  {% if cat_name in category_descs %}
+  <div class="cat-desc">{{ category_descs[cat_name] }}</div>
+  {% endif %}
+
+  {% for gene in genes %}
+  <div class="gene-section">
+    <div class="gene-section-header">
+      <div class="gene-title">
+        <span class="sym sym-{{ gene.risk_level }}">{{ gene.symbol }}</span>
+        <span>{{ gene.gene }} &mdash; {{ gene.phenotype }}</span>
+      </div>
+      <span class="tag tag-{{ gene.risk_level }}">{{ gene.risk_level | upper }}</span>
+    </div>
+    <div class="gene-section-body">
+      <table>
+        <tr><th style="width:160px">Diplotype</th><td><code>{{ gene.diplotype }}</code></td></tr>
+        <tr><th>Star Alleles</th><td>{{ gene.star_alleles | join(", ") if gene.star_alleles else "N/A" }}</td></tr>
+        <tr><th>Phenotype</th><td>{{ gene.phenotype }}</td></tr>
+        <tr><th>Activity Score</th><td>{{ gene.activity_score or "Not available" }}</td></tr>
+      </table>
+      {% if gene.caveat %}
+      <div class="caveat-box">&#9888; {{ gene.caveat }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+
+<h2>Drug Recommendations</h2>
+{% if drug_recommendations %}
+{% for drug in drug_recommendations %}
+<div class="drug-rec drug-rec-{{ drug.risk_level }}">
+  <h4>
+    <span class="sym-inline sym-{{ drug.risk_level }}">{{ drug.symbol }}</span>
+    {{ drug.drug }}
+    <span class="tag tag-{{ drug.risk_level }}">{{ drug.risk_level | upper }}</span>
+  </h4>
+  <p class="detail"><strong>Gene:</strong> {{ drug.gene }}</p>
+  <p class="detail"><strong>Phenotype:</strong> {{ drug.phenotype }}</p>
+  <p class="detail"><strong>Guideline Source:</strong> {{ drug.guideline_source }}</p>
+  <p class="detail"><strong>Classification:</strong> {{ drug.classification }}</p>
+  <p class="detail"><strong>Recommendation:</strong> {{ drug.recommendation }}</p>
+  {% if drug.implications %}
+  <p class="detail"><strong>Clinical Implications:</strong> {{ drug.implications }}</p>
+  {% endif %}
+  {% if drug.url %}
+  <p class="detail"><a href="{{ drug.url }}" class="link">View Guideline &rarr;</a></p>
+  {% endif %}
+</div>
+{% endfor %}
+{% else %}
+<p>No drug-specific recommendations were generated from the PharmCAT analysis.</p>
+{% endif %}
+
+{% if missing_genes %}
+<h2>Genes Not Reported</h2>
+<div class="missing-genes">
+  <p>The following pharmacogenes could not be called by PharmCAT for this sample. This may be due to
+  insufficient variant data, genes requiring specialized analysis (HLA typing, mitochondrial sequencing),
+  or regions outside PharmCAT's current panel.</p>
+  <p><strong>{{ missing_genes | join(", ") }}</strong></p>
+</div>
+{% endif %}
+
+<h2>Methodology</h2>
+<div class="methodology">
+  <ul>
+    <li><strong>Analysis Tool:</strong> PharmCAT (Pharmacogenomics Clinical Annotation Tool)</li>
+    <li><strong>Reference Genome:</strong> GRCh38/hg38</li>
+    <li><strong>Guidelines:</strong> CPIC (Clinical Pharmacogenetics Implementation Consortium), DPWG (Dutch Pharmacogenetics Working Group)</li>
+    <li><strong>Symbol Key:</strong>
+      &#9650; Action (clinical attention needed) &bull;
+      &#9670; Review (monitor/discuss) &bull;
+      &#10003; Normal (standard response) &bull;
+      &mdash; No Data (insufficient information)
+    </li>
+    <li><strong>Limitations:</strong> Analysis is limited to variants present in the input VCF and covered by PharmCAT's allele definitions. Structural variants, copy number variations, and novel alleles may not be detected. CYP2D6 structural variation is particularly challenging from short-read sequencing data. HLA typing requires specialized tools not included in this pipeline.</li>
+  </ul>
+</div>
+
+<div class="disclaimer">
+  <h3>Disclaimer</h3>
+  <p>This pharmacogenomic report is generated from automated computational analysis and is provided
+  for <strong>clinical decision support purposes only</strong>. Results should be interpreted in the
+  context of the patient's complete clinical picture, including medical history, current medications,
+  renal/hepatic function, and other relevant factors.</p>
+  <p>Pharmacogenomic testing does not replace clinical judgment. Prescribing decisions should not
+  be based solely on genetic test results. This report does not account for drug-drug interactions,
+  environmental factors, or epigenetic modifications that may influence drug response.</p>
+  <p>For questions about specific drug-gene interactions or dosing recommendations, consult
+  <a href="https://cpicpgx.org/" class="link">CPIC Guidelines</a> or contact a clinical
+  pharmacogenomics specialist.</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Pharmacogenetics Report</title>
+<style>
+  /* ── Colorblind-safe palette ────────────────────────────────── */
+  :root {
+    --action:      #1565C0;  /* deep blue — needs attention     */
+    --action-bg:   #E3F2FD;
+    --review:      #E65100;  /* orange — monitor / discuss       */
+    --review-bg:   #FFF3E0;
+    --normal:      #757575;  /* grey — no action needed          */
+    --normal-bg:   #F5F5F5;
+    --nodata:      #BDBDBD;  /* light grey — insufficient data   */
+    --nodata-bg:   #FAFAFA;
+    --primary:     #1565C0;
+    --border:      #E0E0E0;
+    --text:        #333333;
+    --text-light:  #757575;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* ── Header ─────────────────────────────────────────────────── */
+  .header {
+    text-align: center;
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+  }
+  .header h1 { color: var(--primary); font-size: 28px; margin-bottom: 8px; }
+  .header .meta { color: var(--text-light); font-size: 14px; }
+
+  h2 {
+    color: var(--primary);
+    font-size: 22px;
+    margin: 30px 0 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 18px; margin: 20px 0 10px; }
+
+  /* ── Legend ──────────────────────────────────────────────────── */
+  .legend {
+    background: #E3F2FD;
+    border-left: 4px solid var(--primary);
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .legend p { margin: 5px 0; }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0;
+  }
+
+  /* ── Symbols ────────────────────────────────────────────────── */
+  .sym {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .sym-action  { background: var(--action-bg);  color: var(--action);  border: 2px solid var(--action); }
+  .sym-review  { background: var(--review-bg);  color: var(--review);  border: 2px solid var(--review); }
+  .sym-normal  { background: var(--normal-bg);  color: var(--normal);  border: 2px solid var(--normal); }
+  .sym-nodata  { background: var(--nodata-bg);  color: var(--nodata);  border: 2px solid var(--nodata); }
+
+  .sym-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 700;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* ── Tag / badge ────────────────────────────────────────────── */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .tag-action  { background: var(--action-bg);  color: var(--action);  border: 1px solid var(--action); }
+  .tag-review  { background: var(--review-bg);  color: var(--review);  border: 1px solid var(--review); }
+  .tag-normal  { background: var(--normal-bg);  color: var(--normal);  border: 1px solid var(--normal); }
+  .tag-nodata  { background: var(--nodata-bg);  color: var(--nodata);  border: 1px solid var(--nodata); }
+
+  /* ── Summary table ──────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--normal-bg);
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr:hover { background: #fafafa; }
+
+  /* ── Category sections ──────────────────────────────────────── */
+  .category-section {
+    margin: 25px 0;
+  }
+  .category-header {
+    background: var(--primary);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px 8px 0 0;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .category-desc {
+    background: #E8EAF6;
+    padding: 10px 18px;
+    font-size: 14px;
+    color: #37474F;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .category-body {
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 5px 0;
+  }
+
+  /* ── Gene cards ─────────────────────────────────────────────── */
+  .gene-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px 18px;
+    border-bottom: 1px solid #EEEEEE;
+  }
+  .gene-card:last-child { border-bottom: none; }
+
+  .gene-card-action  { border-left: 4px solid var(--action); }
+  .gene-card-review  { border-left: 4px solid var(--review); }
+  .gene-card-normal  { background: var(--normal-bg); border-left: 4px solid var(--normal); }
+  .gene-card-nodata  { background: var(--nodata-bg); border-left: 4px solid var(--nodata); opacity: 0.8; }
+
+  .gene-card .gene-info { flex: 1; }
+  .gene-card .gene-name { font-weight: 700; font-size: 16px; }
+  .gene-card .gene-phenotype { font-size: 14px; margin-top: 2px; }
+  .gene-card .gene-explain { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+
+  .caveat {
+    background: var(--review-bg);
+    border-left: 4px solid var(--review);
+    padding: 10px 15px;
+    margin: 8px 0 0;
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ── Action items ───────────────────────────────────────────── */
+  .action-items {
+    background: var(--action-bg);
+    border: 1px solid #90CAF9;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .action-items ol { padding-left: 20px; }
+  .action-items li { margin: 8px 0; }
+
+  /* ── Drug table ─────────────────────────────────────────────── */
+  .drug-table td:first-child { font-weight: 600; }
+
+  /* ── Glossary ───────────────────────────────────────────────── */
+  .glossary dt { font-weight: 600; color: var(--text); margin-top: 10px; }
+  .glossary dd { margin-left: 20px; color: #555; margin-bottom: 5px; }
+
+  /* ── Disclaimer ─────────────────────────────────────────────── */
+  .disclaimer {
+    background: var(--normal-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 30px 0;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+  .disclaimer h3 { color: var(--text-light); font-size: 15px; }
+
+  @media print {
+    body { max-width: 100%; padding: 20px; }
+    .gene-card { break-inside: avoid; }
+    .category-section { break-inside: avoid; }
+    tr { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Your Pharmacogenetics Report</h1>
+  <div class="meta">
+    <p>Report Date: {{ report_date }}</p>
+    {% if sample_id %}<p>Sample ID: {{ sample_id }}</p>{% endif %}
+  </div>
+</div>
+
+<h2>What is Pharmacogenetics?</h2>
+<div class="legend">
+  <p><strong>Pharmacogenetics</strong> studies how your genes affect your response to medications.
+  Variations in certain genes can influence how your body processes drugs, which may
+  affect how well a medication works or whether you experience side effects.</p>
+  <p style="margin-top:12px"><strong>Understanding the symbols:</strong></p>
+  <div class="legend-row">
+    <span class="sym sym-action">&#9650;</span>
+    <span><strong>Action Needed</strong> &mdash; Important finding. Talk to your healthcare provider.</span>
+  </div>
+  <div class="legend-row">
+    <span class="sym sym-review">&#9670;</span>
+    <span><strong>Review</strong> &mdash; Possible variation detected. Discuss with your doctor.</span>
+  </div>
+  <div class="legend-row">
+    <span class="sym sym-normal">&#10003;</span>
+    <span><strong>Normal</strong> &mdash; Standard response expected. No changes typically needed.</span>
+  </div>
+  <div class="legend-row">
+    <span class="sym sym-nodata">&mdash;</span>
+    <span><strong>No Data</strong> &mdash; Could not be determined from available genetic data.</span>
+  </div>
+</div>
+
+<h2>Results at a Glance</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:50px">Status</th>
+      <th>Gene</th>
+      <th>Category</th>
+      <th>Your Result</th>
+      <th>What It Means</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for gene in gene_results %}
+    <tr>
+      <td><span class="sym-inline sym-{{ gene.risk_level }}">{{ gene.symbol }}</span></td>
+      <td><strong>{{ gene.gene }}</strong></td>
+      <td style="font-size:12px;color:#757575">{{ gene.category }}</td>
+      <td>{{ gene.phenotype }}</td>
+      <td style="font-size:13px">{{ gene.plain_language }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Detailed Results by Gene Category</h2>
+
+{% for cat_name, genes in categories.items() %}
+<div class="category-section">
+  <div class="category-header">{{ cat_name }}</div>
+  <div class="category-desc">{{ genes[0].category_desc }}</div>
+  <div class="category-body">
+    {% for gene in genes %}
+    <div class="gene-card gene-card-{{ gene.risk_level }}">
+      <span class="sym sym-{{ gene.risk_level }}">{{ gene.symbol }}</span>
+      <div class="gene-info">
+        <div class="gene-name">{{ gene.gene }}
+          <span class="tag tag-{{ gene.risk_level }}">{{ gene.phenotype }}</span>
+        </div>
+        <div class="gene-explain">{{ gene.detailed_explanation }}</div>
+        {% if gene.caveat %}
+        <div class="caveat">&#9888; {{ gene.caveat }}</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+<h2>Your Medication Guide</h2>
+{% if drug_recommendations %}
+<table class="drug-table">
+  <thead>
+    <tr>
+      <th style="width:50px">Status</th>
+      <th>Medication</th>
+      <th>Related Gene</th>
+      <th>Guidance</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for drug in drug_recommendations %}
+    <tr>
+      <td><span class="sym-inline sym-{{ drug.risk_level }}">{{ drug.symbol }}</span></td>
+      <td>{{ drug.drug }}</td>
+      <td>{{ drug.gene }}</td>
+      <td>{{ drug.patient_guidance }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No specific medication recommendations were generated for your genetic profile.</p>
+{% endif %}
+
+<h2>Action Items</h2>
+<div class="action-items">
+  <ol>
+    <li><strong>Share this report</strong> with your doctor or pharmacist at your next visit.</li>
+    <li><strong>Do not change</strong> any medications on your own based on this report.</li>
+    <li><strong>Keep a copy</strong> of this report in your medical records &ndash; your genetics do not change over time.</li>
+    {% if has_action_results %}
+    <li><strong>Schedule a consultation</strong> to discuss the <span class="sym-inline sym-action">&#9650;</span> flagged results with your healthcare provider.</li>
+    {% endif %}
+    <li><strong>Ask questions</strong> &ndash; your pharmacist can help explain how these results apply to your current medications.</li>
+  </ol>
+</div>
+
+<h2>Glossary</h2>
+<dl class="glossary">
+  <dt>Gene</dt>
+  <dd>A segment of DNA that contains instructions for making a protein. Certain genes produce enzymes that break down medications.</dd>
+
+  <dt>Allele</dt>
+  <dd>A variant form of a gene. You inherit one allele from each parent.</dd>
+
+  <dt>Phenotype</dt>
+  <dd>The predicted functional outcome &ndash; for example, whether you metabolize a drug normally, slowly, or quickly.</dd>
+
+  <dt>Poor Metabolizer</dt>
+  <dd>Your body processes the drug more slowly than average. You may need a lower dose or an alternative medication.</dd>
+
+  <dt>Normal Metabolizer</dt>
+  <dd>Your body processes the drug at a typical rate. Standard dosing usually applies.</dd>
+
+  <dt>Rapid / Ultrarapid Metabolizer</dt>
+  <dd>Your body processes the drug faster than average. The standard dose may be less effective.</dd>
+
+  <dt>Intermediate Metabolizer</dt>
+  <dd>Your body processes the drug somewhat slower than average. A dose adjustment may be helpful.</dd>
+
+  <dt>CYP Enzyme</dt>
+  <dd>Cytochrome P450 enzymes &ndash; the body's main drug-metabolizing system, found primarily in the liver.</dd>
+
+  <dt>HLA</dt>
+  <dd>Human leukocyte antigen &ndash; immune system markers that can predict severe drug hypersensitivity reactions.</dd>
+
+  <dt>CPIC</dt>
+  <dd>Clinical Pharmacogenetics Implementation Consortium &ndash; publishes evidence-based guidelines on using pharmacogenetic test results.</dd>
+</dl>
+
+<div class="disclaimer">
+  <h3>Important Disclaimer</h3>
+  <p>This report is generated from automated analysis of genetic data and is intended for
+  <strong>educational and informational purposes only</strong>. It does not constitute medical advice,
+  diagnosis, or treatment recommendations.</p>
+  <p>Pharmacogenetic results should always be interpreted by a qualified healthcare professional
+  who can consider your complete medical history, current medications, and other relevant factors.</p>
+  <p><strong>Do not start, stop, or change any medication based solely on this report.</strong>
+  Always consult your doctor or pharmacist before making changes to your treatment plan.</p>
+</div>
+
+</body>
+</html>

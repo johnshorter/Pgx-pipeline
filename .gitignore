@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Editors / IDE
+.vscode/
+.idea/
+
+# Adib pipeline — excluded binaries and generated output
+adib/lib/
+adib/output/
+adib/pharmcat.log
+adib/.venv/
+
+# Same excludes, applied to marco's folder when he adds his code
+marco/lib/
+marco/output/
+marco/.venv/
+
+# Large raw data
+*.vcf.gz
+*.vcf
+!adib/examples/*.vcf
+!marco/examples/*.vcf
+
+# PharmCAT JAR (too large for GitHub — download with download_pharmcat.py)
+*.jar
+
+# JDK (bundled Java — download separately)
+jdk/
