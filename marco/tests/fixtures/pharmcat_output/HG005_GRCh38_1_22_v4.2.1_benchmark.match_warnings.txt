@@ -1,0 +1,4 @@
+chr13:48037782
+	Discarded genotype at this position because REF in VCF (A) does not match expected reference (AGGAGTC)
+chr19:38494464
+	The genetic variation at this position does not match what is in the allele definition (expected G, found T in VCF).  Undocumented variations will be replaced with reference.

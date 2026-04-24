@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Personal Medication Report</title>
+    <style>
+        /* ------------------------------------------------------------------ */
+        /* Base styles                                                         */
+        /* ------------------------------------------------------------------ */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         Helvetica, Arial, sans-serif, "Apple Color Emoji",
+                         "Segoe UI Emoji";
+            color: #333;
+            background: #f5f5f5;
+            line-height: 1.6;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #fff;
+        }
+
+        h1 { font-size: 1.8rem; margin-bottom: 0.25em; color: #1a1a1a; }
+        h2 { font-size: 1.4rem; margin: 1.5em 0 0.6em; color: #1a1a1a; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.3em; }
+        h3 { font-size: 1.1rem; margin-bottom: 0.3em; color: #1a1a1a; }
+        p  { margin-bottom: 0.8em; }
+
+        /* ------------------------------------------------------------------ */
+        /* Header                                                              */
+        /* ------------------------------------------------------------------ */
+        .report-header {
+            text-align: center;
+            padding: 32px 16px 24px;
+            border-bottom: 3px solid #1976D2;
+            margin-bottom: 24px;
+        }
+        .report-header h1 { font-size: 2rem; color: #1976D2; }
+        .report-date { color: #666; font-size: 0.95rem; margin-top: 4px; }
+
+        /* Disclaimer banner */
+        .disclaimer-banner {
+            background: #FFF3E0;
+            border-left: 4px solid #FF9800;
+            padding: 12px 16px;
+            margin: 16px 0 24px;
+            font-size: 0.88rem;
+            color: #5d4037;
+            line-height: 1.5;
+        }
+        .disclaimer-banner strong { display: block; margin-bottom: 4px; }
+
+        /* ------------------------------------------------------------------ */
+        /* Dashboard                                                           */
+        /* ------------------------------------------------------------------ */
+        .dashboard {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+        .dashboard-item {
+            text-align: center;
+            min-width: 120px;
+        }
+        .circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .circle-green  { background: #4CAF50; }
+        .circle-orange { background: #FF9800; }
+        .circle-red    { background: #F44336; }
+        .circle-grey   { background: #9E9E9E; }
+
+        .dashboard-label {
+            font-size: 0.82rem;
+            color: #555;
+            max-width: 130px;
+            margin: 0 auto;
+        }
+
+        .summary-sentence {
+            text-align: center;
+            font-size: 1.05rem;
+            color: #444;
+            margin: 12px 0 24px;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Gene overview card grid                                             */
+        /* ------------------------------------------------------------------ */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 14px;
+            margin: 20px 0 28px;
+        }
+        .ov-card {
+            border-radius: 10px;
+            padding: 14px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            border: 1.5px solid transparent;
+            transition: box-shadow .15s;
+        }
+        .ov-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.10); }
+
+        /* Status-specific backgrounds */
+        .ov-card--green  { background: #e8f5e9; border-color: #a5d6a7; }
+        .ov-card--orange { background: #fff3e0; border-color: #ffcc80; }
+        .ov-card--red    { background: #ffebee; border-color: #ef9a9a; }
+        .ov-card--grey   { background: #f5f5f5; border-color: #e0e0e0; }
+
+        /* Symbol badge (top-right corner) */
+        .ov-symbol {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .ov-card--green  .ov-symbol { color: #2e7d32; }
+        .ov-card--orange .ov-symbol { color: #e65100; }
+        .ov-card--red    .ov-symbol { color: #c62828; }
+        .ov-card--grey   .ov-symbol { color: #757575; }
+
+        /* Gene name */
+        .ov-gene {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #1a1a1a;
+            margin-bottom: 2px;
+        }
+
+        /* Protein type label */
+        .ov-protein {
+            font-size: 0.78rem;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        /* Status label pill */
+        .ov-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+            padding: 2px 10px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+        }
+        .ov-card--green  .ov-status { background: #4CAF50; color: #fff; }
+        .ov-card--orange .ov-status { background: #FF9800; color: #fff; }
+        .ov-card--red    .ov-status { background: #F44336; color: #fff; }
+        .ov-card--grey   .ov-status { background: #9E9E9E; color: #fff; }
+
+        /* Medication count */
+        .ov-meds {
+            font-size: 0.82rem;
+            color: #555;
+            margin-top: 2px;
+        }
+        .ov-meds strong {
+            font-size: 1.05rem;
+        }
+
+        /* Overview legend */
+        .ov-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin: 0 0 8px;
+            font-size: 0.82rem;
+            color: #666;
+        }
+        .ov-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .ov-legend-swatch {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Gene cards                                                          */
+        /* ------------------------------------------------------------------ */
+        .gene-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            background: #fafafa;
+        }
+        .gene-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .gene-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .gene-phenotype {
+            font-size: 0.95rem;
+            color: #555;
+            margin-left: auto;
+            font-style: italic;
+        }
+        .gene-explanation {
+            margin: 8px 0;
+            font-size: 0.93rem;
+        }
+        .gene-description {
+            font-size: 0.88rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        /* Drug list inside cards */
+        .drug-section { margin-top: 10px; }
+        .drug-section-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; color: #444; }
+        .drug-category { margin-bottom: 6px; }
+        .drug-category-name { font-weight: 600; font-size: 0.85rem; color: #555; }
+        .drug-list {
+            list-style: none;
+            padding: 0;
+            margin: 2px 0 0 16px;
+        }
+        .drug-list li {
+            font-size: 0.88rem;
+            color: #555;
+            padding: 1px 0;
+        }
+        .drug-list li::before {
+            content: "\2022";
+            color: #999;
+            margin-right: 6px;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Warning / emphasis boxes                                            */
+        /* ------------------------------------------------------------------ */
+        .warning-box {
+            background: #FFF8E1;
+            border: 1px solid #FFD54F;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        .warning-box strong { color: #E65100; }
+
+        .action-box {
+            background: #FFEBEE;
+            border-left: 4px solid #F44336;
+            padding: 10px 14px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            color: #b71c1c;
+        }
+
+        .reassure-box {
+            background: #E8F5E9;
+            border-left: 4px solid #4CAF50;
+            padding: 10px 14px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            color: #1b5e20;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Ambiguous / incomplete card styling                                 */
+        /* ------------------------------------------------------------------ */
+        .ambiguous-card {
+            border-left: 4px solid #FFC107;
+        }
+        .ambiguous-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: #FFC107;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .coverage-info {
+            font-size: 0.88rem;
+            color: #666;
+            margin: 4px 0;
+        }
+        .phenotype-range {
+            font-size: 0.9rem;
+            color: #555;
+            margin: 4px 0;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* No-call card styling                                                */
+        /* ------------------------------------------------------------------ */
+        .nocall-card {
+            border-left: 4px solid #9E9E9E;
+            background: #f5f5f5;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Next steps                                                          */
+        /* ------------------------------------------------------------------ */
+        .next-steps-list {
+            list-style: none;
+            padding: 0;
+        }
+        .next-steps-list li {
+            padding: 8px 0 8px 28px;
+            position: relative;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #eee;
+        }
+        .next-steps-list li:last-child { border-bottom: none; }
+        .step-number {
+            position: absolute;
+            left: 0;
+            top: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #1976D2;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Glossary                                                            */
+        /* ------------------------------------------------------------------ */
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+        .glossary-table th,
+        .glossary-table td {
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+        .glossary-table th {
+            font-weight: 700;
+            width: 200px;
+            color: #1a1a1a;
+        }
+        .glossary-table td { color: #555; }
+
+        /* ------------------------------------------------------------------ */
+        /* Full disclaimer at bottom                                           */
+        /* ------------------------------------------------------------------ */
+        .full-disclaimer {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-top: 24px;
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.6;
+        }
+        .full-disclaimer strong { color: #333; }
+
+        /* ------------------------------------------------------------------ */
+        /* Print / PDF styles                                                  */
+        /* ------------------------------------------------------------------ */
+        @media print {
+            body { background: #fff; }
+            .container { padding: 0; max-width: 100%; }
+
+            .report-header { page-break-after: avoid; }
+
+            h2 { page-break-after: avoid; }
+
+            .gene-card,
+            .warning-box,
+            .action-box,
+            .reassure-box {
+                page-break-inside: avoid;
+            }
+
+            /* Major section breaks */
+            .section-break { page-break-before: always; }
+
+            /* Overview grid */
+            .overview-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+            .ov-card { page-break-inside: avoid; }
+        }
+
+        @page {
+            size: A4;
+            margin: 20mm 15mm;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- ================================================================== -->
+    <!-- SECTION 1: Header                                                   -->
+    <!-- ================================================================== -->
+    <div class="report-header">
+        <h1>Your Personal Medication Report</h1>
+        <div class="report-date">Report generated on {{ date_generated }}</div>
+    </div>
+
+    <div class="disclaimer-banner">
+        <strong>Important Notice</strong>
+        {{ disclaimer }}
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- SECTION 2: Quick Summary Dashboard                                  -->
+    <!-- ================================================================== -->
+    <h2>Summary</h2>
+
+    <div class="dashboard">
+        <div class="dashboard-item">
+            <div class="circle circle-green">{{ counts.green }}</div>
+            <div class="dashboard-label">Normal results</div>
+        </div>
+        <div class="dashboard-item">
+            <div class="circle circle-orange">{{ counts.orange }}</div>
+            <div class="dashboard-label">Need caution</div>
+        </div>
+        <div class="dashboard-item">
+            <div class="circle circle-red">{{ counts.red }}</div>
+            <div class="dashboard-label">Need action</div>
+        </div>
+        <div class="dashboard-item">
+            <div class="circle circle-grey">{{ counts.grey }}</div>
+            <div class="dashboard-label">Not tested or inconclusive</div>
+        </div>
+    </div>
+
+    <p class="summary-sentence">{{ summary_sentence }}</p>
+
+    <!-- ================================================================== -->
+    <!-- Gene Overview Card Grid                                             -->
+    <!-- ================================================================== -->
+    <h2>Gene Overview</h2>
+
+    <div class="ov-legend">
+        <span class="ov-legend-item">
+            <span class="ov-legend-swatch" style="background:#4CAF50;"></span>
+            &#x2714; Normal
+        </span>
+        <span class="ov-legend-item">
+            <span class="ov-legend-swatch" style="background:#FF9800;"></span>
+            &#x25B2; Caution
+        </span>
+        <span class="ov-legend-item">
+            <span class="ov-legend-swatch" style="background:#F44336;"></span>
+            &#x2716; Action needed
+        </span>
+        <span class="ov-legend-item">
+            <span class="ov-legend-swatch" style="background:#9E9E9E;"></span>
+            &#x2014; Not tested / inconclusive
+        </span>
+    </div>
+
+    <div class="overview-grid">
+        {% for card in overview_cards %}
+        <div class="ov-card ov-card--{{ card.status }}">
+            <span class="ov-symbol">{{ card.symbol }}</span>
+            <div class="ov-gene">{{ card.gene }}</div>
+            <div class="ov-protein">{{ card.protein_type }}</div>
+            <div class="ov-status">{{ card.status_label }}</div>
+            <div class="ov-meds"><strong>{{ card.med_count }}</strong> medication{{ "s" if card.med_count != 1 else "" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- SECTION 3: Definitive Gene Results                                  -->
+    <!-- ================================================================== -->
+    {% if definitive_genes %}
+    <div class="section-break"></div>
+    <h2>Your Gene Results</h2>
+
+    {% for gene in definitive_genes %}
+    <div class="gene-card">
+        <div class="gene-card-header">
+            <div class="color-dot" style="background: {{ gene.color }};"></div>
+            <span class="gene-name">{{ gene.gene }}</span>
+            <span class="gene-phenotype">{{ gene.phenotype }}</span>
+        </div>
+
+        {% if gene.gene in gene_descriptions %}
+        <p class="gene-description">
+            The <strong>{{ gene.gene }}</strong> gene {{ gene_descriptions[gene.gene] }}.
+        </p>
+        {% endif %}
+
+        {% if gene.phenotype in phenotype_plain %}
+        <p class="gene-explanation">{{ phenotype_plain[gene.phenotype] }}</p>
+        {% endif %}
+
+        {% if gene.color == "#F44336" %}
+        <div class="action-box">
+            <strong>Action recommended:</strong> Your result for this gene suggests that some medications
+            may need to be changed or adjusted. Please discuss this with your healthcare provider.
+        </div>
+        {% elif gene.color == "#4CAF50" %}
+        <div class="reassure-box">
+            Standard medication doses for drugs affected by this gene should work as expected for you.
+        </div>
+        {% elif gene.color == "#FF9800" %}
+        <div class="warning-box">
+            <strong>Caution:</strong> Your body may process some medications differently due to this gene result.
+            Your doctor may want to adjust your dose.
+        </div>
+        {% endif %}
+
+        {% if gene.related_drugs %}
+        <div class="drug-section">
+            <div class="drug-section-title">Medications affected by this gene:</div>
+            <ul class="drug-list">
+                {% for drug in gene.related_drugs %}
+                <li>{{ drug }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 4: Inconclusive Results                                     -->
+    <!-- ================================================================== -->
+    {% if ambiguous_genes %}
+    <div class="section-break"></div>
+    <h2>Inconclusive Results &mdash; Further Testing Recommended</h2>
+
+    {% for gene in ambiguous_genes %}
+    <div class="gene-card ambiguous-card">
+        <div class="gene-card-header">
+            <div class="ambiguous-icon">!</div>
+            <span class="gene-name">{{ gene.gene }}</span>
+        </div>
+
+        {% if gene.gene in gene_descriptions %}
+        <p class="gene-description">
+            The <strong>{{ gene.gene }}</strong> gene {{ gene_descriptions[gene.gene] }}.
+        </p>
+        {% endif %}
+
+        <p class="coverage-info">
+            Your test covered only {{ gene.positions_found }} of
+            {{ gene.positions_found + gene.positions_missing }} defining positions
+            for this gene.
+        </p>
+
+        {% if gene.phenotype_range %}
+        <p class="phenotype-range">
+            Possible outcomes range from
+            <strong>{{ gene.phenotype_range | join(" to ") }}</strong>.
+        </p>
+        {% endif %}
+
+        {% if gene.has_harmful_phenotypes %}
+        <div class="warning-box">
+            <strong>Important:</strong> If you carry a harmful variant, the following
+            medications could be affected:
+            {% for category, drugs in gene.actionable_drugs.items() %}
+            <div class="drug-category">
+                <span class="drug-category-name">{{ category }}:</span>
+                <ul class="drug-list">
+                    {% for drug in drugs %}
+                    <li>{{ drug }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <p style="font-size: 0.9rem; color: #1976D2; font-weight: 600; margin-top: 8px;">
+            Targeted {{ gene.gene }} testing is recommended.
+        </p>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 5: Genes Not Tested                                         -->
+    <!-- ================================================================== -->
+    {% if no_call_genes_with_drugs %}
+    <div class="section-break"></div>
+    <h2>Genes Not Covered by This Test</h2>
+
+    {% for gene in no_call_genes_with_drugs %}
+    <div class="gene-card nocall-card">
+        <div class="gene-card-header">
+            <div class="color-dot" style="background: #9E9E9E;"></div>
+            <span class="gene-name">{{ gene.gene }}</span>
+        </div>
+
+        {% if gene.gene in gene_descriptions %}
+        <p class="gene-description">
+            The <strong>{{ gene.gene }}</strong> gene {{ gene_descriptions[gene.gene] }}.
+        </p>
+        {% endif %}
+
+        {% if gene.affected_drugs %}
+        <div class="drug-section">
+            <div class="drug-section-title">Affected medications:</div>
+            {% for category, drugs in gene.affected_drugs.items() %}
+            <div class="drug-category">
+                <span class="drug-category-name">{{ category }}:</span>
+                <ul class="drug-list">
+                    {% for drug in drugs %}
+                    <li>{{ drug }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <p style="font-size: 0.9rem; color: #1976D2; margin-top: 8px;">
+            Ask your doctor about <strong>{{ gene.gene }}</strong> testing if you take any of these medications.
+        </p>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 6: What To Do Next                                          -->
+    <!-- ================================================================== -->
+    <div class="section-break"></div>
+    <h2>What To Do Next</h2>
+
+    <ul class="next-steps-list">
+        <li>
+            <span class="step-number">1</span>
+            <strong>Print this report</strong> and bring it to your next healthcare appointment.
+            Your doctor or pharmacist can use it to review your medication plan.
+        </li>
+        <li>
+            <span class="step-number">2</span>
+            <strong>Discuss inconclusive results</strong> with your doctor.
+            {% if ambiguous_genes %}
+            You have {{ ambiguous_genes | length }} gene(s) with inconclusive results
+            that may benefit from additional testing.
+            {% else %}
+            All tested genes returned definitive results.
+            {% endif %}
+        </li>
+        <li>
+            <span class="step-number">3</span>
+            <strong>Consider targeted testing</strong> for any genes flagged above.
+            A clinical pharmacogenomics test can provide more precise results
+            to guide your medication choices.
+        </li>
+    </ul>
+
+    <!-- ================================================================== -->
+    <!-- SECTION 7: Glossary                                                 -->
+    <!-- ================================================================== -->
+    <div class="section-break"></div>
+    <h2>Glossary</h2>
+
+    <table class="glossary-table">
+        <tr>
+            <th>Gene</th>
+            <td>A section of your DNA that provides instructions for your body.
+                Some genes control how your body breaks down (metabolizes) medications.</td>
+        </tr>
+        <tr>
+            <th>Diplotype</th>
+            <td>The specific combination of two gene copies you inherited &mdash;
+                one from each parent. Your diplotype determines how the gene functions.</td>
+        </tr>
+        <tr>
+            <th>Phenotype</th>
+            <td>The observable effect of your gene combination on how your body
+                processes medications.</td>
+        </tr>
+        <tr>
+            <th>Normal Metabolizer</th>
+            <td>Your body breaks down the medication at a typical rate.
+                Standard doses are usually appropriate.</td>
+        </tr>
+        <tr>
+            <th>Intermediate Metabolizer</th>
+            <td>Your body breaks down the medication somewhat slower than typical.
+                A dose adjustment may be needed.</td>
+        </tr>
+        <tr>
+            <th>Poor Metabolizer</th>
+            <td>Your body has significant difficulty breaking down the medication.
+                An alternative drug or a major dose change may be needed.</td>
+        </tr>
+        <tr>
+            <th>Ultrarapid Metabolizer</th>
+            <td>Your body breaks down the medication much faster than typical.
+                Standard doses may be insufficient, or the drug may not work well.</td>
+        </tr>
+    </table>
+
+    <!-- ================================================================== -->
+    <!-- SECTION 8: Full Disclaimer                                          -->
+    <!-- ================================================================== -->
+    <div class="section-break"></div>
+    <h2>Disclaimer</h2>
+
+    <div class="full-disclaimer">
+        <strong>Medical Disclaimer</strong><br>
+        {{ disclaimer }}
+        <br><br>
+        <strong>About PharmCAT</strong><br>
+        This report was generated using PharmCAT (Pharmacogenomics Clinical Annotation Tool),
+        version {{ metadata.pharmcat_version }}, with data version {{ metadata.data_version }}.
+        Recommendations are based on Clinical Pharmacogenetics Implementation Consortium (CPIC)
+        guidelines and Dutch Pharmacogenetics Working Group (DPWG) guidelines.
+        <br><br>
+        <strong>Limitations</strong><br>
+        Genetic testing may not detect all variants. Results are based on the variants
+        identified in your sample and the positions covered by the test used. Some genes
+        may require additional targeted testing for a complete result.
+    </div>
+
+</div>
+</body>
+</html>

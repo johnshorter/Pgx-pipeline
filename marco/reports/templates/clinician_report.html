@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        /* ------------------------------------------------------------------ */
+        /* Base styles                                                         */
+        /* ------------------------------------------------------------------ */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         Helvetica, Arial, sans-serif;
+            color: #333;
+            background: #f5f5f5;
+            line-height: 1.55;
+            font-size: 14px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 32px;
+            background: #fff;
+        }
+
+        h1 { font-size: 1.7rem; margin-bottom: 0.2em; color: #1a237e; }
+        h2 {
+            font-size: 1.3rem;
+            margin: 1.8em 0 0.6em;
+            color: #1a237e;
+            border-bottom: 2px solid #1a237e;
+            padding-bottom: 0.3em;
+        }
+        h3 { font-size: 1.05rem; margin: 1.2em 0 0.4em; color: #1a237e; }
+        h4 { font-size: 0.95rem; margin: 0.8em 0 0.3em; color: #333; }
+        p  { margin-bottom: 0.7em; }
+
+        /* ------------------------------------------------------------------ */
+        /* Header                                                              */
+        /* ------------------------------------------------------------------ */
+        .report-header {
+            text-align: center;
+            padding: 28px 16px 20px;
+            border-bottom: 3px solid #1a237e;
+            margin-bottom: 20px;
+        }
+        .report-header h1 { font-size: 1.9rem; }
+        .report-subtitle {
+            color: #555;
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+        .header-meta {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .header-meta span { white-space: nowrap; }
+
+        /* Disclaimer banner */
+        .disclaimer-banner {
+            background: #e8eaf6;
+            border-left: 4px solid #1a237e;
+            padding: 10px 16px;
+            margin: 16px 0 24px;
+            font-size: 0.82rem;
+            color: #333;
+            line-height: 1.5;
+        }
+        .disclaimer-banner strong { display: block; margin-bottom: 2px; color: #1a237e; }
+
+        /* ------------------------------------------------------------------ */
+        /* Tables - shared                                                     */
+        /* ------------------------------------------------------------------ */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 18px;
+            font-size: 0.85rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 7px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+        th {
+            background: #e8eaf6;
+            color: #1a237e;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        tbody tr:nth-child(even) { background: #fafafa; }
+
+        /* Status row colors for executive summary */
+        .row-definitive { }
+        .row-ambiguous { background: #fff9c4 !important; }
+        .row-nocall { background: #f5f5f5 !important; }
+
+        /* Urgency left-border on drug rows */
+        .urgency-red { border-left: 4px solid #c62828; }
+        .urgency-yellow { border-left: 4px solid #f9a825; }
+        .urgency-green { border-left: 4px solid #2e7d32; }
+
+        /* ------------------------------------------------------------------ */
+        /* Gene detail cards                                                   */
+        /* ------------------------------------------------------------------ */
+        .gene-detail {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+            background: #fafafa;
+        }
+        .gene-detail-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .gene-detail-name {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #1a237e;
+        }
+        .gene-detail-diplotype {
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.95rem;
+            color: #555;
+        }
+        .gene-detail-phenotype {
+            font-style: italic;
+            color: #333;
+        }
+        .detail-row {
+            display: flex;
+            gap: 24px;
+            margin: 6px 0;
+            font-size: 0.88rem;
+            flex-wrap: wrap;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+        .detail-value { color: #333; }
+
+        /* Allele info */
+        .allele-table {
+            margin: 8px 0 12px;
+        }
+        .allele-table td { padding: 4px 10px; font-size: 0.85rem; }
+        .allele-table th { padding: 4px 10px; font-size: 0.82rem; }
+
+        /* Drug recommendations table inside gene detail */
+        .drug-rec-table {
+            margin: 10px 0 6px;
+            font-size: 0.82rem;
+        }
+        .drug-rec-table th { font-size: 0.78rem; padding: 5px 8px; }
+        .drug-rec-table td { padding: 5px 8px; }
+
+        /* ------------------------------------------------------------------ */
+        /* Ambiguous gene detail                                               */
+        /* ------------------------------------------------------------------ */
+        .ambiguous-detail {
+            border-left: 4px solid #f9a825;
+        }
+        .phenotype-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 2px 4px 2px 0;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            background: #f5f5f5;
+            color: #555;
+        }
+        .phenotype-tag.harmful {
+            background: #ffebee;
+            color: #c62828;
+            font-weight: 600;
+        }
+        .recommendation-note {
+            background: #e3f2fd;
+            border-left: 3px solid #1565c0;
+            padding: 8px 14px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            color: #0d47a1;
+        }
+
+        /* Drug category groups */
+        .drug-category-group { margin: 6px 0; }
+        .drug-category-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 2px;
+        }
+        .drug-category-list {
+            list-style: none;
+            padding: 0 0 0 16px;
+            margin: 0;
+        }
+        .drug-category-list li {
+            font-size: 0.85rem;
+            color: #555;
+            padding: 1px 0;
+        }
+        .drug-category-list li::before {
+            content: "\2022";
+            color: #999;
+            margin-right: 6px;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* No-call gene detail                                                 */
+        /* ------------------------------------------------------------------ */
+        .nocall-detail {
+            border-left: 4px solid #9e9e9e;
+            background: #f9f9f9;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Section 6: All drug annotations                                     */
+        /* ------------------------------------------------------------------ */
+        .drug-annotations-table td {
+            font-size: 0.82rem;
+        }
+        .drug-annotations-table .rec-text {
+            max-width: 300px;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Section 7: Methodology                                              */
+        /* ------------------------------------------------------------------ */
+        .methodology-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 12px 0;
+        }
+        .methodology-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 14px 18px;
+            background: #fafafa;
+        }
+        .methodology-card h4 {
+            margin: 0 0 8px;
+            color: #1a237e;
+            font-size: 0.9rem;
+        }
+        .methodology-card p,
+        .methodology-card li {
+            font-size: 0.85rem;
+            color: #555;
+        }
+        .methodology-card ul {
+            margin: 4px 0 0 18px;
+            padding: 0;
+        }
+        .methodology-card li { margin-bottom: 3px; }
+
+        .warning-message {
+            background: #fff8e1;
+            border-left: 3px solid #f9a825;
+            padding: 6px 12px;
+            margin: 4px 0;
+            font-size: 0.83rem;
+            color: #5d4037;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Section 8: References                                               */
+        /* ------------------------------------------------------------------ */
+        .reference-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0;
+        }
+        .reference-list li {
+            font-size: 0.83rem;
+            color: #555;
+            padding: 4px 0;
+            border-bottom: 1px solid #f0f0f0;
+            line-height: 1.5;
+        }
+        .reference-list li:last-child { border-bottom: none; }
+        .pmid-tag {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #1a237e;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Full disclaimer at bottom                                           */
+        /* ------------------------------------------------------------------ */
+        .full-disclaimer {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-top: 24px;
+            font-size: 0.83rem;
+            color: #666;
+            line-height: 1.6;
+        }
+        .full-disclaimer strong { color: #333; }
+
+        /* ------------------------------------------------------------------ */
+        /* Print / PDF styles                                                  */
+        /* ------------------------------------------------------------------ */
+        @media print {
+            body { background: #fff; font-size: 11px; }
+            .container { padding: 0; max-width: 100%; }
+            .report-header { page-break-after: avoid; }
+            h2 { page-break-after: avoid; }
+            .gene-detail { page-break-inside: avoid; }
+            .section-break { page-break-before: always; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; }
+            .methodology-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 15mm 12mm;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- ================================================================== -->
+    <!-- SECTION 1: Header                                                   -->
+    <!-- ================================================================== -->
+    <div class="report-header">
+        <h1>{{ title }}</h1>
+        <div class="report-subtitle">Clinician / Researcher Report</div>
+        <div class="header-meta">
+            <span><strong>Sample ID:</strong> {{ sample_id }}</span>
+            <span><strong>Date:</strong> {{ date }}</span>
+            <span><strong>PharmCAT:</strong> v{{ metadata.pharmcat_version }}</span>
+            <span><strong>Data:</strong> {{ metadata.data_version }}</span>
+        </div>
+    </div>
+
+    <div class="disclaimer-banner">
+        <strong>Clinical Disclaimer</strong>
+        {{ disclaimer }}
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- SECTION 2: Executive Summary Table                                  -->
+    <!-- ================================================================== -->
+    <h2>Executive Summary</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Gene</th>
+                <th>Diplotype</th>
+                <th>Phenotype</th>
+                <th>Activity Score</th>
+                <th>Status</th>
+                <th>Coverage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for gene in definitive_genes %}
+            <tr class="row-definitive">
+                <td><strong>{{ gene.gene }}</strong></td>
+                <td style="font-family: monospace;">{{ gene.diplotype }}</td>
+                <td>{{ gene.phenotype }}</td>
+                <td>{{ gene.activity_score if gene.activity_score is not none else "N/A" }}</td>
+                <td>Definitive</td>
+                <td>{{ gene.positions_found }}/{{ gene.positions_found + gene.positions_missing }} positions</td>
+            </tr>
+            {% endfor %}
+            {% for gene in ambiguous_genes %}
+            <tr class="row-ambiguous">
+                <td><strong>{{ gene.gene }}</strong></td>
+                <td style="font-family: monospace;">{{ gene.diplotype_count }} candidates</td>
+                <td>{{ gene.phenotype_range | join(", ") }}</td>
+                <td>N/A</td>
+                <td>Ambiguous</td>
+                <td>{{ gene.positions_found }}/{{ gene.positions_found + gene.positions_missing }} positions</td>
+            </tr>
+            {% endfor %}
+            {% for gene in no_call_genes %}
+            <tr class="row-nocall">
+                <td><strong>{{ gene.gene }}</strong></td>
+                <td>No Call</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>No Call</td>
+                <td>0/{{ gene.positions_missing }} positions</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- ================================================================== -->
+    <!-- SECTION 3: Definitive Results - Full Detail                         -->
+    <!-- ================================================================== -->
+    {% if definitive_genes %}
+    <div class="section-break"></div>
+    <h2>Definitive Results &mdash; Full Detail</h2>
+
+    {% for gene in definitive_genes %}
+    {% if gene.phenotype not in ("No Result", "Uncertain Susceptibility") %}
+    <div class="gene-detail">
+        <div class="gene-detail-header">
+            <span class="gene-detail-name">{{ gene.gene }}</span>
+            <span class="gene-detail-diplotype">{{ gene.diplotype }}</span>
+            <span class="gene-detail-phenotype">{{ gene.phenotype }}</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Activity Score:</span>
+            <span class="detail-value">{{ gene.activity_score if gene.activity_score is not none else "N/A" }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Coverage:</span>
+            <span class="detail-value">{{ gene.positions_found }} of {{ gene.positions_found + gene.positions_missing }} defining positions</span>
+        </div>
+
+        <h4>Allele Details</h4>
+        <table class="allele-table">
+            <thead>
+                <tr>
+                    <th>Allele</th>
+                    <th>Name</th>
+                    <th>Function</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Allele 1</td>
+                    <td>{{ gene.allele1_name }}</td>
+                    <td>{{ gene.allele1_function }}</td>
+                </tr>
+                <tr>
+                    <td>Allele 2</td>
+                    <td>{{ gene.allele2_name }}</td>
+                    <td>{{ gene.allele2_function }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        {% if gene.gene in gene_drug_map and gene_drug_map[gene.gene] %}
+        <h4>Drug Recommendations</h4>
+        <table class="drug-rec-table">
+            <thead>
+                <tr>
+                    <th>Drug</th>
+                    <th>Source</th>
+                    <th>Classification</th>
+                    <th>Recommendation</th>
+                    <th>Population</th>
+                    <th>Implications</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for drug in gene_drug_map[gene.gene] %}
+                <tr class="urgency-{{ drug.urgency }}">
+                    <td><strong>{{ drug.drug }}</strong></td>
+                    <td>{{ drug.source }}</td>
+                    <td>{{ drug.classification }}</td>
+                    <td class="rec-text">{{ drug.recommendation }}</td>
+                    <td>{{ drug.population if drug.population else "General" }}</td>
+                    <td>{{ drug.implications | join("; ") if drug.implications else "N/A" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 4: Ambiguous Results - Full Detail                          -->
+    <!-- ================================================================== -->
+    {% if ambiguous_genes %}
+    <div class="section-break"></div>
+    <h2>Ambiguous Results &mdash; Full Detail</h2>
+
+    {% for gene in ambiguous_genes %}
+    <div class="gene-detail ambiguous-detail">
+        <div class="gene-detail-header">
+            <span class="gene-detail-name">{{ gene.gene }}</span>
+            <span class="gene-detail-diplotype">{{ gene.diplotype_count }} diplotype candidates</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Coverage:</span>
+            <span class="detail-value">{{ gene.positions_found }} of {{ gene.positions_found + gene.positions_missing }} defining positions</span>
+        </div>
+
+        <h4>Phenotype Range</h4>
+        <div style="margin: 4px 0 10px;">
+            {% for pheno in gene.phenotype_range %}
+            <span class="phenotype-tag {% if pheno in gene.harmful_phenotypes %}harmful{% endif %}">{{ pheno }}</span>
+            {% endfor %}
+        </div>
+
+        {% if gene.has_harmful_phenotypes %}
+        <h4>Harmful Phenotypes Flagged</h4>
+        <p style="font-size: 0.85rem; color: #c62828;">
+            {% for pheno in gene.harmful_phenotypes %}
+            {{ pheno }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        {% endif %}
+
+        {% if gene.actionable_drugs %}
+        <h4>Actionable Drugs by Category</h4>
+        {% for category, drugs in gene.actionable_drugs.items() %}
+        <div class="drug-category-group">
+            <div class="drug-category-label">{{ category }}</div>
+            <ul class="drug-category-list">
+                {% for drug in drugs %}
+                <li>{{ drug }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="recommendation-note">
+            Targeted sequencing of <strong>{{ gene.gene }}</strong> covering all
+            {{ gene.positions_found + gene.positions_missing }} defining positions
+            is recommended to resolve diplotype ambiguity.
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 5: No Call Genes                                            -->
+    <!-- ================================================================== -->
+    {% if no_call_genes %}
+    <div class="section-break"></div>
+    <h2>No Call Genes</h2>
+
+    {% for gene in no_call_genes %}
+    <div class="gene-detail nocall-detail">
+        <div class="gene-detail-header">
+            <span class="gene-detail-name">{{ gene.gene }}</span>
+            <span style="font-size: 0.88rem; color: #999;">No variants detected</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Missing Positions:</span>
+            <span class="detail-value">{{ gene.positions_missing }}</span>
+        </div>
+
+        {% if gene.affected_drugs %}
+        <h4>Affected Drugs by Category</h4>
+        {% for category, drugs in gene.affected_drugs.items() %}
+        <div class="drug-category-group">
+            <div class="drug-category-label">{{ category }}</div>
+            <ul class="drug-category-list">
+                {% for drug in drugs %}
+                <li>{{ drug }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="recommendation-note">
+            Targeted {{ gene.gene }} genotyping is recommended if the patient
+            is prescribed or being considered for any of the affected medications listed above.
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 6: All Drug Annotations (CPIC + DPWG)                       -->
+    <!-- ================================================================== -->
+    {% if all_drugs %}
+    <div class="section-break"></div>
+    <h2>All Drug Annotations (CPIC &amp; DPWG)</h2>
+
+    <table class="drug-annotations-table">
+        <thead>
+            <tr>
+                <th>Drug</th>
+                <th>Source</th>
+                <th>Gene(s)</th>
+                <th>Phenotype(s)</th>
+                <th>Classification</th>
+                <th>Recommendation</th>
+                <th>Population</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for drug in all_drugs %}
+            <tr class="urgency-{{ drug.urgency }}">
+                <td><strong>{{ drug.drug }}</strong></td>
+                <td>{{ drug.source }}</td>
+                <td>{{ drug.gene_list }}</td>
+                <td>{{ drug.phenotype_list }}</td>
+                <td>{{ drug.classification }}</td>
+                <td class="rec-text">{{ drug.recommendation }}</td>
+                <td>{{ drug.population if drug.population else "General" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 7: Methodology & QC                                         -->
+    <!-- ================================================================== -->
+    <div class="section-break"></div>
+    <h2>Methodology &amp; Quality Control</h2>
+
+    <div class="methodology-grid">
+        <div class="methodology-card">
+            <h4>Analysis Software</h4>
+            <p><strong>PharmCAT</strong> v{{ metadata.pharmcat_version }}</p>
+            <p>Data version: {{ metadata.data_version }}</p>
+            <p>Analysis timestamp: {{ metadata.timestamp }}</p>
+        </div>
+        <div class="methodology-card">
+            <h4>Coverage Summary</h4>
+            <p>Total genes analyzed: <strong>{{ coverage_summary.total_genes }}</strong></p>
+            <ul>
+                <li>Definitive calls: {{ coverage_summary.definitive_count }}</li>
+                <li>Ambiguous calls: {{ coverage_summary.ambiguous_count }}</li>
+                <li>No calls: {{ coverage_summary.no_call_count }}</li>
+            </ul>
+            <p style="margin-top: 6px;">
+                Positions found: <strong>{{ coverage_summary.total_positions_found }}</strong>
+                &nbsp;|&nbsp;
+                Positions missing: <strong>{{ coverage_summary.total_positions_missing }}</strong>
+            </p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <h3>PharmCAT Warnings &amp; Messages</h3>
+    {% for msg in messages %}
+    {% if msg %}
+    <div class="warning-message">{{ msg }}</div>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    <div class="methodology-card" style="margin-top: 12px;">
+        <h4>VCF Quality Note</h4>
+        <p>
+            Results are dependent on the quality and completeness of the input VCF file.
+            Variants not present in the VCF (due to low coverage, filtering, or platform
+            limitations) will result in reference allele assumptions or no-call designations.
+            Clinical confirmation with a validated assay is recommended for actionable results.
+        </p>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- SECTION 8: References                                               -->
+    <!-- ================================================================== -->
+    {% if all_citations %}
+    <div class="section-break"></div>
+    <h2>References</h2>
+
+    <ol class="reference-list">
+        {% for cite in all_citations %}
+        <li>
+            {% if cite.title %}{{ cite.title }}{% endif %}
+            {% if cite.journal %} <em>{{ cite.journal }}</em>{% endif %}
+            {% if cite.year %} ({{ cite.year }}).{% endif %}
+            {% if cite.pmid %}<span class="pmid-tag">PMID: {{ cite.pmid }}</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
+    <!-- ================================================================== -->
+    <!-- SECTION 9: Disclaimer                                               -->
+    <!-- ================================================================== -->
+    <div class="section-break"></div>
+    <h2>Disclaimer</h2>
+
+    <div class="full-disclaimer">
+        <strong>Clinical Use Disclaimer</strong><br>
+        {{ disclaimer }}
+        <br><br>
+        <strong>Analysis Details</strong><br>
+        This report was generated using PharmCAT (Pharmacogenomics Clinical Annotation Tool),
+        version {{ metadata.pharmcat_version }}, with data version {{ metadata.data_version }}.
+        Recommendations are derived from Clinical Pharmacogenetics Implementation Consortium (CPIC)
+        guidelines and Dutch Pharmacogenetics Working Group (DPWG) guidelines.
+        <br><br>
+        <strong>Limitations</strong><br>
+        Pharmacogenomic testing may not detect all clinically relevant variants. Structural variants,
+        copy number variations, and rare alleles may not be captured by whole-genome sequencing
+        approaches. Results should be interpreted in the context of the patient's complete clinical
+        picture, including concomitant medications, organ function, and other clinical factors.
+        Novel or rare variants of uncertain significance are not reported.
+        <br><br>
+        <strong>Intended Audience</strong><br>
+        This report is intended for use by qualified healthcare professionals and researchers.
+        It is not intended for direct patient distribution without appropriate clinical interpretation.
+    </div>
+
+</div>
+</body>
+</html>
