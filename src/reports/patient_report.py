@@ -1,0 +1,389 @@
+"""
+Patient report — plain-language, colorblind-safe.
+
+Combines:
+- Adib's gene functional categories with category descriptions
+- Adib's 4-level action symbols (▲ ◆ ✓ —)
+- Marco's overview cards with traffic-light counts
+- Marco's drug therapeutic categories
+- Plain-language phenotype explanations + per-gene descriptions
+"""
+
+from collections import OrderedDict, defaultdict
+from datetime import date
+from pathlib import Path
+
+from config.settings import (
+    ACTION_LABELS, ACTION_SYMBOLS, APP_TITLE, CATEGORY_ORDER,
+    GENE_CATEGORIES, PATIENT_DISCLAIMER, RISK_PRIORITY, drug_category,
+)
+from pharmcat.output_parser import (
+    AmbiguousGene, DefinitiveGene, NoCallGene, ParsedResults,
+)
+from reports._render import html_and_pdf
+
+# ---------------------------------------------------------------------------
+# Plain-language explanations (4-level keyed)
+# ---------------------------------------------------------------------------
+
+PHENOTYPE_PLAIN: dict[str, dict] = {
+    "normal metabolizer": {
+        "brief": "Your body processes medications involving this gene at a typical rate.",
+        "detail": (
+            "You carry two normally functioning copies of this gene. Standard dosing "
+            "recommendations typically apply for medications affected by this gene."
+        ),
+    },
+    "intermediate metabolizer": {
+        "brief": "Your body may process some medications a bit slower than average.",
+        "detail": (
+            "You carry gene variants that may result in somewhat reduced enzyme activity. "
+            "Your doctor may want to consider this when prescribing affected medications."
+        ),
+    },
+    "poor metabolizer": {
+        "brief": "Your body processes some medications much slower than average — discuss with your doctor.",
+        "detail": (
+            "You carry gene variants associated with significantly reduced enzyme activity. "
+            "Certain medications may build up more than expected, increasing side-effect risk. "
+            "Dose adjustments or alternative medications may be needed."
+        ),
+    },
+    "rapid metabolizer": {
+        "brief": "Your body processes some medications faster than average.",
+        "detail": (
+            "You carry gene variants associated with increased enzyme activity. Medications "
+            "affected by this gene may break down faster, possibly reducing their effect."
+        ),
+    },
+    "ultrarapid metabolizer": {
+        "brief": "Your body processes some medications much faster than average — discuss with your doctor.",
+        "detail": (
+            "You carry gene variants associated with significantly increased enzyme activity. "
+            "Standard doses may not be effective, or for some drugs (e.g. codeine) may "
+            "produce dangerously high active-drug levels. Discuss with your healthcare provider."
+        ),
+    },
+    "decreased function": {
+        "brief": "This gene may have reduced activity — discuss with your doctor.",
+        "detail": (
+            "Your genetic result suggests decreased function of this gene. This may affect "
+            "how certain medications are transported or processed in your body."
+        ),
+    },
+    "increased function": {
+        "brief": "This gene may have increased activity — discuss with your doctor.",
+        "detail": (
+            "Your genetic result suggests increased function of this gene, which may affect "
+            "how certain medications are transported or processed in your body."
+        ),
+    },
+    "normal function": {
+        "brief": "This gene is functioning normally. No medication adjustments expected.",
+        "detail": (
+            "Your genetic result indicates normal function for this gene. Drug transport "
+            "and processing related to this gene are expected to occur at standard rates."
+        ),
+    },
+    "indeterminate": {
+        "brief": "Your result for this gene could not be clearly determined — discuss with your doctor.",
+        "detail": (
+            "The analysis was unable to clearly determine your status for this gene. This "
+            "may be due to uncommon variants or limitations of the testing method."
+        ),
+    },
+    "no result": {
+        "brief": "No result could be determined for this gene from the available data.",
+        "detail": (
+            "This gene could not be analyzed from the available genetic data. Consider "
+            "clinical testing if a result for this gene is required."
+        ),
+    },
+}
+
+DRUG_GUIDANCE: dict[str, str] = {
+    "action": "Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.",
+    "review": "Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.",
+    "normal": "Standard use is expected to be appropriate based on your genetics.",
+    "nodata": "Insufficient data to provide guidance for this medication.",
+}
+
+PHENOTYPE_SHORT: dict[str, str] = {
+    "Normal Metabolizer": "Normal",
+    "Intermediate Metabolizer": "Intermediate",
+    "Poor Metabolizer": "Poor",
+    "Ultrarapid Metabolizer": "Ultrarapid",
+    "Rapid Metabolizer": "Rapid",
+    "Normal Function": "Normal",
+    "Increased Function": "Increased",
+    "Decreased Function": "Decreased",
+    "Poor Function": "Poor",
+    "No Result": "No result",
+    "Uncertain Susceptibility": "Uncertain",
+}
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def generate_patient_report(
+    parsed: ParsedResults,
+    output_dir: str | Path,
+) -> dict[str, Path]:
+    """Render the patient report (HTML + best-effort PDF)."""
+    context = _build_context(parsed)
+    return html_and_pdf("patient_report.html", context, Path(output_dir), "patient_report")
+
+
+# ---------------------------------------------------------------------------
+# Context builder
+# ---------------------------------------------------------------------------
+
+def _build_context(parsed: ParsedResults) -> dict:
+    overview_cards = _build_overview_cards(parsed)
+    counts = _count_by_risk(overview_cards)
+
+    # Functional category groupings (with all three buckets)
+    categories = _group_by_category(parsed)
+
+    # Drug guidance grouped by therapeutic category, action-first
+    drugs_by_category = _group_drugs_for_patient(parsed)
+
+    summary_sentence = _summary_sentence(counts, parsed)
+
+    return {
+        "title": "Your Personal Pharmacogenetics Report",
+        "app_title": APP_TITLE,
+        "report_date": date.today().strftime("%B %d, %Y"),
+        "sample_id": parsed.sample_id,
+        "metadata": parsed.metadata,
+        "disclaimer": PATIENT_DISCLAIMER,
+        "action_symbols": ACTION_SYMBOLS,
+        "action_labels": ACTION_LABELS,
+        "summary_sentence": summary_sentence,
+        "counts": counts,
+        "overview_cards": overview_cards,
+        "categories": categories,
+        "drugs_by_category": drugs_by_category,
+        "phenotype_plain": PHENOTYPE_PLAIN,
+        "drug_guidance": DRUG_GUIDANCE,
+        "category_order": CATEGORY_ORDER,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Overview cards (Marco)
+# ---------------------------------------------------------------------------
+
+def _build_overview_cards(parsed: ParsedResults) -> list[dict]:
+    cards: list[dict] = []
+
+    for g in parsed.definitive_genes:
+        cards.append({
+            "gene": g.gene,
+            "risk_level": g.risk_level,
+            "symbol": ACTION_SYMBOLS[g.risk_level],
+            "label": ACTION_LABELS[g.risk_level],
+            "protein_type": g.protein_type,
+            "phenotype_short": PHENOTYPE_SHORT.get(g.phenotype, g.phenotype),
+            "med_count": len(g.related_drugs),
+            "bucket": "definitive",
+        })
+
+    for g in parsed.ambiguous_genes:
+        cards.append({
+            "gene": g.gene,
+            "risk_level": g.risk_level,
+            "symbol": ACTION_SYMBOLS[g.risk_level],
+            "label": ACTION_LABELS[g.risk_level],
+            "protein_type": g.protein_type,
+            "phenotype_short": "Inconclusive",
+            "med_count": len(g.related_drugs),
+            "bucket": "ambiguous",
+        })
+
+    for g in parsed.no_call_genes:
+        cards.append({
+            "gene": g.gene,
+            "risk_level": "nodata",
+            "symbol": ACTION_SYMBOLS["nodata"],
+            "label": ACTION_LABELS["nodata"],
+            "protein_type": g.protein_type,
+            "phenotype_short": "Not tested",
+            "med_count": len(g.related_drugs),
+            "bucket": "no_call",
+        })
+
+    cards.sort(key=lambda c: (RISK_PRIORITY.get(c["risk_level"], 3), c["gene"]))
+    return cards
+
+
+def _count_by_risk(cards: list[dict]) -> dict[str, int]:
+    counts = {"action": 0, "review": 0, "normal": 0, "nodata": 0}
+    for c in cards:
+        counts[c["risk_level"]] = counts.get(c["risk_level"], 0) + 1
+    counts["total"] = sum(counts.values())
+    return counts
+
+
+def _summary_sentence(counts: dict[str, int], parsed: ParsedResults) -> str:
+    total = counts["total"]
+    if total == 0:
+        return "No genes were analyzed."
+
+    parts: list[str] = []
+    if counts["normal"]:
+        n = counts["normal"]
+        parts.append(f"{n} gene{'s' if n != 1 else ''} show{'s' if n == 1 else ''} normal results")
+    if counts["action"] or counts["review"]:
+        n = counts["action"] + counts["review"]
+        parts.append(f"{n} gene{'s' if n != 1 else ''} may affect your medication plan")
+    if counts["nodata"]:
+        n = counts["nodata"]
+        parts.append(f"{n} gene{'s' if n != 1 else ''} could not be fully determined")
+
+    return ". ".join(parts) + "." if parts else f"Your test analyzed {total} genes."
+
+
+# ---------------------------------------------------------------------------
+# Functional category grouping
+# ---------------------------------------------------------------------------
+
+def _group_by_category(parsed: ParsedResults) -> "OrderedDict[str, dict]":
+    """Group every gene (in any bucket) by functional category, then within
+    each category split into definitive / ambiguous / no-call sub-lists."""
+    cats: OrderedDict[str, dict] = OrderedDict()
+    for cat_name in CATEGORY_ORDER:
+        cats[cat_name] = {
+            "name": cat_name,
+            "description": GENE_CATEGORIES[cat_name]["description"],
+            "definitive": [],
+            "ambiguous": [],
+            "no_call": [],
+        }
+
+    for g in parsed.definitive_genes:
+        cats[g.category]["definitive"].append(_enrich_definitive(g))
+    for g in parsed.ambiguous_genes:
+        cats[g.category]["ambiguous"].append(_enrich_ambiguous(g))
+    for g in parsed.no_call_genes:
+        cats[g.category]["no_call"].append(_enrich_no_call(g))
+
+    # Drop empty categories
+    return OrderedDict(
+        (k, v) for k, v in cats.items()
+        if v["definitive"] or v["ambiguous"] or v["no_call"]
+    )
+
+
+def _enrich_definitive(g: DefinitiveGene) -> dict:
+    explanations = _explain_phenotype(g.phenotype)
+    return {
+        "gene": g.gene,
+        "diplotype": g.diplotype,
+        "phenotype": g.phenotype,
+        "phenotype_short": PHENOTYPE_SHORT.get(g.phenotype, g.phenotype),
+        "activity_score": g.activity_score,
+        "star_alleles": g.star_alleles,
+        "risk_level": g.risk_level,
+        "symbol": ACTION_SYMBOLS[g.risk_level],
+        "label": ACTION_LABELS[g.risk_level],
+        "description": g.description,
+        "protein_type": g.protein_type,
+        "plain_language": explanations["brief"],
+        "detail": explanations["detail"],
+        "caveat": g.caveat,
+    }
+
+
+def _enrich_ambiguous(g: AmbiguousGene) -> dict:
+    return {
+        "gene": g.gene,
+        "diplotype_count": g.diplotype_count,
+        "phenotype_range": g.phenotype_range,
+        "harmful_phenotypes": g.harmful_phenotypes,
+        "risk_level": g.risk_level,
+        "symbol": ACTION_SYMBOLS[g.risk_level],
+        "label": ACTION_LABELS[g.risk_level],
+        "description": g.description,
+        "protein_type": g.protein_type,
+        "actionable_drugs": g.actionable_drugs,
+        "caveat": g.caveat,
+    }
+
+
+def _enrich_no_call(g: NoCallGene) -> dict:
+    return {
+        "gene": g.gene,
+        "risk_level": "nodata",
+        "symbol": ACTION_SYMBOLS["nodata"],
+        "label": ACTION_LABELS["nodata"],
+        "description": g.description,
+        "protein_type": g.protein_type,
+        "affected_drugs": g.affected_drugs,
+        "caveat": g.caveat,
+    }
+
+
+def _explain_phenotype(phenotype: str) -> dict[str, str]:
+    if not phenotype:
+        return PHENOTYPE_PLAIN["no result"]
+    lower = phenotype.lower().strip()
+    for key, val in PHENOTYPE_PLAIN.items():
+        if key in lower:
+            return val
+    return PHENOTYPE_PLAIN["indeterminate"]
+
+
+# ---------------------------------------------------------------------------
+# Drug grouping for the patient view
+# ---------------------------------------------------------------------------
+
+def _group_drugs_for_patient(parsed: ParsedResults) -> list[dict]:
+    """Group drug recommendations by therapeutic category, action-first
+    within each category. One row per (drug, gene-or-blank) — we deduplicate
+    multi-source recommendations to the highest-risk one."""
+    by_key: dict[tuple[str, str], dict] = {}
+
+    for d in parsed.drugs:
+        gene_label = ", ".join(d.affected_genes) if d.affected_genes else ""
+        key = (d.drug, gene_label)
+        guidance = DRUG_GUIDANCE.get(d.risk_level, DRUG_GUIDANCE["review"])
+
+        candidate = {
+            "drug": d.drug,
+            "gene": gene_label,
+            "risk_level": d.risk_level,
+            "symbol": ACTION_SYMBOLS[d.risk_level],
+            "label": ACTION_LABELS[d.risk_level],
+            "patient_guidance": guidance,
+            "therapeutic_category": d.therapeutic_category,
+        }
+        existing = by_key.get(key)
+        if (
+            existing is None
+            or RISK_PRIORITY.get(d.risk_level, 3)
+            < RISK_PRIORITY.get(existing["risk_level"], 3)
+        ):
+            by_key[key] = candidate
+
+    # Bucket by therapeutic category
+    grouped: dict[str, list[dict]] = defaultdict(list)
+    for d in by_key.values():
+        grouped[d["therapeutic_category"]].append(d)
+
+    out: list[dict] = []
+    for cat in sorted(grouped.keys()):
+        drugs = sorted(
+            grouped[cat],
+            key=lambda d: (RISK_PRIORITY.get(d["risk_level"], 3), d["drug"]),
+        )
+        out.append({"category": cat, "drugs": drugs})
+
+    out.sort(
+        key=lambda group: min(
+            RISK_PRIORITY.get(d["risk_level"], 3) for d in group["drugs"]
+        )
+    )
+    return out

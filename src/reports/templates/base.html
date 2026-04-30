@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }}</title>
+<style>
+  /* ── Colorblind-safe palette ─────────────────────────────────── */
+  :root {
+    --action:      #1565C0;  /* deep blue — needs attention      */
+    --action-bg:   #E3F2FD;
+    --review:      #E65100;  /* orange — monitor / discuss        */
+    --review-bg:   #FFF3E0;
+    --normal:      #2E7D32;  /* green — no action needed          */
+    --normal-bg:   #E8F5E9;
+    --nodata:      #757575;  /* grey — insufficient data          */
+    --nodata-bg:   #F5F5F5;
+    --primary:     #1565C0;
+    --border:      #E0E0E0;
+    --text:        #1A1A1A;
+    --text-light:  #5F6368;
+    --bg:          #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    color: var(--text);
+    background: #F8F9FA;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    background: var(--bg);
+  }
+
+  h1 { font-size: 28px; color: var(--primary); margin-bottom: 4px; }
+  h2 {
+    font-size: 22px;
+    color: var(--primary);
+    margin: 32px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 { font-size: 17px; margin: 18px 0 8px; }
+  h4 { font-size: 15px; margin: 12px 0 6px; color: var(--text-light); }
+  p { margin-bottom: 0.7em; }
+
+  /* ── Header ──────────────────────────────────────────────────── */
+  .report-header {
+    text-align: center;
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+  }
+  .report-header .meta {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  /* ── Symbol legend ───────────────────────────────────────────── */
+  .legend {
+    background: var(--action-bg);
+    border-left: 4px solid var(--primary);
+    padding: 14px 18px;
+    margin: 18px 0 24px;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .legend-row {
+    display: flex; align-items: center; gap: 10px; margin: 4px 0;
+  }
+
+  .sym {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .sym-action { background: var(--action-bg); color: var(--action); border: 2px solid var(--action); }
+  .sym-review { background: var(--review-bg); color: var(--review); border: 2px solid var(--review); }
+  .sym-normal { background: var(--normal-bg); color: var(--normal); border: 2px solid var(--normal); }
+  .sym-nodata { background: var(--nodata-bg); color: var(--nodata); border: 2px solid var(--nodata); }
+
+  .sym-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
+  /* ── Disclaimer ──────────────────────────────────────────────── */
+  .disclaimer {
+    background: var(--review-bg);
+    border-left: 4px solid var(--review);
+    padding: 12px 16px;
+    margin: 20px 0;
+    font-size: 13px;
+    color: #5d4037;
+  }
+  .disclaimer strong { display: block; margin-bottom: 4px; }
+
+  /* ── Tables ──────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: #FAFAFA;
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Cards ───────────────────────────────────────────────────── */
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 10px 0;
+  }
+  .card-action { border-left: 4px solid var(--action); }
+  .card-review { border-left: 4px solid var(--review); }
+  .card-normal { border-left: 4px solid var(--normal); }
+  .card-nodata { border-left: 4px solid var(--nodata); }
+
+  .gene-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .gene-header .gene-name {
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .gene-header .label-tag {
+    margin-left: auto;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .label-action { background: var(--action-bg); color: var(--action); }
+  .label-review { background: var(--review-bg); color: var(--review); }
+  .label-normal { background: var(--normal-bg); color: var(--normal); }
+  .label-nodata { background: var(--nodata-bg); color: var(--nodata); }
+
+  .gene-meta {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+
+  /* ── Caveat ──────────────────────────────────────────────────── */
+  .caveat {
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #5D4037;
+  }
+
+  /* ── Category section ─────────────────────────────────────────── */
+  .category {
+    margin-top: 24px;
+  }
+  .category-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+
+  /* ── Footer ──────────────────────────────────────────────────── */
+  footer {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text-light);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* Print rules — keep cards together */
+  @media print {
+    body { background: #fff; }
+    .container { padding: 16px; max-width: none; }
+    .card, .category { break-inside: avoid; page-break-inside: avoid; }
+    h2, h3 { break-after: avoid; }
+  }
+</style>
+{% block extra_styles %}{% endblock %}
+</head>
+<body>
+<div class="container">
+
+  <header class="report-header">
+    <h1>{{ title }}</h1>
+    <div class="meta">
+      {{ report_date }}
+      {% if sample_id %} &middot; Sample: <strong>{{ sample_id }}</strong>{% endif %}
+      {% if metadata.pharmcat_version %} &middot; PharmCAT {{ metadata.pharmcat_version }}{% endif %}
+    </div>
+  </header>
+
+  <div class="legend">
+    <strong style="display:block;margin-bottom:6px;">How to read this report</strong>
+    <div class="legend-row"><span class="sym sym-action">{{ action_symbols.action }}</span><span><strong>{{ action_labels.action }}</strong> — discuss with your healthcare provider</span></div>
+    <div class="legend-row"><span class="sym sym-review">{{ action_symbols.review }}</span><span><strong>{{ action_labels.review }}</strong> — monitor or consider adjustment</span></div>
+    <div class="legend-row"><span class="sym sym-normal">{{ action_symbols.normal }}</span><span><strong>{{ action_labels.normal }}</strong> — typical processing, no special action</span></div>
+    <div class="legend-row"><span class="sym sym-nodata">{{ action_symbols.nodata }}</span><span><strong>{{ action_labels.nodata }}</strong> — could not be determined from this VCF</span></div>
+  </div>
+
+  {% block content %}{% endblock %}
+
+  <div class="disclaimer">
+    <strong>Disclaimer</strong>
+    {{ disclaimer }}
+  </div>
+
+  <footer>
+    Generated by {{ app_title }} &middot; {{ report_date }}
+  </footer>
+</div>
+</body>
+</html>

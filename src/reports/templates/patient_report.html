@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block extra_styles %}
+<style>
+  /* Dashboard counts */
+  .dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin: 16px 0 24px;
+  }
+  .dash-cell {
+    flex: 1 1 120px;
+    text-align: center;
+    padding: 14px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .dash-cell.action { background: var(--action-bg); border-color: var(--action); }
+  .dash-cell.review { background: var(--review-bg); border-color: var(--review); }
+  .dash-cell.normal { background: var(--normal-bg); border-color: var(--normal); }
+  .dash-cell.nodata { background: var(--nodata-bg); border-color: var(--nodata); }
+  .dash-cell .count { display: block; font-size: 28px; font-weight: 700; }
+  .dash-cell .label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* Overview cards (one per gene) */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 12px 0 24px;
+  }
+  .ov-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: #fff;
+  }
+  .ov-card.action { border-left: 4px solid var(--action); }
+  .ov-card.review { border-left: 4px solid var(--review); }
+  .ov-card.normal { border-left: 4px solid var(--normal); }
+  .ov-card.nodata { border-left: 4px solid var(--nodata); }
+  .ov-card .gene { font-weight: 700; font-size: 16px; }
+  .ov-card .pheno { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+  .ov-card .ptype { font-size: 11px; color: var(--text-light); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .ov-card .meds { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+  .summary-sentence {
+    font-size: 16px;
+    text-align: center;
+    margin: 14px 0 18px;
+  }
+
+  .gene-block .detail {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-top: 6px;
+  }
+  .star-list {
+    display: inline-block;
+    background: #F1F3F4;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 12px;
+  }
+
+  /* Drug guidance group */
+  .drug-group h4 {
+    margin-top: 18px;
+    color: var(--text);
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 4px;
+  }
+  .drug-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .drug-row:last-child { border-bottom: none; }
+  .drug-row .drug-name { font-weight: 600; min-width: 140px; }
+  .drug-row .guidance { font-size: 14px; color: var(--text-light); flex: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<p class="summary-sentence">{{ summary_sentence }}</p>
+
+<div class="dashboard">
+  <div class="dash-cell action">
+    <span class="count">{{ counts.action }}</span>
+    <span class="label">{{ action_symbols.action }} {{ action_labels.action }}</span>
+  </div>
+  <div class="dash-cell review">
+    <span class="count">{{ counts.review }}</span>
+    <span class="label">{{ action_symbols.review }} {{ action_labels.review }}</span>
+  </div>
+  <div class="dash-cell normal">
+    <span class="count">{{ counts.normal }}</span>
+    <span class="label">{{ action_symbols.normal }} {{ action_labels.normal }}</span>
+  </div>
+  <div class="dash-cell nodata">
+    <span class="count">{{ counts.nodata }}</span>
+    <span class="label">{{ action_symbols.nodata }} {{ action_labels.nodata }}</span>
+  </div>
+</div>
+
+<h2>At-a-glance</h2>
+<div class="overview-grid">
+  {% for c in overview_cards %}
+  <div class="ov-card {{ c.risk_level }}">
+    <div class="gene">
+      <span class="sym-inline sym-{{ c.risk_level }}">{{ c.symbol }}</span>{{ c.gene }}
+    </div>
+    <div class="pheno">{{ c.phenotype_short }}</div>
+    <div class="ptype">{{ c.protein_type }}</div>
+    {% if c.med_count %}<div class="meds">{{ c.med_count }} medication{{ '' if c.med_count == 1 else 's' }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<h2>Your Genes by Function</h2>
+
+{% for cat_name, cat in categories.items() %}
+<section class="category">
+  <h3>{{ cat.name }}</h3>
+  <p class="category-desc">{{ cat.description }}</p>
+
+  {% for g in cat.definitive %}
+  <div class="card card-{{ g.risk_level }} gene-block">
+    <div class="gene-header">
+      <span class="sym sym-{{ g.risk_level }}">{{ g.symbol }}</span>
+      <span class="gene-name">{{ g.gene }}</span>
+      <span class="label-tag label-{{ g.risk_level }}">{{ g.label }}</span>
+    </div>
+    <div class="gene-meta">
+      {{ g.phenotype }}
+      {% if g.star_alleles %} &middot; <span class="star-list">{{ g.star_alleles | join(' / ') }}</span>{% endif %}
+      {% if g.activity_score %} &middot; activity {{ g.activity_score }}{% endif %}
+    </div>
+    {% if g.description %}<p>{{ g.gene }} {{ g.description }}.</p>{% endif %}
+    <p>{{ g.plain_language }}</p>
+    <p class="detail">{{ g.detail }}</p>
+    {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
+  </div>
+  {% endfor %}
+
+  {% for g in cat.ambiguous %}
+  <div class="card card-{{ g.risk_level }} gene-block">
+    <div class="gene-header">
+      <span class="sym sym-{{ g.risk_level }}">{{ g.symbol }}</span>
+      <span class="gene-name">{{ g.gene }}</span>
+      <span class="label-tag label-{{ g.risk_level }}">{{ g.label }} (Inconclusive)</span>
+    </div>
+    {% if g.description %}<p>{{ g.gene }} {{ g.description }}.</p>{% endif %}
+    <p>This gene's result is inconclusive — there are {{ g.diplotype_count }} possible interpretations.
+       {% if g.harmful_phenotypes %}Some of these (such as {{ g.harmful_phenotypes | join(', ') }}) could affect medication choices, so this should be reviewed with your healthcare provider.{% else %}A clinician can help determine if additional testing is warranted.{% endif %}</p>
+    {% if g.actionable_drugs %}
+    <p class="detail"><strong>Possibly affected medications:</strong></p>
+    <ul style="margin-left: 18px; font-size: 13px; color: var(--text-light);">
+      {% for cat, drugs in g.actionable_drugs.items() %}
+      <li><strong>{{ cat }}:</strong> {{ drugs | join(', ') }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
+  </div>
+  {% endfor %}
+
+  {% for g in cat.no_call %}
+  <div class="card card-nodata gene-block">
+    <div class="gene-header">
+      <span class="sym sym-nodata">{{ g.symbol }}</span>
+      <span class="gene-name">{{ g.gene }}</span>
+      <span class="label-tag label-nodata">{{ g.label }}</span>
+    </div>
+    {% if g.description %}<p>{{ g.gene }} {{ g.description }}.</p>{% endif %}
+    <p>This gene could not be analyzed from the available data. {% if g.affected_drugs %}If you take any of the medications below, consider clinical PGx testing.{% endif %}</p>
+    {% if g.affected_drugs %}
+    <p class="detail"><strong>Medications that depend on {{ g.gene }}:</strong></p>
+    <ul style="margin-left: 18px; font-size: 13px; color: var(--text-light);">
+      {% for cat, drugs in g.affected_drugs.items() %}
+      <li><strong>{{ cat }}:</strong> {{ drugs | join(', ') }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endfor %}
+
+{% if drugs_by_category %}
+<h2>Medication Guidance</h2>
+{% for group in drugs_by_category %}
+<div class="drug-group">
+  <h4>{{ group.category }}</h4>
+  {% for d in group.drugs %}
+  <div class="drug-row">
+    <span class="sym-inline sym-{{ d.risk_level }}">{{ d.symbol }}</span>
+    <span class="drug-name">{{ d.drug }}{% if d.gene %} <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">({{ d.gene }})</span>{% endif %}</span>
+    <span class="guidance">{{ d.patient_guidance }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}

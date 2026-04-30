@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block extra_styles %}
+<style>
+  /* Coverage summary */
+  .coverage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0 24px;
+  }
+  .cov-cell {
+    flex: 1 1 160px;
+    background: #FAFAFA;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+  }
+  .cov-cell .label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.4px; }
+  .cov-cell .count { font-size: 24px; font-weight: 700; display: block; margin-top: 2px; }
+
+  /* Gene tables (clinician view) */
+  table.tech td.diplo, table.tech td.alleles {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+  }
+
+  table.drugs th, table.drugs td { font-size: 13px; padding: 6px 8px; }
+  table.drugs td.rec { line-height: 1.4; }
+  table.drugs .src-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: #ECEFF1;
+    color: #37474F;
+    text-transform: uppercase;
+  }
+
+  .citations li { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+  .citations { margin: 8px 0 16px 22px; }
+
+  details {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  details summary { cursor: pointer; font-weight: 600; }
+  details[open] { background: #FAFAFA; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2>Coverage Summary</h2>
+<div class="coverage">
+  <div class="cov-cell">
+    <span class="label">Total Genes</span>
+    <span class="count">{{ coverage_summary.total_genes }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">Definitive Calls</span>
+    <span class="count">{{ coverage_summary.definitive_count }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">Ambiguous</span>
+    <span class="count">{{ coverage_summary.ambiguous_count }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">No Call</span>
+    <span class="count">{{ coverage_summary.no_call_count }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">Positions Found</span>
+    <span class="count">{{ coverage_summary.total_positions_found }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">Positions Missing</span>
+    <span class="count">{{ coverage_summary.total_positions_missing }}</span>
+  </div>
+</div>
+
+{# ── Definitive results ───────────────────────────────────────── #}
+{% if definitive_by_category %}
+<h2>Definitive Results</h2>
+{% for cat_name, cat in definitive_by_category.items() %}
+<section class="category">
+  <h3>{{ cat.name }}</h3>
+  <p class="category-desc">{{ cat.description }}</p>
+  <table class="tech">
+    <thead>
+      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Activity</th><th>Coverage</th><th>Allele Functions</th></tr>
+    </thead>
+    <tbody>
+      {% for g in cat.genes %}
+      <tr>
+        <td><span class="sym sym-{{ g.risk_level }}">{{ g.symbol }}</span></td>
+        <td><strong>{{ g.gene }}</strong></td>
+        <td class="diplo">{{ g.diplotype }}</td>
+        <td>{{ g.phenotype }}</td>
+        <td>{{ g.activity_score or '—' }}</td>
+        <td>{{ g.positions_found }}/{{ g.positions_found + g.positions_missing }}</td>
+        <td class="alleles">
+          {{ g.allele1_name }}: {{ g.allele1_function }}<br>
+          {{ g.allele2_name }}: {{ g.allele2_function }}
+        </td>
+      </tr>
+      {% if g.caveat %}
+      <tr><td colspan="7"><div class="caveat">{{ g.caveat }}</div></td></tr>
+      {% endif %}
+      {% if g.drug_recs %}
+      <tr><td colspan="7">
+        <details>
+          <summary>{{ g.drug_recs | length }} CPIC/DPWG drug recommendation{{ '' if g.drug_recs|length == 1 else 's' }}</summary>
+          <table class="drugs">
+            <thead><tr><th></th><th>Drug</th><th>Source</th><th>Recommendation</th></tr></thead>
+            <tbody>
+              {% for d in g.drug_recs %}
+              <tr>
+                <td><span class="sym-inline sym-{{ d.risk_level }}">{{ d.symbol }}</span></td>
+                <td>{{ d.drug }}</td>
+                <td><span class="src-tag">{{ d.source }}</span></td>
+                <td class="rec">{{ d.recommendation }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </details>
+      </td></tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endfor %}
+{% endif %}
+
+{# ── Ambiguous results ───────────────────────────────────────── #}
+{% if ambiguous_by_category %}
+<h2>Ambiguous Results</h2>
+<p class="category-desc">These genes have multiple possible diplotype interpretations from the available variants.</p>
+{% for cat_name, cat in ambiguous_by_category.items() %}
+<section class="category">
+  <h3>{{ cat.name }}</h3>
+  {% for g in cat.genes %}
+  <div class="card card-{{ g.risk_level }}">
+    <div class="gene-header">
+      <span class="sym sym-{{ g.risk_level }}">{{ g.symbol }}</span>
+      <span class="gene-name">{{ g.gene }}</span>
+      <span class="label-tag label-{{ g.risk_level }}">{{ g.label }}</span>
+    </div>
+    <div class="gene-meta">
+      {{ g.diplotype_count }} candidate diplotypes &middot;
+      coverage {{ g.positions_found }}/{{ g.positions_found + g.positions_missing }}
+    </div>
+    {% if g.phenotype_range %}
+    <p><strong>Phenotype range:</strong> {{ g.phenotype_range | join(', ') }}</p>
+    {% endif %}
+    {% if g.harmful_phenotypes %}
+    <p><strong>Harmful phenotypes in range:</strong> {{ g.harmful_phenotypes | join(', ') }}</p>
+    {% endif %}
+    {% if g.actionable_drugs %}
+    <p><strong>Actionable drugs:</strong></p>
+    <ul style="margin-left: 18px; font-size: 13px;">
+      {% for tcat, drugs in g.actionable_drugs.items() %}
+      <li><strong>{{ tcat }}:</strong> {{ drugs | join(', ') }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endfor %}
+{% endif %}
+
+{# ── No-call results ─────────────────────────────────────────── #}
+{% if no_call_by_category %}
+<h2>No-Call Genes</h2>
+<p class="category-desc">No diplotype could be determined from the available data. Consider clinical PGx testing if any of the listed medications are relevant.</p>
+{% for cat_name, cat in no_call_by_category.items() %}
+<section class="category">
+  <h3>{{ cat.name }}</h3>
+  <table>
+    <thead>
+      <tr><th></th><th>Gene</th><th>Missing positions</th><th>Affected medications</th></tr>
+    </thead>
+    <tbody>
+      {% for g in cat.genes %}
+      <tr>
+        <td><span class="sym sym-nodata">{{ g.symbol }}</span></td>
+        <td><strong>{{ g.gene }}</strong></td>
+        <td>{{ g.positions_missing }}</td>
+        <td>
+          {% if g.affected_drugs %}
+            {% for tcat, drugs in g.affected_drugs.items() %}
+            <div><strong>{{ tcat }}:</strong> {{ drugs | join(', ') }}</div>
+            {% endfor %}
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% if g.caveat %}
+      <tr><td colspan="4"><div class="caveat">{{ g.caveat }}</div></td></tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endfor %}
+{% endif %}
+
+{# ── Drug annotations table ──────────────────────────────────── #}
+{% if drugs_by_category %}
+<h2>Drug Recommendations (CPIC + DPWG)</h2>
+{% for group in drugs_by_category %}
+<details>
+  <summary>{{ group.category }} ({{ group.drugs | length }})</summary>
+  <table class="drugs">
+    <thead>
+      <tr>
+        <th></th><th>Drug</th><th>Source</th><th>Genes</th>
+        <th>Phenotypes</th><th>Recommendation</th><th>Classification</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in group.drugs %}
+      <tr>
+        <td><span class="sym-inline sym-{{ d.risk_level }}">{{ d.symbol }}</span></td>
+        <td><strong>{{ d.drug }}</strong></td>
+        <td><span class="src-tag">{{ d.source }}</span></td>
+        <td>{{ d.gene_list }}</td>
+        <td>{{ d.phenotype_list }}</td>
+        <td class="rec">{{ d.recommendation }}</td>
+        <td>{{ d.classification or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endfor %}
+{% endif %}
+
+{# ── Citations ────────────────────────────────────────────────── #}
+{% if citations %}
+<h2>References</h2>
+<ol class="citations">
+  {% for c in citations %}
+  <li>
+    {% if c.title %}{{ c.title }}{% endif %}
+    {% if c.journal %}<em>{{ c.journal }}</em>{% endif %}
+    {% if c.year %}({{ c.year }}){% endif %}
+    {% if c.pmid %} &middot; PMID: {{ c.pmid }}{% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% endif %}
+
+{# ── Messages from PharmCAT ─────────────────────────────────── #}
+{% if messages %}
+<h2>Pipeline Messages</h2>
+<ul style="margin-left: 18px; font-size: 13px;">
+  {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

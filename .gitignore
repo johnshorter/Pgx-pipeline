@@ -13,6 +13,13 @@ venv/
 .vscode/
 .idea/
 
+# Unified pipeline (src/) — excluded binaries and generated output
+lib/
+output/
+output_test/
+pharmcat.log
+test_inputs/
+
 # Adib pipeline — excluded binaries and generated output
 adib/lib/
 adib/output/
@@ -23,6 +30,9 @@ adib/.venv/
 marco/lib/
 marco/output/
 marco/.venv/
+
+# Claude Code agent state
+.claude/
 
 # Large raw data
 *.vcf.gz
