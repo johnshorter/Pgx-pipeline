@@ -41,7 +41,19 @@
   .ov-card.review { border-left: 4px solid var(--review); }
   .ov-card.normal { border-left: 4px solid var(--normal); }
   .ov-card.nodata { border-left: 4px solid var(--nodata); }
-  .ov-card .gene { font-weight: 700; font-size: 16px; }
+  .ov-card .gene {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .ov-card .gene .gene-name { flex: 1; }
+  .ov-card .tissue {
+    font-size: 18px;
+    line-height: 1;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  }
   .ov-card .pheno { font-size: 13px; color: var(--text-light); margin-top: 2px; }
   .ov-card .ptype { font-size: 11px; color: var(--text-light); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
   .ov-card .meds { font-size: 11px; color: var(--text-light); margin-top: 2px; }
@@ -114,10 +126,12 @@
   {% for c in overview_cards %}
   <div class="ov-card {{ c.risk_level }}">
     <div class="gene">
-      <span class="sym-inline sym-{{ c.risk_level }}">{{ c.symbol }}</span>{{ c.gene }}
+      <span class="sym-inline sym-{{ c.risk_level }}">{{ c.symbol }}</span>
+      <span class="gene-name">{{ c.gene }}</span>
+      {% if c.tissue_icon %}<span class="tissue" title="Mainly expressed in: {{ c.tissue_label }}">{{ c.tissue_icon | safe }}</span>{% endif %}
     </div>
     <div class="pheno">{{ c.phenotype_short }}</div>
-    <div class="ptype">{{ c.protein_type }}</div>
+    <div class="ptype">{{ c.protein_type }}{% if c.tissue_label %} &middot; {{ c.tissue_label }}{% endif %}</div>
     {% if c.med_count %}<div class="meds">{{ c.med_count }} medication{{ '' if c.med_count == 1 else 's' }}</div>{% endif %}
   </div>
   {% endfor %}

@@ -60,6 +60,33 @@ _REVIEW_KEYWORDS = (
     "caution", "monitor", "consider", "decreased dose", "titrate",
     "may need", "dose adjustment",
 )
+# Phrases that explicitly indicate "no change needed". CPIC frequently pairs
+# a 'Strong' evidence classification with a "use standard dose" recommendation
+# for normal metabolizers — those are NOT action items for the patient.
+_NORMAL_PHRASES = (
+    "standard dose",
+    "standard dosing",
+    "recommended starting dose",
+    "label-recommended",
+    "label recommended",
+    "no indication to change",
+    "no change in dose",
+    "usual dose",
+    "use as labeled",
+    "no genotype-related",
+)
+# Negated-action phrases: text that contains an action keyword ("avoid",
+# "contraindicated") but is actually telling the prescriber NOT to avoid /
+# NOT to contraindicate. E.g. "No reason to avoid based on G6PD status".
+# Checked BEFORE the action-keyword scan so these don't get flagged Action.
+_FALSE_ACTION_PHRASES = (
+    "no need to avoid",
+    "no reason to avoid",
+    "not contraindicated",
+    "is not contraindicated",
+    "may be used",
+    "can be used",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -482,20 +509,42 @@ def _parse_drugs(report: dict) -> list[DrugRecommendation]:
 
 
 def _drug_risk_level(recommendation: str, classification: str) -> str:
-    """Map a drug recommendation to the 4-level risk vocabulary."""
+    """Map a drug recommendation to the 4-level risk vocabulary.
+
+    The CPIC `classification` field describes the strength of the underlying
+    *guideline evidence* — NOT whether this patient needs to take action.
+    A 'Strong' classification paired with "use standard dose" means "strong
+    evidence that the normal dose is appropriate", which is patient-normal.
+    So we read the recommendation TEXT first and fall back to classification
+    only when the text is silent.
+    """
     cls = classification.lower().strip()
     rec = (recommendation or "").lower()
 
-    if cls in ("no action", "no action needed"):
+    # 0. Catch CPIC reassurance phrasings that contain an action keyword but
+    #    are negating it ("No reason to avoid", "not contraindicated", …).
+    if any(phrase in rec for phrase in _FALSE_ACTION_PHRASES):
         return "normal"
-    if cls in ("strong", "actionable"):
-        return "action"
-    if cls in ("moderate", "informative"):
-        return "review"
 
+    # 1. Explicit "avoid / contraindicated / consider alternative" → action
     if any(kw in rec for kw in _ACTION_KEYWORDS):
         return "action"
+
+    # 2. Explicit "use standard / label-recommended / usual dose" → normal,
+    #    even when CPIC classification is "Strong".
+    if any(phrase in rec for phrase in _NORMAL_PHRASES):
+        return "normal"
+
+    # 3. Dose-adjustment / monitoring language → review
     if any(kw in rec for kw in _REVIEW_KEYWORDS):
+        return "review"
+
+    # 4. Fall back to classification when the text gives no clear signal.
+    #    Default Strong/Moderate/Actionable/Informative to "review", not
+    #    "action" — safer than over-warning when the text is ambiguous.
+    if cls in ("no action", "no action needed"):
+        return "normal"
+    if cls in ("strong", "actionable", "moderate", "informative"):
         return "review"
     return "normal"
 

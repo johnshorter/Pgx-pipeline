@@ -7,8 +7,8 @@
 <style>
   /* ── Colorblind-safe palette ─────────────────────────────────── */
   :root {
-    --action:      #1565C0;  /* deep blue — needs attention      */
-    --action-bg:   #E3F2FD;
+    --action:      #AD1457;  /* deep red-magenta — needs attention */
+    --action-bg:   #FCE4EC;
     --review:      #E65100;  /* orange — monitor / discuss        */
     --review-bg:   #FFF3E0;
     --normal:      #2E7D32;  /* green — no action needed          */
@@ -68,7 +68,7 @@
 
   /* ── Symbol legend ───────────────────────────────────────────── */
   .legend {
-    background: var(--action-bg);
+    background: #F8F9FA;
     border-left: 4px solid var(--primary);
     padding: 14px 18px;
     margin: 18px 0 24px;
@@ -226,13 +226,16 @@
 
   <header class="report-header">
     <h1>{{ title }}</h1>
+    {% block header_meta %}
     <div class="meta">
       {{ report_date }}
       {% if sample_id %} &middot; Sample: <strong>{{ sample_id }}</strong>{% endif %}
       {% if metadata.pharmcat_version %} &middot; PharmCAT {{ metadata.pharmcat_version }}{% endif %}
     </div>
+    {% endblock %}
   </header>
 
+  {% block legend %}
   <div class="legend">
     <strong style="display:block;margin-bottom:6px;">How to read this report</strong>
     <div class="legend-row"><span class="sym sym-action">{{ action_symbols.action }}</span><span><strong>{{ action_labels.action }}</strong> — discuss with your healthcare provider</span></div>
@@ -240,6 +243,7 @@
     <div class="legend-row"><span class="sym sym-normal">{{ action_symbols.normal }}</span><span><strong>{{ action_labels.normal }}</strong> — typical processing, no special action</span></div>
     <div class="legend-row"><span class="sym sym-nodata">{{ action_symbols.nodata }}</span><span><strong>{{ action_labels.nodata }}</strong> — could not be determined from this VCF</span></div>
   </div>
+  {% endblock %}
 
   {% block content %}{% endblock %}
 

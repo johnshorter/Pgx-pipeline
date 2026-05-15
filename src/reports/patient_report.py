@@ -15,7 +15,8 @@ from pathlib import Path
 
 from config.settings import (
     ACTION_LABELS, ACTION_SYMBOLS, APP_TITLE, CATEGORY_ORDER,
-    GENE_CATEGORIES, PATIENT_DISCLAIMER, RISK_PRIORITY, drug_category,
+    GENE_CATEGORIES, PATIENT_DISCLAIMER, RISK_PRIORITY,
+    drug_category, gene_tissue_icon,
 )
 from pharmcat.output_parser import (
     AmbiguousGene, DefinitiveGene, NoCallGene, ParsedResults,
@@ -179,6 +180,10 @@ def _build_context(parsed: ParsedResults) -> dict:
 def _build_overview_cards(parsed: ParsedResults) -> list[dict]:
     cards: list[dict] = []
 
+    def _tissue(gene: str) -> dict:
+        key, label, icon = gene_tissue_icon(gene)
+        return {"tissue": key, "tissue_label": label, "tissue_icon": icon}
+
     for g in parsed.definitive_genes:
         cards.append({
             "gene": g.gene,
@@ -189,6 +194,7 @@ def _build_overview_cards(parsed: ParsedResults) -> list[dict]:
             "phenotype_short": PHENOTYPE_SHORT.get(g.phenotype, g.phenotype),
             "med_count": len(g.related_drugs),
             "bucket": "definitive",
+            **_tissue(g.gene),
         })
 
     for g in parsed.ambiguous_genes:
@@ -201,6 +207,7 @@ def _build_overview_cards(parsed: ParsedResults) -> list[dict]:
             "phenotype_short": "Inconclusive",
             "med_count": len(g.related_drugs),
             "bucket": "ambiguous",
+            **_tissue(g.gene),
         })
 
     for g in parsed.no_call_genes:
@@ -213,6 +220,7 @@ def _build_overview_cards(parsed: ParsedResults) -> list[dict]:
             "phenotype_short": "Not tested",
             "med_count": len(g.related_drugs),
             "bucket": "no_call",
+            **_tissue(g.gene),
         })
 
     cards.sort(key=lambda c: (RISK_PRIORITY.get(c["risk_level"], 3), c["gene"]))
@@ -343,7 +351,8 @@ def _explain_phenotype(phenotype: str) -> dict[str, str]:
 def _group_drugs_for_patient(parsed: ParsedResults) -> list[dict]:
     """Group drug recommendations by therapeutic category, action-first
     within each category. One row per (drug, gene-or-blank) — we deduplicate
-    multi-source recommendations to the highest-risk one."""
+    multi-source recommendations to the highest-risk one. Drugs whose final
+    risk level is 'normal' (no need to worry) are dropped from the patient view."""
     by_key: dict[tuple[str, str], dict] = {}
 
     for d in parsed.drugs:
@@ -368,9 +377,12 @@ def _group_drugs_for_patient(parsed: ParsedResults) -> list[dict]:
         ):
             by_key[key] = candidate
 
-    # Bucket by therapeutic category
+    # Drop drugs whose final (highest-risk) recommendation is 'normal'.
+    # We keep 'nodata' so the patient knows we couldn't analyze the gene.
     grouped: dict[str, list[dict]] = defaultdict(list)
     for d in by_key.values():
+        if d["risk_level"] == "normal":
+            continue
         grouped[d["therapeutic_category"]].append(d)
 
     out: list[dict] = []

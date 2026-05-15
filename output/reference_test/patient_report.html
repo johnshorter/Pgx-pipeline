@@ -7,8 +7,8 @@
 <style>
   /* ── Colorblind-safe palette ─────────────────────────────────── */
   :root {
-    --action:      #1565C0;  /* deep blue — needs attention      */
-    --action-bg:   #E3F2FD;
+    --action:      #AD1457;  /* deep red-magenta — needs attention */
+    --action-bg:   #FCE4EC;
     --review:      #E65100;  /* orange — monitor / discuss        */
     --review-bg:   #FFF3E0;
     --normal:      #2E7D32;  /* green — no action needed          */
@@ -68,7 +68,7 @@
 
   /* ── Symbol legend ───────────────────────────────────────────── */
   .legend {
-    background: var(--action-bg);
+    background: #F8F9FA;
     border-left: 4px solid var(--primary);
     padding: 14px 18px;
     margin: 18px 0 24px;
@@ -259,7 +259,19 @@
   .ov-card.review { border-left: 4px solid var(--review); }
   .ov-card.normal { border-left: 4px solid var(--normal); }
   .ov-card.nodata { border-left: 4px solid var(--nodata); }
-  .ov-card .gene { font-weight: 700; font-size: 16px; }
+  .ov-card .gene {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .ov-card .gene .gene-name { flex: 1; }
+  .ov-card .tissue {
+    font-size: 18px;
+    line-height: 1;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  }
   .ov-card .pheno { font-size: 13px; color: var(--text-light); margin-top: 2px; }
   .ov-card .ptype { font-size: 11px; color: var(--text-light); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
   .ov-card .meds { font-size: 11px; color: var(--text-light); margin-top: 2px; }
@@ -309,8 +321,8 @@
   <header class="report-header">
     <h1>Your Personal Pharmacogenetics Report</h1>
     <div class="meta">
-      April 29, 2026
- &middot; Sample: <strong>reference_test_v2</strong> &middot; PharmCAT 3.2.0    </div>
+      May 13, 2026
+ &middot; Sample: <strong>reference_test</strong> &middot; PharmCAT 3.2.0    </div>
   </header>
 
   <div class="legend">
@@ -347,164 +359,187 @@
 <div class="overview-grid">
   <div class="ov-card review">
     <div class="gene">
-      <span class="sym-inline sym-review">◆</span>CFTR
-    </div>
+      <span class="sym-inline sym-review">◆</span>
+      <span class="gene-name">CFTR</span>
+<span class="tissue" title="Mainly expressed in: Lung / airway">🫁</span>    </div>
     <div class="pheno">ivacaftor non-responsive in CF patients</div>
-    <div class="ptype">Ion channel</div>
+    <div class="ptype">Ion channel &middot; Lung / airway</div>
 <div class="meds">1 medication</div>  </div>
   <div class="ov-card review">
     <div class="gene">
-      <span class="sym-inline sym-review">◆</span>NAT2
-    </div>
+      <span class="sym-inline sym-review">◆</span>
+      <span class="gene-name">NAT2</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Rapid</div>
-    <div class="ptype">Metabolic enzyme</div>
+    <div class="ptype">Metabolic enzyme &middot; Liver</div>
 <div class="meds">7 medications</div>  </div>
   <div class="ov-card review">
     <div class="gene">
-      <span class="sym-inline sym-review">◆</span>VKORC1
-    </div>
+      <span class="sym-inline sym-review">◆</span>
+      <span class="gene-name">VKORC1</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">-1639 GG</div>
-    <div class="ptype">Drug target</div>
+    <div class="ptype">Drug target &middot; Liver</div>
 <div class="meds">3 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>ABCG2
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">ABCG2</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Drug transporter</div>
+    <div class="ptype">Drug transporter &middot; Liver</div>
 <div class="meds">2 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>CACNA1S
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CACNA1S</span>
+<span class="tissue" title="Mainly expressed in: Skeletal muscle">💪</span>    </div>
     <div class="pheno">Uncertain</div>
-    <div class="ptype">Ion channel</div>
+    <div class="ptype">Ion channel &middot; Skeletal muscle</div>
 <div class="meds">7 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>CYP2B6
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP2B6</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Liver enzyme</div>
+    <div class="ptype">Liver enzyme &middot; Liver</div>
 <div class="meds">2 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>CYP2C19
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP2C19</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Liver enzyme</div>
+    <div class="ptype">Liver enzyme &middot; Liver</div>
 <div class="meds">24 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>CYP2C9
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP2C9</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Liver enzyme</div>
+    <div class="ptype">Liver enzyme &middot; Liver</div>
 <div class="meds">19 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>CYP3A4
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP3A4</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Liver enzyme</div>
+    <div class="ptype">Liver enzyme &middot; Liver</div>
 <div class="meds">1 medication</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>CYP3A5
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP3A5</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Liver enzyme</div>
+    <div class="ptype">Liver enzyme &middot; Liver</div>
 <div class="meds">1 medication</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>DPYD
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">DPYD</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Metabolic enzyme</div>
+    <div class="ptype">Metabolic enzyme &middot; Liver</div>
 <div class="meds">4 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>G6PD
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">G6PD</span>
+<span class="tissue" title="Mainly expressed in: Red blood cells">🩸</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Red-blood-cell enzyme</div>
+    <div class="ptype">Red-blood-cell enzyme &middot; Red blood cells</div>
 <div class="meds">32 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>IFNL3
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">IFNL3</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">n/a</div>
-    <div class="ptype">Immune signaling</div>
+    <div class="ptype">Immune signaling &middot; Liver</div>
 <div class="meds">3 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>NUDT15
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">NUDT15</span>
+<span class="tissue" title="Mainly expressed in: Immune cells">🛡️</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Metabolic enzyme</div>
+    <div class="ptype">Metabolic enzyme &middot; Immune cells</div>
 <div class="meds">3 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>RYR1
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">RYR1</span>
+<span class="tissue" title="Mainly expressed in: Skeletal muscle">💪</span>    </div>
     <div class="pheno">Uncertain</div>
-    <div class="ptype">Ion channel</div>
+    <div class="ptype">Ion channel &middot; Skeletal muscle</div>
 <div class="meds">7 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>SLCO1B1
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">SLCO1B1</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Drug transporter</div>
+    <div class="ptype">Drug transporter &middot; Liver</div>
 <div class="meds">8 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>TPMT
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">TPMT</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Metabolic enzyme</div>
+    <div class="ptype">Metabolic enzyme &middot; Liver</div>
 <div class="meds">3 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>UGT1A1
-    </div>
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">UGT1A1</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Normal</div>
-    <div class="ptype">Metabolic enzyme</div>
+    <div class="ptype">Metabolic enzyme &middot; Liver</div>
 <div class="meds">8 medications</div>  </div>
   <div class="ov-card nodata">
     <div class="gene">
-      <span class="sym-inline sym-nodata">—</span>CYP2D6
-    </div>
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">CYP2D6</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">Not tested</div>
-    <div class="ptype">Liver enzyme</div>
+    <div class="ptype">Liver enzyme &middot; Liver</div>
 <div class="meds">62 medications</div>  </div>
   <div class="ov-card nodata">
     <div class="gene">
-      <span class="sym-inline sym-nodata">—</span>CYP4F2
-    </div>
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">CYP4F2</span>
+<span class="tissue" title="Mainly expressed in: Liver">🫘</span>    </div>
     <div class="pheno">No result</div>
-    <div class="ptype">Liver enzyme</div>
+    <div class="ptype">Liver enzyme &middot; Liver</div>
 <div class="meds">1 medication</div>  </div>
   <div class="ov-card nodata">
     <div class="gene">
-      <span class="sym-inline sym-nodata">—</span>HLA-A
-    </div>
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">HLA-A</span>
+<span class="tissue" title="Mainly expressed in: Immune cells">🛡️</span>    </div>
     <div class="pheno">No result</div>
-    <div class="ptype">Immune marker</div>
+    <div class="ptype">Immune marker &middot; Immune cells</div>
 <div class="meds">1 medication</div>  </div>
   <div class="ov-card nodata">
     <div class="gene">
-      <span class="sym-inline sym-nodata">—</span>HLA-B
-    </div>
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">HLA-B</span>
+<span class="tissue" title="Mainly expressed in: Immune cells">🛡️</span>    </div>
     <div class="pheno">No result</div>
-    <div class="ptype">Immune marker</div>
+    <div class="ptype">Immune marker &middot; Immune cells</div>
 <div class="meds">9 medications</div>  </div>
   <div class="ov-card nodata">
     <div class="gene">
-      <span class="sym-inline sym-nodata">—</span>MT-RNR1
-    </div>
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">MT-RNR1</span>
+<span class="tissue" title="Mainly expressed in: Mitochondria">🔋</span>    </div>
     <div class="pheno">Not tested</div>
-    <div class="ptype">Mitochondrial RNA</div>
+    <div class="ptype">Mitochondrial RNA &middot; Mitochondria</div>
 <div class="meds">11 medications</div>  </div>
 </div>
 
@@ -845,300 +880,41 @@
   </div>
   <div class="drug-row">
     <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">enflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">halothane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">isoflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">sevoflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
     <span class="drug-name">succinylcholine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
     <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
   </div>
-</div>
-<div class="drug-group">
-  <h4>Antidepressants</h4>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">amitriptyline <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19, CYP2D6)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">enflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">citalopram <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">halothane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">clomipramine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19, CYP2D6)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">isoflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">doxepin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19, CYP2D6)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">escitalopram <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">imipramine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19, CYP2D6)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">sertraline <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2B6, CYP2C19)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">trimipramine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19, CYP2D6)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">clomipramine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">imipramine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">sertraline <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-</div>
-<div class="drug-group">
-  <h4>Antiepileptics</h4>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">phenytoin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-</div>
-<div class="drug-group">
-  <h4>Antifungals</h4>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">voriconazole <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-</div>
-<div class="drug-group">
-  <h4>Antiplatelet / Anticoagulant agents</h4>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">clopidogrel <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">acenocoumarol <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(VKORC1)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">warfarin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">warfarin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(VKORC1)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">warfarin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9, VKORC1)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-</div>
-<div class="drug-group">
-  <h4>Antivirals (HIV)</h4>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">atazanavir <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(UGT1A1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-</div>
-<div class="drug-group">
-  <h4>Chemotherapy</h4>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">capecitabine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(DPYD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">fluorouracil <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(DPYD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-</div>
-<div class="drug-group">
-  <h4>Chemotherapy / Immunosuppressants</h4>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">azathioprine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15, TPMT)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">mercaptopurine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15, TPMT)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">thioguanine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15, TPMT)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">azathioprine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">azathioprine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(TPMT)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">mercaptopurine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">mercaptopurine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(TPMT)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">thioguanine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">thioguanine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(TPMT)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-</div>
-<div class="drug-group">
-  <h4>Immunosuppressants</h4>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">tacrolimus <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP3A5)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">sevoflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
 </div>
 <div class="drug-group">
   <h4>Other medications</h4>
   <div class="drug-row">
     <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">celecoxib <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
+    <span class="drug-name">ivacaftor <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CFTR)</span></span>
     <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
   </div>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">dapsone <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">efavirenz <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2B6)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">flurbiprofen <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
+    <span class="sym-inline sym-review">◆</span>
     <span class="drug-name">fosphenytoin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">ibuprofen <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">lornoxicam <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">meloxicam <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">methoxyflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">methylene blue <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">nitrofurantoin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">pegloticase <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">piroxicam <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">primaquine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">rasburicase <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">tafenoquine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">tenoxicam <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">toluidine blue <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(G6PD)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
   <div class="drug-row">
     <span class="sym-inline sym-review">◆</span>
@@ -1147,7 +923,7 @@
   </div>
   <div class="drug-row">
     <span class="sym-inline sym-review">◆</span>
-    <span class="drug-name">ivacaftor <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CFTR)</span></span>
+    <span class="drug-name">methoxyflurane <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CACNA1S, RYR1)</span></span>
     <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
   <div class="drug-row">
@@ -1155,73 +931,47 @@
     <span class="drug-name">siponimod <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
     <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
+</div>
+<div class="drug-group">
+  <h4>Antiepileptics</h4>
   <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">flucytosine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(DPYD)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">irinotecan <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(UGT1A1)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">phenprocoumon <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(VKORC1)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">quetiapine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP3A4)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">tegafur <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(DPYD)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">phenytoin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
 </div>
 <div class="drug-group">
-  <h4>Statins (cholesterol)</h4>
+  <h4>Antifungals</h4>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">atorvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">voriconazole <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
+  </div>
+</div>
+<div class="drug-group">
+  <h4>Chemotherapy / Immunosuppressants</h4>
+  <div class="drug-row">
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">azathioprine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15, TPMT)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">fluvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9, SLCO1B1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">mercaptopurine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15, TPMT)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">lovastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">thioguanine <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(NUDT15, TPMT)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
+</div>
+<div class="drug-group">
+  <h4>Immunosuppressants</h4>
   <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">pitavastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">pravastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">rosuvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(ABCG2, SLCO1B1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-action">▲</span>
-    <span class="drug-name">simvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
-    <span class="guidance">Important: Talk to your doctor before taking this medication. Your genetics suggest it may need special consideration.</span>
-  </div>
-  <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">rosuvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">tacrolimus <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP3A5)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
 </div>
 <div class="drug-group">
@@ -1248,19 +998,41 @@
   </div>
 </div>
 <div class="drug-group">
-  <h4>Cardiovascular</h4>
+  <h4>Statins (cholesterol)</h4>
   <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">mavacamten <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C19)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">atorvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
-</div>
-<div class="drug-group">
-  <h4>Gout medications</h4>
   <div class="drug-row">
-    <span class="sym-inline sym-normal">✓</span>
-    <span class="drug-name">allopurinol <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(ABCG2)</span></span>
-    <span class="guidance">Standard use is expected to be appropriate based on your genetics.</span>
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">fluvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(CYP2C9, SLCO1B1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
+  </div>
+  <div class="drug-row">
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">lovastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
+  </div>
+  <div class="drug-row">
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">pitavastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
+  </div>
+  <div class="drug-row">
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">pravastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
+  </div>
+  <div class="drug-row">
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">rosuvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(ABCG2, SLCO1B1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
+  </div>
+  <div class="drug-row">
+    <span class="sym-inline sym-review">◆</span>
+    <span class="drug-name">simvastatin <span style="color: var(--text-light); font-weight: 400; font-size: 12px;">(SLCO1B1)</span></span>
+    <span class="guidance">Note: Discuss this medication with your doctor. A dose adjustment or extra monitoring may be helpful.</span>
   </div>
 </div>
 
@@ -1271,7 +1043,7 @@
   </div>
 
   <footer>
-    Generated by PGx Reporter &middot; April 29, 2026
+    Generated by PGx Reporter &middot; May 13, 2026
   </footer>
 </div>
 </body>

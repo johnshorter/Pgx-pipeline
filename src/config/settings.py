@@ -185,6 +185,91 @@ GENE_PROTEIN_TYPE: dict[str, str] = {
 
 
 # ---------------------------------------------------------------------------
+# Per-gene primary expression tissue (for patient-report icons)
+# ---------------------------------------------------------------------------
+
+# Primary site of expression for each pharmacogene. Some genes are widely
+# expressed; the value here is the tissue most relevant to PGx (i.e. where
+# the drug-metabolism / drug-target activity happens). ABCG2 is dual-site
+# (liver + intestine) — we tag it as liver to match the other transporters.
+GENE_TISSUE: dict[str, str] = {
+    "CYP2B6": "liver", "CYP2C9": "liver", "CYP2C19": "liver",
+    "CYP2D6": "liver", "CYP3A4": "liver", "CYP3A5": "liver",
+    "CYP4F2": "liver",
+    "DPYD": "liver", "NAT2": "liver", "TPMT": "liver", "UGT1A1": "liver",
+    "F2": "liver", "F5": "liver", "IFNL3": "liver", "VKORC1": "liver",
+    "SLCO1B1": "liver", "ABCG2": "liver",
+    "NUDT15": "immune",
+    "HLA-A": "immune", "HLA-B": "immune",
+    "G6PD": "rbc",
+    "CACNA1S": "muscle", "RYR1": "muscle",
+    "CFTR": "lung",
+    "MT-RNR1": "mitochondria",
+}
+
+TISSUE_LABELS: dict[str, str] = {
+    "liver": "Liver",
+    "immune": "Immune cells",
+    "rbc": "Red blood cells",
+    "muscle": "Skeletal muscle",
+    "lung": "Lung / airway",
+    "mitochondria": "Mitochondria",
+}
+
+# Tissue icons. We use Unicode emoji where Unicode has one (RBC, muscle,
+# lung, immune-as-shield). For liver and mitochondria, no Unicode emoji
+# exists, so we fall back to small inline SVG silhouettes — smooth vector
+# paths (not pixel art) so they read at small sizes.
+
+_LIVER_SVG = (
+    '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" '
+    'style="vertical-align:middle">'
+    # Triangular liver silhouette: wide rounded right base (right lobe)
+    # tapering to a point on the left (left lobe tip), with falciform line
+    # dividing the lobes.
+    '<path d="M3 12 L20 6 Q22 6 22 9 L22 15 Q22 18 20 18 Z" '
+    'fill="#A0522D" stroke="#5C2C0A" stroke-width="1.2" '
+    'stroke-linejoin="round"/>'
+    # Falciform ligament.
+    '<line x1="13" y1="9" x2="13" y2="15" '
+    'stroke="#5C2C0A" stroke-width="1" stroke-linecap="round"/>'
+    "</svg>"
+)
+
+_MITO_SVG = (
+    '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" '
+    'style="vertical-align:middle">'
+    # Outer membrane: smooth brown capsule.
+    '<rect x="2" y="8" width="20" height="8" rx="4" '
+    'fill="#A0522D" stroke="#5C2C0A" stroke-width="1.2"/>'
+    # Inner membrane: continuous wavy serpentine line representing the
+    # folded cristae running through the matrix.
+    '<path d="M4 12 Q5 9.5 6 12 Q7 14.5 8 12 Q9 9.5 10 12 Q11 14.5 12 12 '
+    'Q13 9.5 14 12 Q15 14.5 16 12 Q17 9.5 18 12 Q19 14.5 20 12" '
+    'stroke="#3E2723" stroke-width="1.2" fill="none" stroke-linecap="round"/>'
+    "</svg>"
+)
+
+TISSUE_ICONS: dict[str, str] = {
+    "liver":        _LIVER_SVG,
+    "rbc":          "🩸",
+    "muscle":       "💪",
+    "lung":         "🫁",
+    "immune":       "🛡️",
+    "mitochondria": _MITO_SVG,
+}
+
+
+def gene_tissue_icon(gene_symbol: str) -> tuple[str, str, str]:
+    """Return (tissue_key, tissue_label, emoji) for a gene, or ('', '', '')
+    if no tissue is mapped."""
+    tissue = GENE_TISSUE.get(gene_symbol, "")
+    if not tissue:
+        return "", "", ""
+    return tissue, TISSUE_LABELS.get(tissue, tissue), TISSUE_ICONS.get(tissue, "")
+
+
+# ---------------------------------------------------------------------------
 # Drug therapeutic categories (Marco)
 # ---------------------------------------------------------------------------
 
@@ -203,6 +288,7 @@ DRUG_CATEGORIES: dict[str, str] = {
     "clopidogrel": "Antiplatelet / Anticoagulant agents",
     "warfarin": "Antiplatelet / Anticoagulant agents",
     "acenocoumarol": "Antiplatelet / Anticoagulant agents",
+    "phenprocoumon": "Antiplatelet / Anticoagulant agents",
     # Statins
     "simvastatin": "Statins (cholesterol)", "atorvastatin": "Statins (cholesterol)",
     "lovastatin": "Statins (cholesterol)", "rosuvastatin": "Statins (cholesterol)",
@@ -222,6 +308,7 @@ DRUG_CATEGORIES: dict[str, str] = {
     "propranolol": "Cardiovascular", "carvedilol": "Cardiovascular",
     "nebivolol": "Cardiovascular", "flecainide": "Cardiovascular",
     "propafenone": "Cardiovascular",
+    "hydralazine": "Cardiovascular",
     # Immunosuppressants
     "tacrolimus": "Immunosuppressants",
     # Chemotherapy / Immunosuppressants
@@ -230,6 +317,7 @@ DRUG_CATEGORIES: dict[str, str] = {
     "azathioprine": "Chemotherapy / Immunosuppressants",
     "thioguanine": "Chemotherapy / Immunosuppressants",
     "tamoxifen": "Chemotherapy",
+    "irinotecan": "Chemotherapy",
     # Pain medications
     "codeine": "Pain medications", "tramadol": "Pain medications",
     "hydrocodone": "Pain medications",
@@ -266,6 +354,11 @@ DRUG_CATEGORIES: dict[str, str] = {
     "pitolisant": "Narcolepsy medications",
     "belzutifan": "Targeted cancer therapy",
     "abrocitinib": "Dermatology",
+    # CFTR modulators (effectiveness depends on the patient's CFTR genotype)
+    "ivacaftor": "Cystic Fibrosis Modulators",
+    "lumacaftor/ivacaftor": "Cystic Fibrosis Modulators",
+    "tezacaftor/ivacaftor": "Cystic Fibrosis Modulators",
+    "elexacaftor/tezacaftor/ivacaftor": "Cystic Fibrosis Modulators",
 }
 
 
