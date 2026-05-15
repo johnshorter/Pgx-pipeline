@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Personal Pharmacogenetics Report</title>
+<style>
+  /* ── Colorblind-safe palette ─────────────────────────────────── */
+  :root {
+    --action:      #AD1457;  /* deep red-magenta — needs attention */
+    --action-bg:   #FCE4EC;
+    --review:      #E65100;  /* orange — monitor / discuss        */
+    --review-bg:   #FFF3E0;
+    --normal:      #2E7D32;  /* green — no action needed          */
+    --normal-bg:   #E8F5E9;
+    --nodata:      #757575;  /* grey — insufficient data          */
+    --nodata-bg:   #F5F5F5;
+    --primary:     #1565C0;
+    --border:      #E0E0E0;
+    --text:        #1A1A1A;
+    --text-light:  #5F6368;
+    --bg:          #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    color: var(--text);
+    background: #F8F9FA;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    background: var(--bg);
+  }
+
+  h1 { font-size: 28px; color: var(--primary); margin-bottom: 4px; }
+  h2 {
+    font-size: 22px;
+    color: var(--primary);
+    margin: 32px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 { font-size: 17px; margin: 18px 0 8px; }
+  h4 { font-size: 15px; margin: 12px 0 6px; color: var(--text-light); }
+  p { margin-bottom: 0.7em; }
+
+  /* ── Header ──────────────────────────────────────────────────── */
+  .report-header {
+    text-align: center;
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+  }
+  .report-header .meta {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  /* ── Symbol legend ───────────────────────────────────────────── */
+  .legend {
+    background: #F8F9FA;
+    border-left: 4px solid var(--primary);
+    padding: 14px 18px;
+    margin: 18px 0 24px;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .legend-row {
+    display: flex; align-items: center; gap: 10px; margin: 4px 0;
+  }
+
+  .sym {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .sym-action { background: var(--action-bg); color: var(--action); border: 2px solid var(--action); }
+  .sym-review { background: var(--review-bg); color: var(--review); border: 2px solid var(--review); }
+  .sym-normal { background: var(--normal-bg); color: var(--normal); border: 2px solid var(--normal); }
+  .sym-nodata { background: var(--nodata-bg); color: var(--nodata); border: 2px solid var(--nodata); }
+
+  .sym-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
+  /* ── Disclaimer ──────────────────────────────────────────────── */
+  .disclaimer {
+    background: var(--review-bg);
+    border-left: 4px solid var(--review);
+    padding: 12px 16px;
+    margin: 20px 0;
+    font-size: 13px;
+    color: #5d4037;
+  }
+  .disclaimer strong { display: block; margin-bottom: 4px; }
+
+  /* ── Tables ──────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: #FAFAFA;
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Cards ───────────────────────────────────────────────────── */
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 10px 0;
+  }
+  .card-action { border-left: 4px solid var(--action); }
+  .card-review { border-left: 4px solid var(--review); }
+  .card-normal { border-left: 4px solid var(--normal); }
+  .card-nodata { border-left: 4px solid var(--nodata); }
+
+  .gene-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .gene-header .gene-name {
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .gene-header .label-tag {
+    margin-left: auto;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .label-action { background: var(--action-bg); color: var(--action); }
+  .label-review { background: var(--review-bg); color: var(--review); }
+  .label-normal { background: var(--normal-bg); color: var(--normal); }
+  .label-nodata { background: var(--nodata-bg); color: var(--nodata); }
+
+  .gene-meta {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+
+  /* ── Caveat ──────────────────────────────────────────────────── */
+  .caveat {
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #5D4037;
+  }
+
+  /* ── Category section ─────────────────────────────────────────── */
+  .category {
+    margin-top: 24px;
+  }
+  .category-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+
+  /* ── Footer ──────────────────────────────────────────────────── */
+  footer {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text-light);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* Print rules — keep cards together */
+  @media print {
+    body { background: #fff; }
+    .container { padding: 16px; max-width: none; }
+    .card, .category { break-inside: avoid; page-break-inside: avoid; }
+    h2, h3 { break-after: avoid; }
+  }
+</style>
+<style>
+  .legend-compact {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 13px;
+    margin: 12px 0 18px;
+  }
+
+  /* Dashboard: vertical list of banded result rows */
+  .dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0 24px;
+  }
+  .dash-row {
+    border-left: 4px solid var(--border);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 18px;
+  }
+  .dash-row-action  { border-left-color: var(--action);  background: var(--action-bg); }
+  .dash-row-review  { border-left-color: var(--review);  background: var(--review-bg); }
+  .dash-row-normal  { border-left-color: var(--normal);  background: var(--normal-bg); }
+  .dash-row-nodata  { border-left-color: var(--nodata);  background: var(--nodata-bg); }
+
+  .dash-row-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .dash-row-symbol {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .dash-row-action .dash-row-label { color: var(--action); }
+  .dash-row-review .dash-row-label { color: var(--review); }
+  .dash-row-normal .dash-row-label { color: var(--normal); }
+  .dash-row-nodata .dash-row-label { color: var(--nodata); }
+
+  .dash-row-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .dash-row-text strong { font-weight: 700; }
+  .dash-row-action .dash-row-text strong { color: var(--action); }
+  .dash-row-review .dash-row-text strong { color: var(--review); }
+  .dash-row-normal .dash-row-text strong { color: var(--normal); }
+  .dash-row-nodata .dash-row-text strong { color: var(--nodata); }
+
+  .summary-sentence {
+    font-size: 17px;
+    text-align: center;
+    margin: 14px 0 8px;
+  }
+
+  /* Next steps callout */
+  .next-steps {
+    background: #F1F8FF;
+    border-left: 4px solid var(--primary);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 16px 0 24px;
+  }
+  .next-steps h3 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    color: var(--primary);
+  }
+  .next-steps ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+  .next-steps li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 6px 0;
+    font-size: 14px;
+  }
+  .next-steps li .step-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  /* Overview cards */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 12px 0 24px;
+  }
+  .ov-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: #fff;
+  }
+  .ov-card.action { border-left: 4px solid var(--action); }
+  .ov-card.review { border-left: 4px solid var(--review); }
+  .ov-card.normal { border-left: 4px solid var(--normal); }
+  .ov-card.nodata { border-left: 4px solid var(--nodata); }
+  .ov-card .gene {
+    display: flex; align-items: center; gap: 6px;
+    font-weight: 700; font-size: 16px;
+  }
+  .ov-card .gene .gene-name { flex: 1; }
+  .ov-card .tissue {
+    font-size: 18px; line-height: 1;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  }
+  /* Phenotype rendered as a risk-colored pill — the strongest visual cue
+     in the card after the gene name. `inline-block` so it wraps to its
+     own line and only takes the width of its content (e.g. a longer label
+     like "Non-responsive to ivacaftor" still pillifies cleanly). */
+  .ov-card .pheno {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 9px;
+    margin-top: 6px;
+    border-radius: 3px;
+    line-height: 1.35;
+  }
+  .ov-card.action .pheno { background: var(--action-bg); color: var(--action); }
+  .ov-card.review .pheno { background: var(--review-bg); color: var(--review); }
+  .ov-card.normal .pheno { background: var(--normal-bg); color: var(--normal); }
+  .ov-card.nodata .pheno { background: var(--nodata-bg); color: var(--nodata); }
+
+  .ov-card .ptype { font-size: 11px; color: var(--text-light); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .ov-card .meds { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+  /* Medication Guidance: two tables (Action visible, Review collapsed) */
+  .med-table-wrap {
+    border-left: 4px solid var(--border);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px 14px;
+    margin: 12px 0;
+  }
+  .med-table-wrap.action { background: var(--action-bg); border-left-color: var(--action); }
+  .med-table-wrap.review { background: #FAFAFA; border-left-color: var(--review); }
+  .med-table-wrap > h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 700;
+  }
+  .med-table-wrap.action > h3 { color: var(--action); }
+
+  table.med-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  table.med-table th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    background: #FAFAFA;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  table.med-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  table.med-table tr:last-child td { border-bottom: none; }
+  table.med-table .drug-name { font-weight: 700; margin-left: 4px; }
+  table.med-table .drug-brand-subtitle {
+    display: block;
+    margin-top: 2px;
+    margin-left: 26px;
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 400;
+  }
+  table.med-table .gene-cell {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  table.med-table .type-cell {
+    font-size: 13px;
+    color: var(--text-light);
+    white-space: nowrap;
+  }
+  table.med-table .rationale strong { color: var(--text); }
+  /* Directive lead in each rationale cell — risk-colored, on its own line. */
+  table.med-table .rationale-directive {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .med-table-wrap.action  .rationale-directive { color: var(--action); }
+  details.med-review-details .rationale-directive { color: var(--review); }
+
+  details.med-review-details {
+    background: #FAFAFA;
+    border-left: 4px solid var(--review);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px 14px;
+    margin: 12px 0;
+  }
+  details.med-review-details > summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--review);
+    font-size: 14px;
+    list-style: none;
+  }
+  details.med-review-details > summary::-webkit-details-marker { display: none; }
+  details.med-review-details > summary::before {
+    content: "▸ ";
+    color: var(--review);
+    margin-right: 4px;
+  }
+  details.med-review-details[open] > summary::before { content: "▾ "; }
+  details.med-review-details .hint {
+    color: var(--text-light); font-weight: 400; font-size: 12px; margin-left: 6px;
+  }
+  details.med-review-details .review-intro {
+    margin: 10px 0 16px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  /* Per-category subtitled group inside the Review section. */
+  .review-group {
+    margin: 18px 0;
+  }
+  .review-group-title {
+    font-size: 14px;
+    margin: 0 0 4px;
+    color: var(--review);
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 3px;
+  }
+  .review-group-rationale {
+    margin: 6px 0 8px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .review-group-rationale strong { color: var(--text); }
+  .review-group-table { margin-top: 0; }
+
+  /* Gene deep-dive cards (jargon-pruned) */
+  .gene-block .detail { font-size: 14px; color: var(--text-light); margin-top: 6px; }
+
+  /* Affected-medications list on Action/Review gene cards */
+  .affected-meds {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .affected-meds .drug-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-right: 4px;
+    font-weight: 500;
+    font-size: 12px;
+  }
+  .affected-meds .drug-pill.action {
+    background: var(--action-bg);
+    color: var(--action);
+    border: 1px solid var(--action);
+  }
+  .affected-meds .drug-pill.review {
+    background: var(--review-bg);
+    color: var(--review);
+    border: 1px solid var(--review);
+  }
+
+  /* Merged Normal-risk gene group: smaller, denser card */
+  .gene-block.normal-group { padding: 10px 14px; }
+  .gene-block.normal-group .gene-header { margin-bottom: 6px; }
+  .gene-block.normal-group .gene-list-genes { font-size: 14px; color: var(--text-light); }
+  .gene-block.normal-group ul.normal-gene-roles {
+    margin: 8px 0 0 18px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .gene-block.normal-group ul.normal-gene-roles li { margin: 2px 0; color: var(--text-light); }
+  .gene-block.normal-group ul.normal-gene-roles strong { color: var(--text); }
+
+  /* Small gene tag used inside Medication Guidance */
+  .gene-tag {
+    color: var(--text-light);
+    font-size: 12px;
+    font-style: italic;
+    margin-left: 4px;
+  }
+
+  /* Risk-grouped sections in "Your Genes in Detail" */
+  .risk-section { margin: 28px 0 16px; }
+  .risk-section > h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    padding: 8px 14px;
+    border-left: 4px solid var(--border);
+    border-radius: 0 4px 4px 0;
+    margin: 0 0 12px;
+    font-weight: 700;
+  }
+  .risk-section.action > h3 { background: var(--action-bg); border-left-color: var(--action); color: var(--action); }
+  .risk-section.review > h3 { background: var(--review-bg); border-left-color: var(--review); color: var(--review); }
+  .risk-section.normal > h3 { background: var(--normal-bg); border-left-color: var(--normal); color: var(--normal); }
+  .risk-section.nodata > h3 { background: var(--nodata-bg); border-left-color: var(--nodata); color: var(--nodata); }
+  .risk-section .risk-section-symbol {
+    font-size: 22px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Protein-type tag shown in each gene card header and inline in
+     merged Normal lists. Picks up a neutral background so it doesn't
+     compete with the risk-colored label-tag on the right. */
+  .protein-type {
+    font-size: 10.5px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    background: #F0F0F0;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .normal-gene-roles .protein-type {
+    font-size: 9.5px;
+    padding: 1px 6px;
+    margin-right: 4px;
+  }
+  .normal-gene-roles .gene-note,
+  .gene-block .gene-note {
+    display: block;
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: var(--text);
+    font-style: italic;
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 6px 10px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  details.affected-meds-fallback {
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  details.affected-meds-fallback summary {
+    cursor: pointer;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  details.affected-meds-fallback ul {
+    margin: 6px 0 0 18px;
+    color: var(--text-light);
+  }
+
+  /* Limitations + learn-more */
+  .limitations, .learn-more {
+    margin-top: 28px;
+  }
+  .limitations ul, .learn-more ul {
+    margin: 8px 0 0 0;
+    padding-left: 18px;
+  }
+  .limitations li, .learn-more li {
+    margin: 6px 0;
+    font-size: 14px;
+  }
+  .learn-more li a { color: var(--primary); font-weight: 600; text-decoration: none; }
+  .learn-more li a:hover { text-decoration: underline; }
+  .learn-more .blurb { color: var(--text-light); display: block; font-size: 13px; }
+
+  @media print {
+    .next-steps, .limitations, .learn-more { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="report-header">
+    <h1>Your Personal Pharmacogenetics Report</h1>
+<div class="meta">May 15, 2026 &middot; Sample: <strong>HG005</strong></div>
+  </header>
+
+
+
+<div class="dashboard">
+
+  <section class="dash-row dash-row-action">
+    <div class="dash-row-label"><span class="dash-row-symbol">!</span> Action</div>
+    <p class="dash-row-text">
+        <strong>2</strong> of your genes strongly affect how your body responds to <strong>2</strong> medications.
+    </p>
+  </section>
+
+  <section class="dash-row dash-row-review">
+    <div class="dash-row-label"><span class="dash-row-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span> Review</div>
+    <p class="dash-row-text">
+        <strong>5</strong> of your genes may affect how your body responds to <strong>8</strong> medications.
+    </p>
+  </section>
+
+  <section class="dash-row dash-row-normal">
+    <div class="dash-row-label"><span class="dash-row-symbol">✓</span> Normal</div>
+    <p class="dash-row-text">
+        <strong>12</strong> genes work as expected — standard dosing applies for the related medications.
+    </p>
+  </section>
+
+  <section class="dash-row dash-row-nodata">
+    <div class="dash-row-label"><span class="dash-row-symbol">—</span> No Data</div>
+    <p class="dash-row-text">
+        <strong>5</strong> genes couldn't be tested from this sample — clinical testing may be useful if any related medication is prescribed.
+    </p>
+  </section>
+
+</div>
+
+<h2>At-a-glance</h2>
+<div class="overview-grid">
+  <div class="ov-card action">
+    <div class="gene">
+      <span class="sym-inline sym-action">!</span>
+      <span class="gene-name">CFTR</span>
+    </div>
+    <div class="pheno">Non-responsive to ivacaftor</div>
+<div class="meds">affects 1 medication</div>  </div>
+  <div class="ov-card action">
+    <div class="gene">
+      <span class="sym-inline sym-action">!</span>
+      <span class="gene-name">NUDT15</span>
+    </div>
+    <div class="pheno">Intermediate metabolizer</div>
+<div class="meds">affects 3 medications</div>  </div>
+  <div class="ov-card review">
+    <div class="gene">
+      <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">CYP3A5</span>
+    </div>
+    <div class="pheno">Slow metabolizer</div>
+<div class="meds">affects 1 medication</div>  </div>
+  <div class="ov-card review">
+    <div class="gene">
+      <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">NAT2</span>
+    </div>
+    <div class="pheno">Rapid metabolizer</div>
+<div class="meds">affects 1 medication</div>  </div>
+  <div class="ov-card review">
+    <div class="gene">
+      <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">UGT1A1</span>
+    </div>
+    <div class="pheno">Intermediate metabolizer</div>
+<div class="meds">affects 1 medication</div>  </div>
+  <div class="ov-card review">
+    <div class="gene">
+      <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">VKORC1</span>
+    </div>
+    <div class="pheno">Warfarin-sensitive variant</div>
+<div class="meds">affects 3 medications</div>  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">ABCG2</span>
+    </div>
+    <div class="pheno">Normal function</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CACNA1S</span>
+    </div>
+    <div class="pheno">No known risk variants</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP2B6</span>
+    </div>
+    <div class="pheno">Normal metabolizer</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP2C19</span>
+    </div>
+    <div class="pheno">Normal metabolizer</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP2C9</span>
+    </div>
+    <div class="pheno">Normal metabolizer</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP3A4</span>
+    </div>
+    <div class="pheno">Normal metabolizer</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">DPYD</span>
+    </div>
+    <div class="pheno">Normal metabolizer</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">G6PD</span>
+    </div>
+    <div class="pheno">Normal function</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">IFNL3</span>
+    </div>
+    <div class="pheno">Not tested</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">RYR1</span>
+    </div>
+    <div class="pheno">No known risk variants</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">SLCO1B1</span>
+    </div>
+    <div class="pheno">Normal function</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">TPMT</span>
+    </div>
+    <div class="pheno">Normal metabolizer</div>
+  </div>
+  <div class="ov-card nodata">
+    <div class="gene">
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">CYP2D6</span>
+    </div>
+    <div class="pheno">Not tested</div>
+  </div>
+  <div class="ov-card nodata">
+    <div class="gene">
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">CYP4F2</span>
+    </div>
+    <div class="pheno">Not tested</div>
+  </div>
+  <div class="ov-card nodata">
+    <div class="gene">
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">HLA-A</span>
+    </div>
+    <div class="pheno">Not tested</div>
+  </div>
+  <div class="ov-card nodata">
+    <div class="gene">
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">HLA-B</span>
+    </div>
+    <div class="pheno">Not tested</div>
+  </div>
+  <div class="ov-card nodata">
+    <div class="gene">
+      <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">MT-RNR1</span>
+    </div>
+    <div class="pheno">Not tested</div>
+  </div>
+</div>
+
+<h2>Medication Guidance</h2>
+
+<div class="med-table-wrap action">
+  <h3>! Discuss with your prescriber before taking these</h3>
+  <table class="med-table">
+    <thead>
+      <tr>
+        <th>Medication</th>
+        <th>Type</th>
+        <th>What this means for you</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-action">!</span>
+          <span class="drug-name">azathioprine</span>
+<span class="drug-brand-subtitle">Imuran, Azasan</span>        </td>
+        <td class="type-cell">Chemotherapy / Immunosuppressant</td>
+        <td class="rationale"><span class="rationale-directive">Don't start without dose reduction — ask your prescriber.</span>Your <strong>NUDT15</strong> result: standard doses can cause severe drops in blood counts for you. Ask about a reduced starting dose or an alternative drug.</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-action">!</span>
+          <span class="drug-name">ivacaftor</span>
+        </td>
+        <td class="type-cell">Cystic-fibrosis medication</td>
+        <td class="rationale"><span class="rationale-directive">Don't start this drug — ask your doctor about alternative CF therapies.</span>Your <strong>CFTR</strong> result: this drug is unlikely to work for your specific CFTR variant.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<details class="med-review-details">
+  <summary>
+    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> 8 medications linked to your genetic results
+    <span class="hint">(click to view)</span>
+  </summary>
+  <p class="review-intro">
+    Your genetic results may affect how these medications work for you.
+    <strong>You don't need to act on this list right now.</strong>
+    But if any of these is prescribed for you — or if you already take one — share this report with the prescriber. The standard dose may need to be adjusted, you may need closer monitoring, or an alternative may be a better fit.
+  </p>
+  <table class="med-table">
+    <thead>
+      <tr>
+        <th>Medication</th>
+        <th>Type</th>
+        <th>Gene involved</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">acenocoumarol</span>
+        </td>
+        <td class="type-cell">Blood thinner</td>
+        <td class="gene-cell">VKORC1</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">hydralazine</span>
+        </td>
+        <td class="type-cell">Heart / blood-pressure medication</td>
+        <td class="gene-cell">NAT2</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">irinotecan</span>
+        </td>
+        <td class="type-cell">Chemotherapy</td>
+        <td class="gene-cell">UGT1A1</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">mercaptopurine</span>
+<span class="drug-brand-subtitle">Purinethol, Purixan</span>        </td>
+        <td class="type-cell">Chemotherapy / Immunosuppressant</td>
+        <td class="gene-cell">NUDT15</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">phenprocoumon</span>
+        </td>
+        <td class="type-cell">Blood thinner</td>
+        <td class="gene-cell">VKORC1</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">tacrolimus</span>
+<span class="drug-brand-subtitle">Prograf, Astagraf</span>        </td>
+        <td class="type-cell">Immunosuppressant</td>
+        <td class="gene-cell">CYP3A5</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">thioguanine</span>
+        </td>
+        <td class="type-cell">Chemotherapy / Immunosuppressant</td>
+        <td class="gene-cell">NUDT15</td>
+      </tr>
+      <tr>
+        <td class="drug-cell">
+          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="drug-name">warfarin</span>
+<span class="drug-brand-subtitle">Coumadin, Jantoven</span>        </td>
+        <td class="type-cell">Blood thinner</td>
+        <td class="gene-cell">VKORC1</td>
+      </tr>
+    </tbody>
+  </table>
+</details>
+
+<h2>Your Genes in Detail</h2>
+
+<section class="risk-section action">
+  <h3><span class="risk-section-symbol">!</span> Action</h3>
+  <div class="card card-action gene-block">
+    <div class="gene-header">
+      <span class="sym sym-action">!</span>
+      <span class="gene-name">CFTR</span>
+<span class="protein-type">Ion channel</span>      <span class="label-tag label-action">Action</span>
+    </div>
+<p>CFTR is related to cystic fibrosis and affects certain medication responses.</p><p>Your result for this gene could not be clearly determined — discuss with your doctor.</p><p class="detail">The analysis was unable to clearly determine your status for this gene. This may be due to uncommon variants or limitations of the testing method.</p>    <div class="affected-meds">
+      <strong>Medications affected by your CFTR result:</strong><br>
+<span class="drug-pill action" title="Discuss before prescription">! ivacaftor</span>    </div>
+  </div>
+  <div class="card card-action gene-block">
+    <div class="gene-header">
+      <span class="sym sym-action">!</span>
+      <span class="gene-name">NUDT15</span>
+<span class="protein-type">Metabolic enzyme</span>      <span class="label-tag label-action">Action</span>
+    </div>
+<p>NUDT15 also affects thiopurine medication processing, similar to TPMT.</p><p>Your body may process some medications a bit slower than average.</p><p class="detail">You carry gene variants that may result in somewhat reduced enzyme activity. Your doctor may want to consider this when prescribing affected medications.</p>    <div class="affected-meds">
+      <strong>Medications affected by your NUDT15 result:</strong><br>
+<span class="drug-pill action" title="Discuss before prescription">! azathioprine</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> mercaptopurine</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> thioguanine</span>    </div>
+  </div>
+</section>
+
+<section class="risk-section review">
+  <h3><span class="risk-section-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span> Review</h3>
+  <div class="card card-review gene-block">
+    <div class="gene-header">
+      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">VKORC1</span>
+<span class="protein-type">Drug target</span>      <span class="label-tag label-review">Review</span>
+    </div>
+<p>VKORC1 controls sensitivity to warfarin, a common blood thinner.</p><p>Your result for this gene could not be clearly determined — discuss with your doctor.</p><p class="detail">The analysis was unable to clearly determine your status for this gene. This may be due to uncommon variants or limitations of the testing method.</p>    <div class="affected-meds">
+      <strong>Medications affected by your VKORC1 result:</strong><br>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> acenocoumarol</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> phenprocoumon</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> warfarin</span>    </div>
+  </div>
+  <div class="card card-review gene-block">
+    <div class="gene-header">
+      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">CYP3A5</span>
+<span class="protein-type">Liver enzyme</span>      <span class="label-tag label-review">Review</span>
+    </div>
+<p>CYP3A5 helps process immunosuppressants like tacrolimus and some blood pressure medications.</p><p>Your body processes some medications much slower than average — discuss with your doctor.</p><p class="detail">You carry gene variants associated with significantly reduced enzyme activity. Certain medications may build up more than expected, increasing side-effect risk. Dose adjustments or alternative medications may be needed.</p>    <div class="affected-meds">
+      <strong>Medications affected by your CYP3A5 result:</strong><br>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> tacrolimus</span>    </div>
+  </div>
+  <div class="card card-review gene-block">
+    <div class="gene-header">
+      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">NAT2</span>
+<span class="protein-type">Metabolic enzyme</span>      <span class="label-tag label-review">Review</span>
+    </div>
+<p>NAT2 helps the body process certain medications including some antibiotics.</p><p>Your body processes some medications faster than average.</p><p class="detail">You carry gene variants associated with increased enzyme activity. Medications affected by this gene may break down faster, possibly reducing their effect.</p>    <div class="affected-meds">
+      <strong>Medications affected by your NAT2 result:</strong><br>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> hydralazine</span>    </div>
+  </div>
+  <div class="card card-review gene-block">
+    <div class="gene-header">
+      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="gene-name">UGT1A1</span>
+<span class="protein-type">Metabolic enzyme</span>      <span class="label-tag label-review">Review</span>
+    </div>
+<p>UGT1A1 helps the body process certain medications and bilirubin (a waste product).</p><p>Your body may process some medications a bit slower than average.</p><p class="detail">You carry gene variants that may result in somewhat reduced enzyme activity. Your doctor may want to consider this when prescribing affected medications.</p>    <div class="affected-meds">
+      <strong>Medications affected by your UGT1A1 result:</strong><br>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> irinotecan</span>    </div>
+  </div>
+</section>
+
+<section class="risk-section normal">
+  <h3><span class="risk-section-symbol">✓</span> Normal</h3>
+  <div class="card card-normal gene-block normal-group">
+    <div class="gene-header">
+      <span class="sym sym-normal">✓</span>
+      <span class="gene-name gene-list-genes">
+ABCG2, SLCO1B1      </span>
+      <span class="label-tag label-normal">Normal</span>
+    </div>
+<p>This gene is functioning normally. No medication adjustments expected.</p>    <ul class="normal-gene-roles">
+<li><span class="protein-type">Drug transporter</span><strong>ABCG2</strong> is a transporter protein that affects how the body absorbs certain medications.</li><li><span class="protein-type">Drug transporter</span><strong>SLCO1B1</strong> affects how the body transports statin medications used to lower cholesterol.</li>    </ul>
+  </div>
+  <div class="card card-normal gene-block normal-group">
+    <div class="gene-header">
+      <span class="sym sym-normal">✓</span>
+      <span class="gene-name gene-list-genes">
+IFNL3, CACNA1S, RYR1, G6PD      </span>
+      <span class="label-tag label-normal">Normal</span>
+    </div>
+<p>Your result for this gene could not be clearly determined — discuss with your doctor.</p>    <ul class="normal-gene-roles">
+<li><span class="protein-type">Immune signaling</span><strong>IFNL3</strong> affects response to hepatitis C treatments.</li><li><span class="protein-type">Ion channel</span><strong>CACNA1S</strong> is related to response to certain anesthetics used during surgery.<span class="gene-note">No known malignant hyperthermia variants were found in this gene. Worth mentioning to an anesthesiologist before any procedure — the test cannot rule out every rare variant, but no catalogued susceptibility variant is present.</span></li><li><span class="protein-type">Ion channel</span><strong>RYR1</strong> is related to risk of malignant hyperthermia, a rare reaction to anesthetics.<span class="gene-note">No known malignant hyperthermia variants were found in this gene. Worth mentioning to an anesthesiologist before any procedure — the test cannot rule out every rare variant, but no catalogued susceptibility variant is present.</span></li><li><span class="protein-type">Red-blood-cell enzyme</span><strong>G6PD</strong> affects red blood cells&#39; sensitivity to certain medications.</li>    </ul>
+  </div>
+  <div class="card card-normal gene-block normal-group">
+    <div class="gene-header">
+      <span class="sym sym-normal">✓</span>
+      <span class="gene-name gene-list-genes">
+CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
+      <span class="label-tag label-normal">Normal</span>
+    </div>
+<p>Your body processes medications involving this gene at a typical rate.</p>    <ul class="normal-gene-roles">
+<li><span class="protein-type">Liver enzyme</span><strong>CYP2B6</strong> helps process certain HIV medications and the smoking cessation drug bupropion.</li><li><span class="protein-type">Liver enzyme</span><strong>CYP2C19</strong> helps the body break down many medications including blood thinners, antidepressants, and stomach acid drugs.</li><li><span class="protein-type">Liver enzyme</span><strong>CYP2C9</strong> helps the body process pain medications, blood thinners like warfarin, and anti-inflammatory drugs.</li><li><span class="protein-type">Liver enzyme</span><strong>CYP3A4</strong> is the most important drug-metabolizing enzyme, involved in processing nearly half of all medications.</li><li><span class="protein-type">Metabolic enzyme</span><strong>DPYD</strong> determines how the body handles fluoropyrimidine chemotherapy drugs.</li><li><span class="protein-type">Metabolic enzyme</span><strong>TPMT</strong> affects how the body processes thiopurine medications used for cancer and autoimmune conditions.</li>    </ul>
+  </div>
+</section>
+
+<section class="risk-section nodata">
+  <h3><span class="risk-section-symbol">—</span> No Data</h3>
+  <div class="card card-nodata gene-block">
+    <div class="gene-header">
+      <span class="sym sym-nodata">—</span>
+      <span class="gene-name">HLA-A</span>
+<span class="protein-type">Immune marker</span>      <span class="label-tag label-nodata">No Data</span>
+    </div>
+<p>HLA-A is part of the immune system and affects risk of severe drug reactions.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for HLA-A before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+    <details class="affected-meds-fallback">
+      <summary>Medications that depend on HLA-A</summary>
+      <ul>
+        <li><strong>Antiepileptics:</strong> carbamazepine</li>
+      </ul>
+    </details>
+  </div>
+  <div class="card card-nodata gene-block">
+    <div class="gene-header">
+      <span class="sym sym-nodata">—</span>
+      <span class="gene-name">HLA-B</span>
+<span class="protein-type">Immune marker</span>      <span class="label-tag label-nodata">No Data</span>
+    </div>
+<p>HLA-B is part of the immune system and affects risk of severe drug reactions to specific drugs.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for HLA-B before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+    <details class="affected-meds-fallback">
+      <summary>Medications that depend on HLA-B</summary>
+      <ul>
+        <li><strong>Antiepileptics:</strong> carbamazepine, oxcarbazepine, phenytoin</li>
+        <li><strong>Antivirals (HIV):</strong> abacavir</li>
+        <li><strong>Gout medications:</strong> allopurinol</li>
+        <li><strong>Other medications:</strong> flucloxacillin, fosphenytoin, lamotrigine, pazopanib</li>
+      </ul>
+    </details>
+  </div>
+  <div class="card card-nodata gene-block">
+    <div class="gene-header">
+      <span class="sym sym-nodata">—</span>
+      <span class="gene-name">CYP2D6</span>
+<span class="protein-type">Liver enzyme</span>      <span class="label-tag label-nodata">No Data</span>
+    </div>
+<p>CYP2D6 is involved in processing about 25% of all medications, including many antidepressants and pain medications.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for CYP2D6 before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+    <details class="affected-meds-fallback">
+      <summary>Medications that depend on CYP2D6</summary>
+      <ul>
+        <li><strong>ADHD medications:</strong> amphetamine, atomoxetine, viloxazine</li>
+        <li><strong>Alzheimer medications:</strong> donepezil, galantamine</li>
+        <li><strong>Anti-nausea medications:</strong> ondansetron, tropisetron</li>
+        <li><strong>Antidepressants:</strong> amitriptyline, amoxapine, clomipramine, desipramine, doxepin, fluoxetine, fluvoxamine, imipramine, nortriptyline, paroxetine, protriptyline, trimipramine, venlafaxine, vortioxetine</li>
+        <li><strong>Antipsychotics:</strong> aripiprazole, brexpiprazole, clozapine, haloperidol, iloperidone, perphenazine, pimozide, risperidone, thioridazine, zuclopenthixol</li>
+        <li><strong>Cardiovascular:</strong> carvedilol, flecainide, metoprolol, nebivolol, propafenone, propranolol</li>
+        <li><strong>Chemotherapy:</strong> tamoxifen</li>
+        <li><strong>GI motility agents:</strong> metoclopramide</li>
+        <li><strong>Gaucher disease medications:</strong> eliglustat</li>
+        <li><strong>Narcolepsy medications:</strong> pitolisant</li>
+        <li><strong>Opioid withdrawal agents:</strong> lofexidine</li>
+        <li><strong>Other medications:</strong> acetaminophen / caffeine / dihydrocodeine, aripiprazole lauroxil, cevimeline, darifenacin, deutetrabenazine, dextromethorphan / quinidine, dextromethorphan hydrobromide / bupropion hydrochloride, fesoterodine, fluoxetine / olanzapine, meclizine, mirabegron, oliceridine, tamsulosin, tetrabenazine, tolterodine, valbenazine</li>
+        <li><strong>Pain medications:</strong> codeine, hydrocodone, tramadol</li>
+        <li><strong>Targeted cancer therapy:</strong> gefitinib</li>
+      </ul>
+    </details>
+<div class="caveat">CYP2D6 results may be unreliable from short-read whole-genome sequencing due to the gene&#39;s complex structural variation (deletions, duplications, hybrid alleles). Clinical CYP2D6 testing is recommended for actionable decisions.</div>  </div>
+  <div class="card card-nodata gene-block">
+    <div class="gene-header">
+      <span class="sym sym-nodata">—</span>
+      <span class="gene-name">CYP4F2</span>
+<span class="protein-type">Liver enzyme</span>      <span class="label-tag label-nodata">No Data</span>
+    </div>
+<p>CYP4F2 affects how the body uses vitamin K, which influences warfarin dosing.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for CYP4F2 before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+    <details class="affected-meds-fallback">
+      <summary>Medications that depend on CYP4F2</summary>
+      <ul>
+        <li><strong>Antiplatelet / Anticoagulant agents:</strong> warfarin</li>
+      </ul>
+    </details>
+  </div>
+  <div class="card card-nodata gene-block">
+    <div class="gene-header">
+      <span class="sym sym-nodata">—</span>
+      <span class="gene-name">MT-RNR1</span>
+<span class="protein-type">Mitochondrial RNA</span>      <span class="label-tag label-nodata">No Data</span>
+    </div>
+<p>MT-RNR1 affects sensitivity to aminoglycoside antibiotics that can cause hearing loss.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for MT-RNR1 before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+    <details class="affected-meds-fallback">
+      <summary>Medications that depend on MT-RNR1</summary>
+      <ul>
+        <li><strong>Other medications:</strong> amikacin, dibekacin, gentamicin, kanamycin, neomycin, netilmicin, paromomycin, plazomicin, ribostamycin, streptomycin, tobramycin</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<div class="next-steps">
+  <h3>Your next steps</h3>
+  <ul>
+    <li><span class="step-icon">🩺</span><span>Bring this report to your healthcare provider — especially before starting a new prescription.</span></li>
+    <li><span class="step-icon">⚠️</span><span>Pay special attention to: azathioprine, ivacaftor. If any of these are prescribed, mention this report first.</span></li>
+    <li><span class="step-icon">🔬</span><span>5 genes were not testable from this sample. If a doctor needs a result for one of these, ask about clinical pharmacogenomic testing.</span></li>
+    <li><span class="step-icon">✅</span><span>Results should be confirmed by a CLIA-certified lab before any prescribing decisions are made.</span></li>
+  </ul>
+</div>
+
+<section class="limitations">
+  <h2>What this report does <em>not</em> tell you</h2>
+  <ul>
+<li>It is a computational prediction — not a clinical diagnosis. Results should be confirmed by a clinical lab before being used to prescribe.</li><li>It does not predict drug allergies, drug-drug interactions, or how your kidney/liver function, age, diet, and other medications affect a dose.</li><li>It only covers the genes PharmCAT analyzes. Other genes that affect drug response are not included.</li><li>It is not a substitute for genetic counseling. If a result surprises you, a genetic counselor or pharmacist can help interpret it.</li>  </ul>
+</section>
+
+<section class="learn-more">
+  <h2>Learn more</h2>
+  <ul>
+    <li><a href="https://cpicpgx.org/">CPIC — Clinical Pharmacogenetics Implementation Consortium</a><span class="blurb">Plain-language gene/drug summaries written by the same group that publishes the prescribing guidelines.</span></li>
+    <li><a href="https://www.fda.gov/drugs/science-and-research-drugs/table-pharmacogenomic-biomarkers-drug-labeling">FDA Table of Pharmacogenomic Biomarkers in Drug Labeling</a><span class="blurb">Official list of drugs whose FDA label mentions genetic factors.</span></li>
+    <li><a href="https://medlineplus.gov/genetics/">MedlinePlus Genetics</a><span class="blurb">U.S. National Library of Medicine — plain-language gene encyclopedia.</span></li>
+  </ul>
+</section>
+
+
+  <div class="disclaimer">
+    <strong>Disclaimer</strong>
+    This report is for educational and informational purposes only. It is NOT a substitute for professional medical advice, diagnosis, or treatment. Always consult a healthcare provider before making any changes to medications. Results shown are based on computational analysis of genetic data and should be confirmed by a certified clinical laboratory before any clinical decisions are made.
+  </div>
+
+  <footer>
+    Generated by PGx Reporter &middot; May 15, 2026
+  </footer>
+</div>
+</body>
+</html>
