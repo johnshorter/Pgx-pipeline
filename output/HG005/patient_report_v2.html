@@ -380,6 +380,12 @@
     font-weight: 700;
   }
   .med-table-wrap.action > h3 { color: var(--action); }
+  .med-table-wrap.review > h3 { color: var(--review); }
+  .med-table-wrap.review .review-intro {
+    margin: 4px 0 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
 
   table.med-table {
     width: 100%;
@@ -407,7 +413,12 @@
     line-height: 1.45;
   }
   table.med-table tr:last-child td { border-bottom: none; }
-  table.med-table .drug-name { font-weight: 700; margin-left: 4px; }
+  table.med-table .drug-cell-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  table.med-table .drug-name { font-weight: 700; }
   table.med-table .drug-brand-subtitle {
     display: block;
     margin-top: 2px;
@@ -435,37 +446,8 @@
     margin-bottom: 4px;
   }
   .med-table-wrap.action  .rationale-directive { color: var(--action); }
-  details.med-review-details .rationale-directive { color: var(--review); }
+  .med-table-wrap.review  .rationale-directive { color: var(--review); }
 
-  details.med-review-details {
-    background: #FAFAFA;
-    border-left: 4px solid var(--review);
-    border-radius: 0 6px 6px 0;
-    padding: 10px 14px 14px;
-    margin: 12px 0;
-  }
-  details.med-review-details > summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--review);
-    font-size: 14px;
-    list-style: none;
-  }
-  details.med-review-details > summary::-webkit-details-marker { display: none; }
-  details.med-review-details > summary::before {
-    content: "▸ ";
-    color: var(--review);
-    margin-right: 4px;
-  }
-  details.med-review-details[open] > summary::before { content: "▾ "; }
-  details.med-review-details .hint {
-    color: var(--text-light); font-weight: 400; font-size: 12px; margin-left: 6px;
-  }
-  details.med-review-details .review-intro {
-    margin: 10px 0 16px;
-    font-size: 13px;
-    color: var(--text);
-  }
   /* Per-category subtitled group inside the Review section. */
   .review-group {
     margin: 18px 0;
@@ -533,6 +515,100 @@
     font-size: 12px;
     font-style: italic;
     margin-left: 4px;
+  }
+
+  /* Risk-grouped sections in "Your Genes in Detail" — list-row layout
+     instead of bordered cards. Rows separated by thin dividers, much
+     less visually heavy than the old .card-{risk} blocks. */
+  .gene-row {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .gene-row:last-child { border-bottom: none; }
+  .gene-row-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .gene-row-header .gene-name {
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .gene-row-header .gene-name.gene-list-genes {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .gene-row-header .label-tag {
+    margin-left: auto;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  /* Phenotype pill in the gene-row header — same colour system as the
+     at-a-glance pills, slightly smaller. */
+  .gene-row-header .phenotype-pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    line-height: 1.35;
+  }
+  .gene-row-action .phenotype-pill { background: var(--action-bg); color: var(--action); }
+  .gene-row-review .phenotype-pill { background: var(--review-bg); color: var(--review); }
+  .gene-row-normal .phenotype-pill { background: var(--normal-bg); color: var(--normal); }
+  .gene-row-nodata .phenotype-pill { background: var(--nodata-bg); color: var(--nodata); }
+  .gene-row-body p {
+    margin: 0 0 6px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .gene-row-body .affected-meds {
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  .gene-row-body .affected-meds strong {
+    margin-right: 4px;
+    color: var(--text);
+  }
+  /* Normal section — condensed flat list, no per-gene rows */
+  .normal-intro {
+    margin: 8px 0 14px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  ul.normal-flat-list {
+    margin: 0 0 0 20px;
+    padding: 0;
+  }
+  ul.normal-flat-list li {
+    margin: 8px 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  ul.normal-flat-list li strong { font-weight: 700; }
+  ul.normal-flat-list .protein-type { margin-left: 4px; }
+  ul.normal-flat-list .gene-note {
+    /* MH note for CACNA1S/RYR1 — same yellow callout style */
+    display: block;
+    margin-top: 4px;
+    font-size: 12.5px;
+    font-style: italic;
+    color: var(--text);
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 6px 10px;
+    border-radius: 0 4px 4px 0;
+  }
+  .gene-row .protein-type {
+    /* re-use the existing tag styles — no overrides needed */
   }
 
   /* Risk-grouped sections in "Your Genes in Detail" */
@@ -631,7 +707,7 @@
 
   <header class="report-header">
     <h1>Your Personal Pharmacogenetics Report</h1>
-<div class="meta">May 15, 2026 &middot; Sample: <strong>HG005</strong></div>
+<div class="meta">May 16, 2026 &middot; Sample: <strong>HG005</strong></div>
   </header>
 
 
@@ -655,14 +731,14 @@
   <section class="dash-row dash-row-normal">
     <div class="dash-row-label"><span class="dash-row-symbol">✓</span> Normal</div>
     <p class="dash-row-text">
-        <strong>12</strong> genes work as expected — standard dosing applies for the related medications.
+        <strong>11</strong> genes work as expected — standard dosing applies for the related medications.
     </p>
   </section>
 
   <section class="dash-row dash-row-nodata">
     <div class="dash-row-label"><span class="dash-row-symbol">—</span> No Data</div>
     <p class="dash-row-text">
-        <strong>5</strong> genes couldn't be tested from this sample — clinical testing may be useful if any related medication is prescribed.
+        <strong>6</strong> genes couldn't be tested from this sample — clinical testing may be useful if any related medication is prescribed.
     </p>
   </section>
 
@@ -771,13 +847,6 @@
   <div class="ov-card normal">
     <div class="gene">
       <span class="sym-inline sym-normal">✓</span>
-      <span class="gene-name">IFNL3</span>
-    </div>
-    <div class="pheno">Not tested</div>
-  </div>
-  <div class="ov-card normal">
-    <div class="gene">
-      <span class="sym-inline sym-normal">✓</span>
       <span class="gene-name">RYR1</span>
     </div>
     <div class="pheno">No known risk variants</div>
@@ -827,6 +896,13 @@
   <div class="ov-card nodata">
     <div class="gene">
       <span class="sym-inline sym-nodata">—</span>
+      <span class="gene-name">IFNL3</span>
+    </div>
+    <div class="pheno">Not tested</div>
+  </div>
+  <div class="ov-card nodata">
+    <div class="gene">
+      <span class="sym-inline sym-nodata">—</span>
       <span class="gene-name">MT-RNR1</span>
     </div>
     <div class="pheno">Not tested</div>
@@ -848,16 +924,20 @@
     <tbody>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-action">!</span>
-          <span class="drug-name">azathioprine</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-action">!</span>
+            <span class="drug-name">azathioprine</span>
+          </span>
 <span class="drug-brand-subtitle">Imuran, Azasan</span>        </td>
         <td class="type-cell">Chemotherapy / Immunosuppressant</td>
         <td class="rationale"><span class="rationale-directive">Don't start without dose reduction — ask your prescriber.</span>Your <strong>NUDT15</strong> result: standard doses can cause severe drops in blood counts for you. Ask about a reduced starting dose or an alternative drug.</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-action">!</span>
-          <span class="drug-name">ivacaftor</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-action">!</span>
+            <span class="drug-name">ivacaftor</span>
+          </span>
         </td>
         <td class="type-cell">Cystic-fibrosis medication</td>
         <td class="rationale"><span class="rationale-directive">Don't start this drug — ask your doctor about alternative CF therapies.</span>Your <strong>CFTR</strong> result: this drug is unlikely to work for your specific CFTR variant.</td>
@@ -866,11 +946,8 @@
   </table>
 </div>
 
-<details class="med-review-details">
-  <summary>
-    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> 8 medications linked to your genetic results
-    <span class="hint">(click to view)</span>
-  </summary>
+<div class="med-table-wrap review">
+  <h3><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> 8 medications linked to your genetic results</h3>
   <p class="review-intro">
     Your genetic results may affect how these medications work for you.
     <strong>You don't need to act on this list right now.</strong>
@@ -887,185 +964,237 @@
     <tbody>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">acenocoumarol</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">acenocoumarol</span>
+          </span>
         </td>
         <td class="type-cell">Blood thinner</td>
         <td class="gene-cell">VKORC1</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">hydralazine</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">hydralazine</span>
+          </span>
         </td>
         <td class="type-cell">Heart / blood-pressure medication</td>
         <td class="gene-cell">NAT2</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">irinotecan</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">irinotecan</span>
+          </span>
         </td>
         <td class="type-cell">Chemotherapy</td>
         <td class="gene-cell">UGT1A1</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">mercaptopurine</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">mercaptopurine</span>
+          </span>
 <span class="drug-brand-subtitle">Purinethol, Purixan</span>        </td>
         <td class="type-cell">Chemotherapy / Immunosuppressant</td>
         <td class="gene-cell">NUDT15</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">phenprocoumon</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">phenprocoumon</span>
+          </span>
         </td>
         <td class="type-cell">Blood thinner</td>
         <td class="gene-cell">VKORC1</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">tacrolimus</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">tacrolimus</span>
+          </span>
 <span class="drug-brand-subtitle">Prograf, Astagraf</span>        </td>
         <td class="type-cell">Immunosuppressant</td>
         <td class="gene-cell">CYP3A5</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">thioguanine</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">thioguanine</span>
+          </span>
         </td>
         <td class="type-cell">Chemotherapy / Immunosuppressant</td>
         <td class="gene-cell">NUDT15</td>
       </tr>
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-          <span class="drug-name">warfarin</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="drug-name">warfarin</span>
+          </span>
 <span class="drug-brand-subtitle">Coumadin, Jantoven</span>        </td>
         <td class="type-cell">Blood thinner</td>
         <td class="gene-cell">VKORC1</td>
       </tr>
     </tbody>
   </table>
-</details>
+</div>
 
 <h2>Your Genes in Detail</h2>
 
+
 <section class="risk-section action">
   <h3><span class="risk-section-symbol">!</span> Action</h3>
-  <div class="card card-action gene-block">
-    <div class="gene-header">
-      <span class="sym sym-action">!</span>
-      <span class="gene-name">CFTR</span>
-<span class="protein-type">Ion channel</span>      <span class="label-tag label-action">Action</span>
-    </div>
-<p>CFTR is related to cystic fibrosis and affects certain medication responses.</p><p>Your result for this gene could not be clearly determined — discuss with your doctor.</p><p class="detail">The analysis was unable to clearly determine your status for this gene. This may be due to uncommon variants or limitations of the testing method.</p>    <div class="affected-meds">
-      <strong>Medications affected by your CFTR result:</strong><br>
-<span class="drug-pill action" title="Discuss before prescription">! ivacaftor</span>    </div>
+<div class="gene-row gene-row-action">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-action">!</span>
+    <span class="gene-name">CFTR</span>
+<span class="phenotype-pill">Non-responsive to ivacaftor</span><span class="protein-type">Ion channel</span>    <span class="label-tag label-action">Action</span>
   </div>
-  <div class="card card-action gene-block">
-    <div class="gene-header">
-      <span class="sym sym-action">!</span>
-      <span class="gene-name">NUDT15</span>
-<span class="protein-type">Metabolic enzyme</span>      <span class="label-tag label-action">Action</span>
-    </div>
-<p>NUDT15 also affects thiopurine medication processing, similar to TPMT.</p><p>Your body may process some medications a bit slower than average.</p><p class="detail">You carry gene variants that may result in somewhat reduced enzyme activity. Your doctor may want to consider this when prescribing affected medications.</p>    <div class="affected-meds">
-      <strong>Medications affected by your NUDT15 result:</strong><br>
-<span class="drug-pill action" title="Discuss before prescription">! azathioprine</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> mercaptopurine</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> thioguanine</span>    </div>
+  <div class="gene-row-body">
+    <p>
+CFTR is related to cystic fibrosis and affects certain medication responses.        Your CFTR variant is not the type ivacaftor (Kalydeco) is designed to treat — this drug is unlikely to be effective.
+    </p>
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
+<span class="drug-pill action" title="Discuss before prescription">! ivacaftor</span>    </p>
   </div>
-</section>
+</div><div class="gene-row gene-row-action">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-action">!</span>
+    <span class="gene-name">NUDT15</span>
+<span class="phenotype-pill">Intermediate metabolizer</span><span class="protein-type">Metabolic enzyme</span>    <span class="label-tag label-action">Action</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+NUDT15 also affects thiopurine medication processing, similar to TPMT.        You carry variants with somewhat reduced enzyme activity, so related medications may be processed a bit more slowly than usual.
+    </p>
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
+<span class="drug-pill action" title="Discuss before prescription">! azathioprine</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> mercaptopurine</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> thioguanine</span>    </p>
+  </div>
+</div></section>
 
 <section class="risk-section review">
   <h3><span class="risk-section-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span> Review</h3>
-  <div class="card card-review gene-block">
-    <div class="gene-header">
-      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-      <span class="gene-name">VKORC1</span>
-<span class="protein-type">Drug target</span>      <span class="label-tag label-review">Review</span>
-    </div>
-<p>VKORC1 controls sensitivity to warfarin, a common blood thinner.</p><p>Your result for this gene could not be clearly determined — discuss with your doctor.</p><p class="detail">The analysis was unable to clearly determine your status for this gene. This may be due to uncommon variants or limitations of the testing method.</p>    <div class="affected-meds">
-      <strong>Medications affected by your VKORC1 result:</strong><br>
-<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> acenocoumarol</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> phenprocoumon</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> warfarin</span>    </div>
+<div class="gene-row gene-row-review">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">VKORC1</span>
+<span class="phenotype-pill">Warfarin-sensitive variant</span><span class="protein-type">Drug target</span>    <span class="label-tag label-review">Review</span>
   </div>
-  <div class="card card-review gene-block">
-    <div class="gene-header">
-      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-      <span class="gene-name">CYP3A5</span>
-<span class="protein-type">Liver enzyme</span>      <span class="label-tag label-review">Review</span>
-    </div>
-<p>CYP3A5 helps process immunosuppressants like tacrolimus and some blood pressure medications.</p><p>Your body processes some medications much slower than average — discuss with your doctor.</p><p class="detail">You carry gene variants associated with significantly reduced enzyme activity. Certain medications may build up more than expected, increasing side-effect risk. Dose adjustments or alternative medications may be needed.</p>    <div class="affected-meds">
-      <strong>Medications affected by your CYP3A5 result:</strong><br>
-<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> tacrolimus</span>    </div>
+  <div class="gene-row-body">
+    <p>
+VKORC1 controls sensitivity to warfarin, a common blood thinner.        You carry the variant that increases warfarin sensitivity — lower-than-usual doses are typically needed to control blood clotting safely.
+    </p>
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> acenocoumarol</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> phenprocoumon</span><span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> warfarin</span>    </p>
   </div>
-  <div class="card card-review gene-block">
-    <div class="gene-header">
-      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-      <span class="gene-name">NAT2</span>
-<span class="protein-type">Metabolic enzyme</span>      <span class="label-tag label-review">Review</span>
-    </div>
-<p>NAT2 helps the body process certain medications including some antibiotics.</p><p>Your body processes some medications faster than average.</p><p class="detail">You carry gene variants associated with increased enzyme activity. Medications affected by this gene may break down faster, possibly reducing their effect.</p>    <div class="affected-meds">
-      <strong>Medications affected by your NAT2 result:</strong><br>
-<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> hydralazine</span>    </div>
+</div><div class="gene-row gene-row-review">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">CYP3A5</span>
+<span class="phenotype-pill">Slow metabolizer</span><span class="protein-type">Liver enzyme</span>    <span class="label-tag label-review">Review</span>
   </div>
-  <div class="card card-review gene-block">
-    <div class="gene-header">
-      <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-      <span class="gene-name">UGT1A1</span>
-<span class="protein-type">Metabolic enzyme</span>      <span class="label-tag label-review">Review</span>
-    </div>
-<p>UGT1A1 helps the body process certain medications and bilirubin (a waste product).</p><p>Your body may process some medications a bit slower than average.</p><p class="detail">You carry gene variants that may result in somewhat reduced enzyme activity. Your doctor may want to consider this when prescribing affected medications.</p>    <div class="affected-meds">
-      <strong>Medications affected by your UGT1A1 result:</strong><br>
-<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> irinotecan</span>    </div>
+  <div class="gene-row-body">
+    <p>
+CYP3A5 helps process immunosuppressants like tacrolimus and some blood pressure medications.        You carry variants with significantly reduced enzyme activity — affected drugs may build up and cause more side effects than usual.
+    </p>
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> tacrolimus</span>    </p>
   </div>
-</section>
+</div><div class="gene-row gene-row-review">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">NAT2</span>
+<span class="phenotype-pill">Rapid metabolizer</span><span class="protein-type">Metabolic enzyme</span>    <span class="label-tag label-review">Review</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+NAT2 helps the body process certain medications including some antibiotics.        You carry variants with increased enzyme activity — affected medications may break down faster than usual, potentially reducing their effect.
+    </p>
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> hydralazine</span>    </p>
+  </div>
+</div><div class="gene-row gene-row-review">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">UGT1A1</span>
+<span class="phenotype-pill">Intermediate metabolizer</span><span class="protein-type">Metabolic enzyme</span>    <span class="label-tag label-review">Review</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+UGT1A1 helps the body process certain medications and bilirubin (a waste product).        You carry variants with somewhat reduced enzyme activity, so related medications may be processed a bit more slowly than usual.
+    </p>
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
+<span class="drug-pill review" title="Mention at next visit"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> irinotecan</span>    </p>
+  </div>
+</div></section>
 
 <section class="risk-section normal">
   <h3><span class="risk-section-symbol">✓</span> Normal</h3>
-  <div class="card card-normal gene-block normal-group">
-    <div class="gene-header">
-      <span class="sym sym-normal">✓</span>
-      <span class="gene-name gene-list-genes">
-ABCG2, SLCO1B1      </span>
-      <span class="label-tag label-normal">Normal</span>
-    </div>
-<p>This gene is functioning normally. No medication adjustments expected.</p>    <ul class="normal-gene-roles">
-<li><span class="protein-type">Drug transporter</span><strong>ABCG2</strong> is a transporter protein that affects how the body absorbs certain medications.</li><li><span class="protein-type">Drug transporter</span><strong>SLCO1B1</strong> affects how the body transports statin medications used to lower cholesterol.</li>    </ul>
-  </div>
-  <div class="card card-normal gene-block normal-group">
-    <div class="gene-header">
-      <span class="sym sym-normal">✓</span>
-      <span class="gene-name gene-list-genes">
-IFNL3, CACNA1S, RYR1, G6PD      </span>
-      <span class="label-tag label-normal">Normal</span>
-    </div>
-<p>Your result for this gene could not be clearly determined — discuss with your doctor.</p>    <ul class="normal-gene-roles">
-<li><span class="protein-type">Immune signaling</span><strong>IFNL3</strong> affects response to hepatitis C treatments.</li><li><span class="protein-type">Ion channel</span><strong>CACNA1S</strong> is related to response to certain anesthetics used during surgery.<span class="gene-note">No known malignant hyperthermia variants were found in this gene. Worth mentioning to an anesthesiologist before any procedure — the test cannot rule out every rare variant, but no catalogued susceptibility variant is present.</span></li><li><span class="protein-type">Ion channel</span><strong>RYR1</strong> is related to risk of malignant hyperthermia, a rare reaction to anesthetics.<span class="gene-note">No known malignant hyperthermia variants were found in this gene. Worth mentioning to an anesthesiologist before any procedure — the test cannot rule out every rare variant, but no catalogued susceptibility variant is present.</span></li><li><span class="protein-type">Red-blood-cell enzyme</span><strong>G6PD</strong> affects red blood cells&#39; sensitivity to certain medications.</li>    </ul>
-  </div>
-  <div class="card card-normal gene-block normal-group">
-    <div class="gene-header">
-      <span class="sym sym-normal">✓</span>
-      <span class="gene-name gene-list-genes">
-CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
-      <span class="label-tag label-normal">Normal</span>
-    </div>
-<p>Your body processes medications involving this gene at a typical rate.</p>    <ul class="normal-gene-roles">
-<li><span class="protein-type">Liver enzyme</span><strong>CYP2B6</strong> helps process certain HIV medications and the smoking cessation drug bupropion.</li><li><span class="protein-type">Liver enzyme</span><strong>CYP2C19</strong> helps the body break down many medications including blood thinners, antidepressants, and stomach acid drugs.</li><li><span class="protein-type">Liver enzyme</span><strong>CYP2C9</strong> helps the body process pain medications, blood thinners like warfarin, and anti-inflammatory drugs.</li><li><span class="protein-type">Liver enzyme</span><strong>CYP3A4</strong> is the most important drug-metabolizing enzyme, involved in processing nearly half of all medications.</li><li><span class="protein-type">Metabolic enzyme</span><strong>DPYD</strong> determines how the body handles fluoropyrimidine chemotherapy drugs.</li><li><span class="protein-type">Metabolic enzyme</span><strong>TPMT</strong> affects how the body processes thiopurine medications used for cancer and autoimmune conditions.</li>    </ul>
-  </div>
+  <p class="normal-intro">
+    These genes are working as expected — standard dosing applies for related medications. No action needed.
+  </p>
+  <ul class="normal-flat-list">
+    <li>
+      <strong>ABCG2</strong>
+<span class="protein-type">Drug transporter</span> — is a transporter protein that affects how the body absorbs certain medications    </li>
+    <li>
+      <strong>SLCO1B1</strong>
+<span class="protein-type">Drug transporter</span> — affects how the body transports statin medications used to lower cholesterol    </li>
+    <li>
+      <strong>CACNA1S</strong>
+<span class="protein-type">Ion channel</span> — is related to response to certain anesthetics used during surgery<span class="gene-note">No known malignant hyperthermia variants were found in this gene. Worth mentioning to an anesthesiologist before any procedure — the test cannot rule out every rare variant, but no catalogued susceptibility variant is present.</span>    </li>
+    <li>
+      <strong>RYR1</strong>
+<span class="protein-type">Ion channel</span> — is related to risk of malignant hyperthermia, a rare reaction to anesthetics<span class="gene-note">No known malignant hyperthermia variants were found in this gene. Worth mentioning to an anesthesiologist before any procedure — the test cannot rule out every rare variant, but no catalogued susceptibility variant is present.</span>    </li>
+    <li>
+      <strong>CYP2B6</strong>
+<span class="protein-type">Liver enzyme</span> — helps process certain HIV medications and the smoking cessation drug bupropion    </li>
+    <li>
+      <strong>CYP2C19</strong>
+<span class="protein-type">Liver enzyme</span> — helps the body break down many medications including blood thinners, antidepressants, and stomach acid drugs    </li>
+    <li>
+      <strong>CYP2C9</strong>
+<span class="protein-type">Liver enzyme</span> — helps the body process pain medications, blood thinners like warfarin, and anti-inflammatory drugs    </li>
+    <li>
+      <strong>CYP3A4</strong>
+<span class="protein-type">Liver enzyme</span> — is the most important drug-metabolizing enzyme, involved in processing nearly half of all medications    </li>
+    <li>
+      <strong>DPYD</strong>
+<span class="protein-type">Metabolic enzyme</span> — determines how the body handles fluoropyrimidine chemotherapy drugs    </li>
+    <li>
+      <strong>TPMT</strong>
+<span class="protein-type">Metabolic enzyme</span> — affects how the body processes thiopurine medications used for cancer and autoimmune conditions    </li>
+    <li>
+      <strong>G6PD</strong>
+<span class="protein-type">Red-blood-cell enzyme</span> — affects red blood cells&#39; sensitivity to certain medications    </li>
+  </ul>
 </section>
 
 <section class="risk-section nodata">
   <h3><span class="risk-section-symbol">—</span> No Data</h3>
-  <div class="card card-nodata gene-block">
-    <div class="gene-header">
-      <span class="sym sym-nodata">—</span>
-      <span class="gene-name">HLA-A</span>
-<span class="protein-type">Immune marker</span>      <span class="label-tag label-nodata">No Data</span>
-    </div>
-<p>HLA-A is part of the immune system and affects risk of severe drug reactions.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for HLA-A before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+<div class="gene-row gene-row-nodata">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-nodata">—</span>
+    <span class="gene-name">HLA-A</span>
+<span class="phenotype-pill">Not tested</span><span class="protein-type">Immune marker</span>    <span class="label-tag label-nodata">No Data</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+HLA-A is part of the immune system and affects risk of severe drug reactions.        This gene couldn't be analyzed from the available data. If a doctor needs a result for HLA-A before prescribing, clinical pharmacogenomic testing can be ordered.
+    </p>
     <details class="affected-meds-fallback">
       <summary>Medications that depend on HLA-A</summary>
       <ul>
@@ -1073,13 +1202,16 @@ CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
       </ul>
     </details>
   </div>
-  <div class="card card-nodata gene-block">
-    <div class="gene-header">
-      <span class="sym sym-nodata">—</span>
-      <span class="gene-name">HLA-B</span>
-<span class="protein-type">Immune marker</span>      <span class="label-tag label-nodata">No Data</span>
-    </div>
-<p>HLA-B is part of the immune system and affects risk of severe drug reactions to specific drugs.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for HLA-B before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+</div><div class="gene-row gene-row-nodata">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-nodata">—</span>
+    <span class="gene-name">HLA-B</span>
+<span class="phenotype-pill">Not tested</span><span class="protein-type">Immune marker</span>    <span class="label-tag label-nodata">No Data</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+HLA-B is part of the immune system and affects risk of severe drug reactions to specific drugs.        This gene couldn't be analyzed from the available data. If a doctor needs a result for HLA-B before prescribing, clinical pharmacogenomic testing can be ordered.
+    </p>
     <details class="affected-meds-fallback">
       <summary>Medications that depend on HLA-B</summary>
       <ul>
@@ -1090,13 +1222,33 @@ CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
       </ul>
     </details>
   </div>
-  <div class="card card-nodata gene-block">
-    <div class="gene-header">
-      <span class="sym sym-nodata">—</span>
-      <span class="gene-name">CYP2D6</span>
-<span class="protein-type">Liver enzyme</span>      <span class="label-tag label-nodata">No Data</span>
-    </div>
-<p>CYP2D6 is involved in processing about 25% of all medications, including many antidepressants and pain medications.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for CYP2D6 before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+</div><div class="gene-row gene-row-nodata">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-nodata">—</span>
+    <span class="gene-name">IFNL3</span>
+<span class="phenotype-pill">Not tested</span><span class="protein-type">Immune signaling</span>    <span class="label-tag label-nodata">No Data</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+IFNL3 affects response to hepatitis C treatments.        This gene couldn't be analyzed from the available data. If a doctor needs a result for IFNL3 before prescribing, clinical pharmacogenomic testing can be ordered.
+    </p>
+    <details class="affected-meds-fallback">
+      <summary>Medications that depend on IFNL3</summary>
+      <ul>
+        <li><strong>Other medications:</strong> peginterferon alfa-2a, peginterferon alfa-2b, ribavirin</li>
+      </ul>
+    </details>
+  </div>
+</div><div class="gene-row gene-row-nodata">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-nodata">—</span>
+    <span class="gene-name">CYP2D6</span>
+<span class="phenotype-pill">Not tested</span><span class="protein-type">Liver enzyme</span>    <span class="label-tag label-nodata">No Data</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+CYP2D6 is involved in processing about 25% of all medications, including many antidepressants and pain medications.        This gene couldn't be analyzed from the available data. If a doctor needs a result for CYP2D6 before prescribing, clinical pharmacogenomic testing can be ordered.
+    </p>
     <details class="affected-meds-fallback">
       <summary>Medications that depend on CYP2D6</summary>
       <ul>
@@ -1117,13 +1269,16 @@ CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
       </ul>
     </details>
 <div class="caveat">CYP2D6 results may be unreliable from short-read whole-genome sequencing due to the gene&#39;s complex structural variation (deletions, duplications, hybrid alleles). Clinical CYP2D6 testing is recommended for actionable decisions.</div>  </div>
-  <div class="card card-nodata gene-block">
-    <div class="gene-header">
-      <span class="sym sym-nodata">—</span>
-      <span class="gene-name">CYP4F2</span>
-<span class="protein-type">Liver enzyme</span>      <span class="label-tag label-nodata">No Data</span>
-    </div>
-<p>CYP4F2 affects how the body uses vitamin K, which influences warfarin dosing.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for CYP4F2 before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+</div><div class="gene-row gene-row-nodata">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-nodata">—</span>
+    <span class="gene-name">CYP4F2</span>
+<span class="phenotype-pill">Not tested</span><span class="protein-type">Liver enzyme</span>    <span class="label-tag label-nodata">No Data</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+CYP4F2 affects how the body uses vitamin K, which influences warfarin dosing.        This gene couldn't be analyzed from the available data. If a doctor needs a result for CYP4F2 before prescribing, clinical pharmacogenomic testing can be ordered.
+    </p>
     <details class="affected-meds-fallback">
       <summary>Medications that depend on CYP4F2</summary>
       <ul>
@@ -1131,13 +1286,16 @@ CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
       </ul>
     </details>
   </div>
-  <div class="card card-nodata gene-block">
-    <div class="gene-header">
-      <span class="sym sym-nodata">—</span>
-      <span class="gene-name">MT-RNR1</span>
-<span class="protein-type">Mitochondrial RNA</span>      <span class="label-tag label-nodata">No Data</span>
-    </div>
-<p>MT-RNR1 affects sensitivity to aminoglycoside antibiotics that can cause hearing loss.</p>    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for MT-RNR1 before prescribing, clinical pharmacogenomic testing can be ordered.</p>
+</div><div class="gene-row gene-row-nodata">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-nodata">—</span>
+    <span class="gene-name">MT-RNR1</span>
+<span class="phenotype-pill">Not tested</span><span class="protein-type">Mitochondrial RNA</span>    <span class="label-tag label-nodata">No Data</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+MT-RNR1 affects sensitivity to aminoglycoside antibiotics that can cause hearing loss.        This gene couldn't be analyzed from the available data. If a doctor needs a result for MT-RNR1 before prescribing, clinical pharmacogenomic testing can be ordered.
+    </p>
     <details class="affected-meds-fallback">
       <summary>Medications that depend on MT-RNR1</summary>
       <ul>
@@ -1145,14 +1303,14 @@ CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
       </ul>
     </details>
   </div>
-</section>
+</div></section>
 
 <div class="next-steps">
   <h3>Your next steps</h3>
   <ul>
     <li><span class="step-icon">🩺</span><span>Bring this report to your healthcare provider — especially before starting a new prescription.</span></li>
     <li><span class="step-icon">⚠️</span><span>Pay special attention to: azathioprine, ivacaftor. If any of these are prescribed, mention this report first.</span></li>
-    <li><span class="step-icon">🔬</span><span>5 genes were not testable from this sample. If a doctor needs a result for one of these, ask about clinical pharmacogenomic testing.</span></li>
+    <li><span class="step-icon">🔬</span><span>6 genes were not testable from this sample. If a doctor needs a result for one of these, ask about clinical pharmacogenomic testing.</span></li>
     <li><span class="step-icon">✅</span><span>Results should be confirmed by a CLIA-certified lab before any prescribing decisions are made.</span></li>
   </ul>
 </div>
@@ -1179,7 +1337,7 @@ CYP2B6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT      </span>
   </div>
 
   <footer>
-    Generated by PGx Reporter &middot; May 15, 2026
+    Generated by PGx Reporter &middot; May 16, 2026
   </footer>
 </div>
 </body>

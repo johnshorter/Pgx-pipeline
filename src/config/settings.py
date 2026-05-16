@@ -408,7 +408,7 @@ PHENOTYPE_RISK: dict[str, str] = {
     "normal": "normal",
     "uncertain susceptibility": "normal",
     "no result": "nodata",
-    "n/a": "normal",
+    "n/a": "nodata",
 }
 
 

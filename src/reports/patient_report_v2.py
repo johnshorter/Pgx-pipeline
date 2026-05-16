@@ -746,6 +746,7 @@ def _group_by_risk(
                 "label": ACTION_LABELS["nodata"],
                 "description": g.description,
                 "protein_type": g.protein_type,
+                "phenotype_short": "Not tested",
                 "affected_drugs": _affected_drugs_by_category(g.related_drugs),
                 "caveat": g.caveat,
             })
@@ -774,7 +775,7 @@ def _group_by_risk(
     return {
         "action": action,
         "review": review,
-        "normal_groups": _group_normal_definitives(normal_raw),
+        "normal": normal_raw,
         "no_call": no_call,
     }
 
@@ -790,6 +791,7 @@ def _enrich_definitive(
         "label": ACTION_LABELS[risk_level],
         "description": g.description,
         "protein_type": g.protein_type,
+        "phenotype_short": _display_phenotype(g.phenotype),
         "plain_language": explanations["brief"],
         "detail": explanations["detail"],
         "caveat": g.caveat,
@@ -826,6 +828,7 @@ def _enrich_ambiguous(
         "label": ACTION_LABELS[risk_level],
         "description": g.description,
         "protein_type": g.protein_type,
+        "phenotype_short": "Inconclusive",
         "plain_language": None,
         "detail": None,
         "caveat": g.caveat,
@@ -842,6 +845,7 @@ def _enrich_no_call(g: NoCallGene) -> dict:
         "label": ACTION_LABELS["nodata"],
         "description": g.description,
         "protein_type": g.protein_type,
+        "phenotype_short": "Not tested",
         "affected_drugs": g.affected_drugs,
         "caveat": g.caveat,
     }

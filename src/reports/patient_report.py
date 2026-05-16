@@ -29,76 +29,94 @@ from reports._render import html_and_pdf
 
 PHENOTYPE_PLAIN: dict[str, dict] = {
     "normal metabolizer": {
-        "brief": "Your body processes medications involving this gene at a typical rate.",
-        "detail": (
-            "You carry two normally functioning copies of this gene. Standard dosing "
-            "recommendations typically apply for medications affected by this gene."
-        ),
+        "brief": "Your body processes related medications at a typical rate — standard dosing applies.",
+        "detail": "",
     },
     "intermediate metabolizer": {
-        "brief": "Your body may process some medications a bit slower than average.",
-        "detail": (
-            "You carry gene variants that may result in somewhat reduced enzyme activity. "
-            "Your doctor may want to consider this when prescribing affected medications."
-        ),
+        "brief": "You carry variants with somewhat reduced enzyme activity, so related medications may be processed a bit more slowly than usual.",
+        "detail": "",
     },
     "poor metabolizer": {
-        "brief": "Your body processes some medications much slower than average — discuss with your doctor.",
-        "detail": (
-            "You carry gene variants associated with significantly reduced enzyme activity. "
-            "Certain medications may build up more than expected, increasing side-effect risk. "
-            "Dose adjustments or alternative medications may be needed."
-        ),
+        "brief": "You carry variants with significantly reduced enzyme activity — affected drugs may build up and cause more side effects than usual.",
+        "detail": "",
     },
     "rapid metabolizer": {
-        "brief": "Your body processes some medications faster than average.",
-        "detail": (
-            "You carry gene variants associated with increased enzyme activity. Medications "
-            "affected by this gene may break down faster, possibly reducing their effect."
-        ),
+        "brief": "You carry variants with increased enzyme activity — affected medications may break down faster than usual, potentially reducing their effect.",
+        "detail": "",
     },
     "ultrarapid metabolizer": {
-        "brief": "Your body processes some medications much faster than average — discuss with your doctor.",
-        "detail": (
-            "You carry gene variants associated with significantly increased enzyme activity. "
-            "Standard doses may not be effective, or for some drugs (e.g. codeine) may "
-            "produce dangerously high active-drug levels. Discuss with your healthcare provider."
-        ),
+        "brief": "You carry variants with significantly increased enzyme activity — standard doses may not be effective, or for some drugs may produce dangerously high active-drug levels.",
+        "detail": "",
     },
     "decreased function": {
-        "brief": "This gene may have reduced activity — discuss with your doctor.",
-        "detail": (
-            "Your genetic result suggests decreased function of this gene. This may affect "
-            "how certain medications are transported or processed in your body."
-        ),
+        "brief": "Reduced gene activity — may affect how certain medications are processed or transported in your body.",
+        "detail": "",
     },
     "increased function": {
-        "brief": "This gene may have increased activity — discuss with your doctor.",
-        "detail": (
-            "Your genetic result suggests increased function of this gene, which may affect "
-            "how certain medications are transported or processed in your body."
-        ),
+        "brief": "Elevated gene activity — may affect how certain medications are processed or transported in your body.",
+        "detail": "",
     },
     "normal function": {
-        "brief": "This gene is functioning normally. No medication adjustments expected.",
-        "detail": (
-            "Your genetic result indicates normal function for this gene. Drug transport "
-            "and processing related to this gene are expected to occur at standard rates."
-        ),
+        "brief": "Standard function — typical dosing applies for related medications.",
+        "detail": "",
     },
     "indeterminate": {
         "brief": "Your result for this gene could not be clearly determined — discuss with your doctor.",
-        "detail": (
-            "The analysis was unable to clearly determine your status for this gene. This "
-            "may be due to uncommon variants or limitations of the testing method."
-        ),
+        "detail": "",
     },
     "no result": {
         "brief": "No result could be determined for this gene from the available data.",
-        "detail": (
-            "This gene could not be analyzed from the available genetic data. Consider "
-            "clinical testing if a result for this gene is required."
-        ),
+        "detail": "",
+    },
+    # ── Phenotypes that need direct lookup (not substring) ──────────────
+    # PharmCAT reports these as standalone strings; without an exact-match
+    # entry they would fall through to "indeterminate".
+    "normal": {  # G6PD reports just "Normal" — identical text to "normal function" so they merge
+        "brief": "Standard function — typical dosing applies for related medications.",
+        "detail": "",
+    },
+    "n/a": {  # IFNL3 and some others when PharmCAT doesn't emit a labelled phenotype
+        "brief": "No specific result was reported for this gene from your data.",
+        "detail": "",
+    },
+    "uncertain susceptibility": {  # CACNA1S, RYR1 — reference / negative state for MH
+        "brief": "No known risk variants were found — your test result falls within the expected range.",
+        "detail": "",
+    },
+    # CFTR — drug-specific phenotype strings emitted by PharmCAT
+    "ivacaftor non-responsive in cf patients": {
+        "brief": "Your CFTR variant is not the type ivacaftor (Kalydeco) is designed to treat — this drug is unlikely to be effective.",
+        "detail": "",
+    },
+    "ivacaftor responsive in cf patients": {
+        "brief": "Your CFTR variant is one of the types ivacaftor (Kalydeco) is designed to treat — this drug is likely to be effective.",
+        "detail": "",
+    },
+    # VKORC1 — reported as a literal SNP genotype string
+    "-1639 aa": {
+        "brief": "You carry the variant that increases warfarin sensitivity — lower-than-usual doses are typically needed to control blood clotting safely.",
+        "detail": "",
+    },
+    "-1639 ag": {
+        "brief": "You carry one copy of the warfarin-sensitivity variant — your prescriber may adjust the starting dose accordingly.",
+        "detail": "",
+    },
+    "-1639 ga": {  # same as AG depending on allele order
+        "brief": "You carry one copy of the warfarin-sensitivity variant — your prescriber may adjust the starting dose accordingly.",
+        "detail": "",
+    },
+    "-1639 gg": {
+        "brief": "Standard warfarin sensitivity — typical dosing applies.",
+        "detail": "",
+    },
+    # Less common metabolizer / function labels
+    "extensive metabolizer": {
+        "brief": "Your body processes related medications at a typical rate — standard dosing applies.",
+        "detail": "",
+    },
+    "poor function": {
+        "brief": "You carry variants associated with reduced gene activity — may affect how related medications are processed or how the drug target responds.",
+        "detail": "",
     },
 }
 
@@ -338,6 +356,13 @@ def _explain_phenotype(phenotype: str) -> dict[str, str]:
     if not phenotype:
         return PHENOTYPE_PLAIN["no result"]
     lower = phenotype.lower().strip()
+    # Exact match first so standalone strings like "Normal", "n/a", or
+    # "Uncertain Susceptibility" land on their specific entries instead of
+    # falling through the substring loop to "indeterminate".
+    if lower in PHENOTYPE_PLAIN:
+        return PHENOTYPE_PLAIN[lower]
+    # Substring fallback for compound phenotypes ("Normal Metabolizer",
+    # "Likely Poor Metabolizer", etc.).
     for key, val in PHENOTYPE_PLAIN.items():
         if key in lower:
             return val

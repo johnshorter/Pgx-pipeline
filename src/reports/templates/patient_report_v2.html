@@ -168,6 +168,12 @@
     font-weight: 700;
   }
   .med-table-wrap.action > h3 { color: var(--action); }
+  .med-table-wrap.review > h3 { color: var(--review); }
+  .med-table-wrap.review .review-intro {
+    margin: 4px 0 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
 
   table.med-table {
     width: 100%;
@@ -195,7 +201,12 @@
     line-height: 1.45;
   }
   table.med-table tr:last-child td { border-bottom: none; }
-  table.med-table .drug-name { font-weight: 700; margin-left: 4px; }
+  table.med-table .drug-cell-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  table.med-table .drug-name { font-weight: 700; }
   table.med-table .drug-brand-subtitle {
     display: block;
     margin-top: 2px;
@@ -223,37 +234,8 @@
     margin-bottom: 4px;
   }
   .med-table-wrap.action  .rationale-directive { color: var(--action); }
-  details.med-review-details .rationale-directive { color: var(--review); }
+  .med-table-wrap.review  .rationale-directive { color: var(--review); }
 
-  details.med-review-details {
-    background: #FAFAFA;
-    border-left: 4px solid var(--review);
-    border-radius: 0 6px 6px 0;
-    padding: 10px 14px 14px;
-    margin: 12px 0;
-  }
-  details.med-review-details > summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--review);
-    font-size: 14px;
-    list-style: none;
-  }
-  details.med-review-details > summary::-webkit-details-marker { display: none; }
-  details.med-review-details > summary::before {
-    content: "▸ ";
-    color: var(--review);
-    margin-right: 4px;
-  }
-  details.med-review-details[open] > summary::before { content: "▾ "; }
-  details.med-review-details .hint {
-    color: var(--text-light); font-weight: 400; font-size: 12px; margin-left: 6px;
-  }
-  details.med-review-details .review-intro {
-    margin: 10px 0 16px;
-    font-size: 13px;
-    color: var(--text);
-  }
   /* Per-category subtitled group inside the Review section. */
   .review-group {
     margin: 18px 0;
@@ -321,6 +303,100 @@
     font-size: 12px;
     font-style: italic;
     margin-left: 4px;
+  }
+
+  /* Risk-grouped sections in "Your Genes in Detail" — list-row layout
+     instead of bordered cards. Rows separated by thin dividers, much
+     less visually heavy than the old .card-{risk} blocks. */
+  .gene-row {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .gene-row:last-child { border-bottom: none; }
+  .gene-row-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .gene-row-header .gene-name {
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .gene-row-header .gene-name.gene-list-genes {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .gene-row-header .label-tag {
+    margin-left: auto;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  /* Phenotype pill in the gene-row header — same colour system as the
+     at-a-glance pills, slightly smaller. */
+  .gene-row-header .phenotype-pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    line-height: 1.35;
+  }
+  .gene-row-action .phenotype-pill { background: var(--action-bg); color: var(--action); }
+  .gene-row-review .phenotype-pill { background: var(--review-bg); color: var(--review); }
+  .gene-row-normal .phenotype-pill { background: var(--normal-bg); color: var(--normal); }
+  .gene-row-nodata .phenotype-pill { background: var(--nodata-bg); color: var(--nodata); }
+  .gene-row-body p {
+    margin: 0 0 6px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .gene-row-body .affected-meds {
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  .gene-row-body .affected-meds strong {
+    margin-right: 4px;
+    color: var(--text);
+  }
+  /* Normal section — condensed flat list, no per-gene rows */
+  .normal-intro {
+    margin: 8px 0 14px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  ul.normal-flat-list {
+    margin: 0 0 0 20px;
+    padding: 0;
+  }
+  ul.normal-flat-list li {
+    margin: 8px 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  ul.normal-flat-list li strong { font-weight: 700; }
+  ul.normal-flat-list .protein-type { margin-left: 4px; }
+  ul.normal-flat-list .gene-note {
+    /* MH note for CACNA1S/RYR1 — same yellow callout style */
+    display: block;
+    margin-top: 4px;
+    font-size: 12.5px;
+    font-style: italic;
+    color: var(--text);
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 6px 10px;
+    border-radius: 0 4px 4px 0;
+  }
+  .gene-row .protein-type {
+    /* re-use the existing tag styles — no overrides needed */
   }
 
   /* Risk-grouped sections in "Your Genes in Detail" */
@@ -505,8 +581,10 @@
       {% for d in action_drugs %}
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-action">{{ action_symbols.action }}</span>
-          <span class="drug-name">{{ d.drug }}</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-action">{{ action_symbols.action }}</span>
+            <span class="drug-name">{{ d.drug }}</span>
+          </span>
           {% if d.brand %}<span class="drug-brand-subtitle">{{ d.brand }}</span>{% endif %}
         </td>
         <td class="type-cell">{{ d.type_display }}</td>
@@ -519,11 +597,8 @@
 {% endif %}
 
 {% if review_drugs %}
-<details class="med-review-details">
-  <summary>
-    {{ action_symbols.review }} {{ review_total }} medication{{ '' if review_total == 1 else 's' }} linked to your genetic results
-    <span class="hint">(click to view)</span>
-  </summary>
+<div class="med-table-wrap review">
+  <h3>{{ action_symbols.review }} {{ review_total }} medication{{ '' if review_total == 1 else 's' }} linked to your genetic results</h3>
   <p class="review-intro">
     Your genetic results may affect how these medications work for you.
     <strong>You don't need to act on this list right now.</strong>
@@ -541,8 +616,10 @@
       {% for d in review_drugs %}
       <tr>
         <td class="drug-cell">
-          <span class="sym-inline sym-review">{{ action_symbols.review }}</span>
-          <span class="drug-name">{{ d.drug }}</span>
+          <span class="drug-cell-line">
+            <span class="sym-inline sym-review">{{ action_symbols.review }}</span>
+            <span class="drug-name">{{ d.drug }}</span>
+          </span>
           {% if d.brand %}<span class="drug-brand-subtitle">{{ d.brand }}</span>{% endif %}
         </td>
         <td class="type-cell">{{ d.type_display }}</td>
@@ -551,109 +628,40 @@
       {% endfor %}
     </tbody>
   </table>
-</details>
+</div>
 {% endif %}
 {% endif %}
 
 <h2>Your Genes in Detail</h2>
 
-{% if grouped_by_risk.action %}
-<section class="risk-section action">
-  <h3><span class="risk-section-symbol">{{ action_symbols.action }}</span> Action</h3>
-  {% for g in grouped_by_risk.action %}
-  <div class="card card-{{ g.risk_level }} gene-block">
-    <div class="gene-header">
-      <span class="sym sym-{{ g.risk_level }}">{{ g.symbol }}</span>
-      <span class="gene-name">{{ g.gene }}</span>
-      {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
-      <span class="label-tag label-{{ g.risk_level }}">{{ g.label }}</span>
-    </div>
-    {% if g.description %}<p>{{ g.gene }} {{ g.description }}.</p>{% endif %}
-    {% if g.is_ambiguous %}
-      <p>Your result for this gene wasn't conclusive — multiple interpretations are possible. A clinician or pharmacogenomics specialist can determine if additional testing would be helpful.</p>
-    {% else %}
-      {% if g.plain_language %}<p>{{ g.plain_language }}</p>{% endif %}
-      {% if g.detail %}<p class="detail">{{ g.detail }}</p>{% endif %}
-    {% endif %}
-    {% if g.affected_drugs %}
-    <div class="affected-meds">
-      <strong>Medications affected by your {{ g.gene }} result:</strong><br>
+{# Reusable list-row layout for an individual Action/Review/No-Data gene. #}
+{% macro gene_row(g) -%}
+<div class="gene-row gene-row-{{ g.risk_level }}">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-{{ g.risk_level }}">{{ g.symbol }}</span>
+    <span class="gene-name">{{ g.gene }}</span>
+    {% if g.phenotype_short %}<span class="phenotype-pill">{{ g.phenotype_short }}</span>{% endif %}
+    {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
+    <span class="label-tag label-{{ g.risk_level }}">{{ g.label }}</span>
+  </div>
+  <div class="gene-row-body">
+    <p>
+      {% if g.description %}{{ g.gene }} {{ g.description }}.{% endif %}
+      {% if g.is_ambiguous %}
+        Your result for this gene wasn't conclusive — multiple interpretations are possible. A clinician or pharmacogenomics specialist can help decide whether additional testing would be useful.
+      {% elif g.risk_level == "nodata" %}
+        This gene couldn't be analyzed from the available data. If a doctor needs a result for {{ g.gene }} before prescribing, clinical pharmacogenomic testing can be ordered.
+      {% elif g.plain_language %}
+        {{ g.plain_language }}
+      {% endif %}
+    </p>
+    {% if g.affected_drugs and g.risk_level != "nodata" %}
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
       {% for d in g.affected_drugs %}<span class="drug-pill {{ d.risk_level }}" title="{{ 'Discuss before prescription' if d.risk_level == 'action' else 'Mention at next visit' }}">{{ d.symbol }} {{ d.drug }}</span>{% endfor %}
-    </div>
+    </p>
     {% endif %}
-    {% if g.note %}<div class="gene-note">{{ g.note }}</div>{% endif %}
-    {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
-  </div>
-  {% endfor %}
-</section>
-{% endif %}
-
-{% if grouped_by_risk.review %}
-<section class="risk-section review">
-  <h3><span class="risk-section-symbol">{{ action_symbols.review }}</span> Review</h3>
-  {% for g in grouped_by_risk.review %}
-  <div class="card card-{{ g.risk_level }} gene-block">
-    <div class="gene-header">
-      <span class="sym sym-{{ g.risk_level }}">{{ g.symbol }}</span>
-      <span class="gene-name">{{ g.gene }}</span>
-      {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
-      <span class="label-tag label-{{ g.risk_level }}">{{ g.label }}</span>
-    </div>
-    {% if g.description %}<p>{{ g.gene }} {{ g.description }}.</p>{% endif %}
-    {% if g.is_ambiguous %}
-      <p>Your result for this gene wasn't conclusive — multiple interpretations are possible. A clinician or pharmacogenomics specialist can determine if additional testing would be helpful.</p>
-    {% else %}
-      {% if g.plain_language %}<p>{{ g.plain_language }}</p>{% endif %}
-      {% if g.detail %}<p class="detail">{{ g.detail }}</p>{% endif %}
-    {% endif %}
-    {% if g.affected_drugs %}
-    <div class="affected-meds">
-      <strong>Medications affected by your {{ g.gene }} result:</strong><br>
-      {% for d in g.affected_drugs %}<span class="drug-pill {{ d.risk_level }}" title="{{ 'Discuss before prescription' if d.risk_level == 'action' else 'Mention at next visit' }}">{{ d.symbol }} {{ d.drug }}</span>{% endfor %}
-    </div>
-    {% endif %}
-    {% if g.note %}<div class="gene-note">{{ g.note }}</div>{% endif %}
-    {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
-  </div>
-  {% endfor %}
-</section>
-{% endif %}
-
-{% if grouped_by_risk.normal_groups %}
-<section class="risk-section normal">
-  <h3><span class="risk-section-symbol">{{ action_symbols.normal }}</span> Normal</h3>
-  {% for group in grouped_by_risk.normal_groups %}
-  <div class="card card-normal gene-block normal-group">
-    <div class="gene-header">
-      <span class="sym sym-normal">{{ action_symbols.normal }}</span>
-      <span class="gene-name gene-list-genes">
-        {% for g in group.genes %}{{ g.gene }}{% if not loop.last %}, {% endif %}{% endfor %}
-      </span>
-      <span class="label-tag label-normal">Normal</span>
-    </div>
-    {% if group.plain_language %}<p>{{ group.plain_language }}</p>{% endif %}
-    <ul class="normal-gene-roles">
-      {% for g in group.genes %}<li>{% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}<strong>{{ g.gene }}</strong>{% if g.description %} {{ g.description }}{% endif %}.{% if g.note %}<span class="gene-note">{{ g.note }}</span>{% endif %}</li>{% endfor %}
-    </ul>
-  </div>
-  {% endfor %}
-</section>
-{% endif %}
-
-{% if grouped_by_risk.no_call %}
-<section class="risk-section nodata">
-  <h3><span class="risk-section-symbol">{{ action_symbols.nodata }}</span> No Data</h3>
-  {% for g in grouped_by_risk.no_call %}
-  <div class="card card-nodata gene-block">
-    <div class="gene-header">
-      <span class="sym sym-nodata">{{ g.symbol }}</span>
-      <span class="gene-name">{{ g.gene }}</span>
-      {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
-      <span class="label-tag label-nodata">{{ g.label }}</span>
-    </div>
-    {% if g.description %}<p>{{ g.gene }} {{ g.description }}.</p>{% endif %}
-    <p>This gene couldn't be analyzed from the available data. If a doctor needs a result for {{ g.gene }} before prescribing, clinical pharmacogenomic testing can be ordered.</p>
-    {% if g.affected_drugs %}
+    {% if g.risk_level == "nodata" and g.affected_drugs %}
     <details class="affected-meds-fallback">
       <summary>Medications that depend on {{ g.gene }}</summary>
       <ul>
@@ -666,7 +674,46 @@
     {% if g.note %}<div class="gene-note">{{ g.note }}</div>{% endif %}
     {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
   </div>
-  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% if grouped_by_risk.action %}
+<section class="risk-section action">
+  <h3><span class="risk-section-symbol">{{ action_symbols.action }}</span> Action</h3>
+  {% for g in grouped_by_risk.action %}{{ gene_row(g) }}{% endfor %}
+</section>
+{% endif %}
+
+{% if grouped_by_risk.review %}
+<section class="risk-section review">
+  <h3><span class="risk-section-symbol">{{ action_symbols.review }}</span> Review</h3>
+  {% for g in grouped_by_risk.review %}{{ gene_row(g) }}{% endfor %}
+</section>
+{% endif %}
+
+{% if grouped_by_risk.normal %}
+<section class="risk-section normal">
+  <h3><span class="risk-section-symbol">{{ action_symbols.normal }}</span> Normal</h3>
+  <p class="normal-intro">
+    These genes are working as expected — standard dosing applies for related medications. No action needed.
+  </p>
+  <ul class="normal-flat-list">
+    {% for g in grouped_by_risk.normal %}
+    <li>
+      <strong>{{ g.gene }}</strong>
+      {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
+      {% if g.description %} — {{ g.description }}{% endif %}
+      {% if g.note %}<span class="gene-note">{{ g.note }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if grouped_by_risk.no_call %}
+<section class="risk-section nodata">
+  <h3><span class="risk-section-symbol">{{ action_symbols.nodata }}</span> No Data</h3>
+  {% for g in grouped_by_risk.no_call %}{{ gene_row(g) }}{% endfor %}
 </section>
 {% endif %}
 
