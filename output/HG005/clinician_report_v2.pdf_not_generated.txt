@@ -1,0 +1,3 @@
+PDF generation requires WeasyPrint.
+Install it with: pip install weasyprint
+Then re-run the report generation.

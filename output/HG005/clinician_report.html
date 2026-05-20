@@ -268,6 +268,55 @@
   }
   details summary { cursor: pointer; font-weight: 600; }
   details[open] { background: #FAFAFA; }
+
+  /* Clinical Priority Summary at the top — the clinician's at-a-glance
+     answer to "what genes need attention first?". Mirrors the patient
+     dashboard's banded-row layout. */
+  .priority-block {
+    border-left: 4px solid var(--border);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    margin: 8px 0;
+  }
+  .priority-block.action { background: var(--action-bg); border-left-color: var(--action); }
+  .priority-block.review { background: var(--review-bg); border-left-color: var(--review); }
+  .priority-block.empty  { background: #FAFAFA; border-left-color: var(--border); color: var(--text-light); font-style: italic; }
+  .priority-block > h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .priority-block.action > h4 { color: var(--action); }
+  .priority-block.review > h4 { color: var(--review); }
+  .priority-block ul { margin: 0 0 0 18px; padding: 0; }
+  .priority-block li { margin: 4px 0; font-size: 13.5px; line-height: 1.45; }
+  .priority-block .pri-gene { font-weight: 700; }
+  .priority-block .pri-pheno { color: var(--text); }
+  .priority-block .pri-drugcount {
+    color: var(--text-light);
+    font-size: 12px;
+    margin-left: 6px;
+  }
+
+  /* Consolidated caveat block at the end of the report. */
+  .consolidated-caveats {
+    margin: 22px 0;
+  }
+  .consolidated-caveats h3 {
+    font-size: 15px;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  .consolidated-caveats .caveat-item {
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 8px 12px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
@@ -276,7 +325,7 @@
   <header class="report-header">
     <h1>Pharmacogenomic Analysis Report</h1>
     <div class="meta">
-      May 13, 2026
+      May 17, 2026
  &middot; Sample: <strong>HG005</strong> &middot; PharmCAT 3.2.0    </div>
   </header>
 
@@ -317,6 +366,57 @@
   </div>
 </div>
 
+<h2>Clinical Priority Summary</h2>
+<p class="category-desc">Genes whose results drive Action- or Review-level CPIC/DPWG recommendations. See the detailed sections below for diplotypes, allele functions, and drug-specific guidance.</p>
+
+<div class="priority-block action">
+  <h4>▲ Action (1)</h4>
+  <ul>
+    <li>
+      <span class="pri-gene">CFTR</span> — <span class="pri-pheno">ivacaftor non-responsive in CF patients</span>
+      <span class="pri-drugcount">
+        (1 action drug)
+      </span>
+    </li>
+  </ul>
+</div>
+
+<div class="priority-block review">
+  <h4>◆ Review (5)</h4>
+  <ul>
+    <li>
+      <span class="pri-gene">CYP3A5</span> — <span class="pri-pheno">Poor Metabolizer</span>
+      <span class="pri-drugcount">
+        (1 review drug)
+      </span>
+    </li>
+    <li>
+      <span class="pri-gene">NAT2</span> — <span class="pri-pheno">Rapid Metabolizer</span>
+      <span class="pri-drugcount">
+        (1 review drug)
+      </span>
+    </li>
+    <li>
+      <span class="pri-gene">NUDT15</span> — <span class="pri-pheno">Intermediate Metabolizer</span>
+      <span class="pri-drugcount">
+        (4 review drugs)
+      </span>
+    </li>
+    <li>
+      <span class="pri-gene">UGT1A1</span> — <span class="pri-pheno">Intermediate Metabolizer</span>
+      <span class="pri-drugcount">
+        (0 review drugs)
+      </span>
+    </li>
+    <li>
+      <span class="pri-gene">VKORC1</span> — <span class="pri-pheno">-1639 AA</span>
+      <span class="pri-drugcount">
+        (2 review drugs)
+      </span>
+    </li>
+  </ul>
+</div>
+
 <h2>Definitive Results</h2>
 <section class="category">
   <h3>Phase I Metabolism (CYP Enzymes)</h3>
@@ -327,7 +427,7 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="sym sym-action">▲</span></td>
+        <td><span class="sym sym-review">◆</span></td>
         <td><strong>CYP3A5</strong></td>
         <td class="diplo">*3/*3</td>
         <td>Poor Metabolizer</td>
@@ -1205,7 +1305,7 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
     </thead>
     <tbody>
       <tr>
-        <td><span class="sym sym-review">◆</span></td>
+        <td><span class="sym sym-action">▲</span></td>
         <td><strong>CFTR</strong></td>
         <td class="diplo">Reference/Reference</td>
         <td>ivacaftor non-responsive in CF patients</td>
@@ -1441,18 +1541,6 @@ From day 6 on the standard algorithm without genotype information can be used to
       </td></tr>
       <tr>
         <td><span class="sym sym-normal">✓</span></td>
-        <td><strong>IFNL3</strong></td>
-        <td class="diplo">rs12979860 reference (C)/rs12979860 reference (C)</td>
-        <td>n/a</td>
-        <td>—</td>
-        <td>1/1</td>
-        <td class="alleles">
-          rs12979860 reference (C): Favorable response allele<br>
-          rs12979860 reference (C): Favorable response allele
-        </td>
-      </tr>
-      <tr>
-        <td><span class="sym sym-normal">✓</span></td>
         <td><strong>RYR1</strong></td>
         <td class="diplo">Reference/Reference</td>
         <td>Uncertain Susceptibility</td>
@@ -1515,6 +1603,18 @@ From day 6 on the standard algorithm without genotype information can be used to
           </table>
         </details>
       </td></tr>
+      <tr>
+        <td><span class="sym sym-nodata">—</span></td>
+        <td><strong>IFNL3</strong></td>
+        <td class="diplo">rs12979860 reference (C)/rs12979860 reference (C)</td>
+        <td>n/a</td>
+        <td>—</td>
+        <td>1/1</td>
+        <td class="alleles">
+          rs12979860 reference (C): Favorable response allele<br>
+          rs12979860 reference (C): Favorable response allele
+        </td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1550,7 +1650,6 @@ From day 6 on the standard algorithm without genotype information can be used to
             <div><strong>Targeted cancer therapy:</strong> gefitinib</div>
         </td>
       </tr>
-      <tr><td colspan="4"><div class="caveat">CYP2D6 results may be unreliable from short-read whole-genome sequencing due to the gene&#39;s complex structural variation (deletions, duplications, hybrid alleles). Clinical CYP2D6 testing is recommended for actionable decisions.</div></td></tr>
     </tbody>
   </table>
 </section>
@@ -1575,7 +1674,7 @@ From day 6 on the standard algorithm without genotype information can be used to
 
 <h2>Drug Recommendations (CPIC + DPWG)</h2>
 <details>
-  <summary>Other medications (28)</summary>
+  <summary>Cystic Fibrosis Modulators (1)</summary>
   <table class="drugs">
     <thead>
       <tr>
@@ -1592,264 +1691,6 @@ From day 6 on the standard algorithm without genotype information can be used to
         <td>CFTR: ivacaftor non-responsive in CF patients</td>
         <td class="rec">Ivacaftor is not recommended</td>
         <td>Moderate</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-review">◆</span></td>
-        <td><strong>fosphenytoin</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-review">◆</span></td>
-        <td><strong>fosphenytoin</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-review">◆</span></td>
-        <td><strong>hydralazine</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>NAT2</td>
-        <td>NAT2: Rapid Metabolizer</td>
-        <td class="rec">Consider a starting total daily dose of at least 75 mg. Titrate up to 300 mg total daily hydralazine dose as tolerated. NAT2 rapid metabolizers typically require a 50-100% higher maintenance dose compared to poor metabolizers.</td>
-        <td>Moderate</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-review">◆</span></td>
-        <td><strong>methoxyflurane</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CACNA1S, RYR1</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-review">◆</span></td>
-        <td><strong>phenprocoumon</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>VKORC1</td>
-        <td>VKORC1: -1639 AA</td>
-        <td class="rec">Monitoring by a ANTICOAGULATION CLINIC:
-&lt;ul&gt;
-&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
-&lt;/ul&gt;
-NO monitoring by a anticoagulation clinic:
-&lt;ul&gt;
-&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
-&lt;li&gt;recommend more frequent monitoring of the INR&lt;/li&gt;
-&lt;/ul&gt;
-For patients younger than 75 years, the initial dose and the maintenance dose can be calculated using an
-algorithm as found in EU-PACT:
-see &lt;a rel=&#34;noopener noreferrer&#34; href=&#34;https://www.knmp.nl/patientenzorg/medicatiebewaking/farmacogenetica&#34; target=&#34;_blank&#34;&gt;knmp&lt;/a&gt; for a calculation tool in the form
-of an Excel file.
-However, for patients aged 75 years and older, this algorithm increases the risk of an INR above the
-therapeutic range compared to an algorithm without gene variations. Therefore, use of this algorithm is not
-recommended for these patients.</td>
-        <td>Unspecified</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>celecoxib</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>dapsone</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>efavirenz</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2B6</td>
-        <td>CYP2B6: Normal Metabolizer</td>
-        <td class="rec">Initiate efavirenz with standard dosing (600 mg/day)</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>efavirenz</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>CYP2B6</td>
-        <td>CYP2B6: Normal Metabolizer</td>
-        <td class="rec">The guideline does not provide a recommendation for efavirenz in normal metabolizers.</td>
-        <td>No recommendation</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>flucytosine</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>DPYD</td>
-        <td>DPYD: Normal Metabolizer</td>
-        <td class="rec">The guideline does not provide a recommendation for flucytosine in patients with a DPYD activity score of 2.</td>
-        <td>No recommendation</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>flurbiprofen</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>ibuprofen</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>irinotecan</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>UGT1A1</td>
-        <td>UGT1A1: Intermediate Metabolizer</td>
-        <td class="rec">NO action is needed for this gene-drug interaction.</td>
-        <td>Unspecified</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>lornoxicam</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>meloxicam</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>methylene blue</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>nitrofurantoin</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>pegloticase</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>piroxicam</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>primaquine</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>quetiapine</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>CYP3A4</td>
-        <td>CYP3A4: Normal Metabolizer</td>
-        <td class="rec">The guideline does not provide a recommendation for quetiapine in normal metabolizers.</td>
-        <td>No recommendation</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>rasburicase</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>siponimod</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">The guideline does not provide a recommendation for siponimod in normal metabolizers.</td>
-        <td>No recommendation</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>tafenoquine</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>tegafur</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>DPYD</td>
-        <td>DPYD: Normal Metabolizer</td>
-        <td class="rec">The guideline does not provide a recommendation for tegafur in patients with a DPYD activity score of 2.</td>
-        <td>No recommendation</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>tenoxicam</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>CYP2C9</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
-        <td>Strong</td>
-      </tr>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>toluidine blue</strong></td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>G6PD</td>
-        <td>G6PD: Normal</td>
-        <td class="rec">No reason to avoid based on G6PD status</td>
-        <td>Strong</td>
       </tr>
     </tbody>
   </table>
@@ -2002,7 +1843,7 @@ recommended for these patients.</td>
   </table>
 </details>
 <details>
-  <summary>Antiplatelet / Anticoagulant agents (7)</summary>
+  <summary>Antiplatelet / Anticoagulant agents (8)</summary>
   <table class="drugs">
     <thead>
       <tr>
@@ -2033,6 +1874,30 @@ compared to an algorithm without genetic information. We are therefore unable to
 algorithm at this time.
 A (non-validated) algorithm has been prescribed for children that should result in a better prediction of the
 maintenance dose for AA than the current guideline used by the Anticoagulation Clinic [Article:&lt;a href=&#34;/pmid/29935043&#34;&gt;29935043&lt;/a&gt;].</td>
+        <td>Unspecified</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-review">◆</span></td>
+        <td><strong>phenprocoumon</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>VKORC1</td>
+        <td>VKORC1: -1639 AA</td>
+        <td class="rec">Monitoring by a ANTICOAGULATION CLINIC:
+&lt;ul&gt;
+&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
+&lt;/ul&gt;
+NO monitoring by a anticoagulation clinic:
+&lt;ul&gt;
+&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
+&lt;li&gt;recommend more frequent monitoring of the INR&lt;/li&gt;
+&lt;/ul&gt;
+For patients younger than 75 years, the initial dose and the maintenance dose can be calculated using an
+algorithm as found in EU-PACT:
+see &lt;a rel=&#34;noopener noreferrer&#34; href=&#34;https://www.knmp.nl/patientenzorg/medicatiebewaking/farmacogenetica&#34; target=&#34;_blank&#34;&gt;knmp&lt;/a&gt; for a calculation tool in the form
+of an Excel file.
+However, for patients aged 75 years and older, this algorithm increases the risk of an INR above the
+therapeutic range compared to an algorithm without gene variations. Therefore, use of this algorithm is not
+recommended for these patients.</td>
         <td>Unspecified</td>
       </tr>
       <tr>
@@ -2091,6 +1956,37 @@ The genotype-specific initial dose and maintenance dose can be calculated using 
 EU-PACT: see &lt;a rel=&#34;noopener noreferrer&#34; href=&#34;https://www.knmp.nl/patientenzorg/medicatiebewaking/farmacogenetica&#34; target=&#34;_blank&#34;&gt;knmp&lt;/a&gt;.
 From day 6 on the standard algorithm without genotype information can be used to calculate the dose.</td>
         <td>Unspecified</td>
+      </tr>
+    </tbody>
+  </table>
+</details>
+<details>
+  <summary>Cardiovascular (2)</summary>
+  <table class="drugs">
+    <thead>
+      <tr>
+        <th></th><th>Drug</th><th>Source</th><th>Genes</th>
+        <th>Phenotypes</th><th>Recommendation</th><th>Classification</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="sym-inline sym-review">◆</span></td>
+        <td><strong>hydralazine</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>NAT2</td>
+        <td>NAT2: Rapid Metabolizer</td>
+        <td class="rec">Consider a starting total daily dose of at least 75 mg. Titrate up to 300 mg total daily hydralazine dose as tolerated. NAT2 rapid metabolizers typically require a 50-100% higher maintenance dose compared to poor metabolizers.</td>
+        <td>Moderate</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>mavacamten</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>CYP2C19</td>
+        <td>CYP2C19: Normal Metabolizer</td>
+        <td class="rec">The guideline does not provide a recommendation for mavacamten in normal metabolizers.</td>
+        <td>No recommendation</td>
       </tr>
     </tbody>
   </table>
@@ -2248,6 +2144,235 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td>CYP3A5: Poor Metabolizer</td>
         <td class="rec">The guideline does not provide a recommendation for tacrolimus in CYP3A5 non-expressers.</td>
         <td>No recommendation</td>
+      </tr>
+    </tbody>
+  </table>
+</details>
+<details>
+  <summary>Other medications (24)</summary>
+  <table class="drugs">
+    <thead>
+      <tr>
+        <th></th><th>Drug</th><th>Source</th><th>Genes</th>
+        <th>Phenotypes</th><th>Recommendation</th><th>Classification</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="sym-inline sym-review">◆</span></td>
+        <td><strong>fosphenytoin</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-review">◆</span></td>
+        <td><strong>fosphenytoin</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-review">◆</span></td>
+        <td><strong>methoxyflurane</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CACNA1S, RYR1</td>
+        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
+        <td class="rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>celecoxib</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>dapsone</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>efavirenz</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2B6</td>
+        <td>CYP2B6: Normal Metabolizer</td>
+        <td class="rec">Initiate efavirenz with standard dosing (600 mg/day)</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>efavirenz</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>CYP2B6</td>
+        <td>CYP2B6: Normal Metabolizer</td>
+        <td class="rec">The guideline does not provide a recommendation for efavirenz in normal metabolizers.</td>
+        <td>No recommendation</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>flucytosine</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>DPYD</td>
+        <td>DPYD: Normal Metabolizer</td>
+        <td class="rec">The guideline does not provide a recommendation for flucytosine in patients with a DPYD activity score of 2.</td>
+        <td>No recommendation</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>flurbiprofen</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>ibuprofen</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>lornoxicam</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>meloxicam</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>methylene blue</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>nitrofurantoin</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>pegloticase</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>piroxicam</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>primaquine</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>quetiapine</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>CYP3A4</td>
+        <td>CYP3A4: Normal Metabolizer</td>
+        <td class="rec">The guideline does not provide a recommendation for quetiapine in normal metabolizers.</td>
+        <td>No recommendation</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>rasburicase</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>siponimod</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">The guideline does not provide a recommendation for siponimod in normal metabolizers.</td>
+        <td>No recommendation</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>tafenoquine</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>tegafur</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>DPYD</td>
+        <td>DPYD: Normal Metabolizer</td>
+        <td class="rec">The guideline does not provide a recommendation for tegafur in patients with a DPYD activity score of 2.</td>
+        <td>No recommendation</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>tenoxicam</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>CYP2C9</td>
+        <td>CYP2C9: Normal Metabolizer</td>
+        <td class="rec">Initiate therapy with recommended starting dose. In accordance with the prescribing information, use the lowest effective dosage for shortest duration consistent with individual patient treatment goals.</td>
+        <td>Strong</td>
+      </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>toluidine blue</strong></td>
+        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
+        <td>G6PD</td>
+        <td>G6PD: Normal</td>
+        <td class="rec">No reason to avoid based on G6PD status</td>
+        <td>Strong</td>
       </tr>
     </tbody>
   </table>
@@ -2597,29 +2722,7 @@ Monitor for efficacy.</td>
   </table>
 </details>
 <details>
-  <summary>Cardiovascular (1)</summary>
-  <table class="drugs">
-    <thead>
-      <tr>
-        <th></th><th>Drug</th><th>Source</th><th>Genes</th>
-        <th>Phenotypes</th><th>Recommendation</th><th>Classification</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="sym-inline sym-normal">✓</span></td>
-        <td><strong>mavacamten</strong></td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>CYP2C19</td>
-        <td>CYP2C19: Normal Metabolizer</td>
-        <td class="rec">The guideline does not provide a recommendation for mavacamten in normal metabolizers.</td>
-        <td>No recommendation</td>
-      </tr>
-    </tbody>
-  </table>
-</details>
-<details>
-  <summary>Chemotherapy (4)</summary>
+  <summary>Chemotherapy (5)</summary>
   <table class="drugs">
     <thead>
       <tr>
@@ -2664,6 +2767,15 @@ Monitor for efficacy.</td>
         <td class="rec">The guideline does not provide a recommendation for fluorouracil in patients with a DPYD activity score of 2.</td>
         <td>No recommendation</td>
       </tr>
+      <tr>
+        <td><span class="sym-inline sym-normal">✓</span></td>
+        <td><strong>irinotecan</strong></td>
+        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
+        <td>UGT1A1</td>
+        <td>UGT1A1: Intermediate Metabolizer</td>
+        <td class="rec">NO action is needed for this gene-drug interaction.</td>
+        <td>Unspecified</td>
+      </tr>
     </tbody>
   </table>
 </details>
@@ -2689,6 +2801,11 @@ Monitor for efficacy.</td>
     </tbody>
   </table>
 </details>
+
+<section class="consolidated-caveats">
+  <h3>Caveats</h3>
+  <div class="caveat-item">CYP2D6 results may be unreliable from short-read whole-genome sequencing due to the gene&#39;s complex structural variation (deletions, duplications, hybrid alleles). Clinical CYP2D6 testing is recommended for actionable decisions.</div>
+</section>
 
 <h2>References</h2>
 <ol class="citations">
@@ -2806,7 +2923,7 @@ FDA Table of Pharmacogenetic Associations(-1)  </li>
   </div>
 
   <footer>
-    Generated by PGx Reporter &middot; May 13, 2026
+    Generated by PGx Reporter &middot; May 17, 2026
   </footer>
 </div>
 </body>
