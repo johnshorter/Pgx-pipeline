@@ -266,23 +266,20 @@
     font-size: 13px;
     line-height: 1.7;
   }
+  /* Drug names rendered as plain inline text in their risk colour — no
+     bordered pill / colored box. Adjacent drugs are separated by a dim
+     comma via the ::before pseudo-element below, so the list reads as
+     a natural comma-separated sequence. */
   .affected-meds .drug-pill {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 3px;
-    margin-right: 4px;
-    font-weight: 500;
-    font-size: 12px;
+    font-weight: 600;
+    font-size: 13px;
   }
-  .affected-meds .drug-pill.action {
-    background: var(--action-bg);
-    color: var(--action);
-    border: 1px solid var(--action);
-  }
-  .affected-meds .drug-pill.review {
-    background: var(--review-bg);
-    color: var(--review);
-    border: 1px solid var(--review);
+  .affected-meds .drug-pill.action { color: var(--action); }
+  .affected-meds .drug-pill.review { color: var(--review); }
+  .affected-meds .drug-pill + .drug-pill::before {
+    content: ", ";
+    color: var(--text-light);
+    font-weight: 400;
   }
 
   /* Merged Normal-risk gene group: smaller, denser card */
@@ -371,30 +368,113 @@
     color: var(--text);
     line-height: 1.5;
   }
-  ul.normal-flat-list {
-    margin: 0 0 0 20px;
-    padding: 0;
-  }
-  ul.normal-flat-list li {
-    margin: 8px 0;
+  /* Normal-bucket table — same visual language as the medication tables
+     (light-gray header row, thin row dividers, tight padding). The Type
+     column reuses the existing `.protein-type` pill styling for visual
+     consistency with the deep-dive gene-row headers. */
+  table.normal-table {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 13.5px;
+    margin-top: 10px;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  table.normal-table th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    background: #FAFAFA;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  table.normal-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
     line-height: 1.5;
+  }
+  table.normal-table tr:last-child td { border-bottom: none; }
+  table.normal-table td.gene-col {
+    font-weight: 700;
+    white-space: nowrap;
+    width: 1%;
+  }
+  table.normal-table td.type-col {
+    white-space: nowrap;
+    width: 1%;
+  }
+  table.normal-table td.desc-col {
     color: var(--text);
   }
-  ul.normal-flat-list li strong { font-weight: 700; }
-  ul.normal-flat-list .protein-type { margin-left: 4px; }
-  ul.normal-flat-list .gene-note {
-    /* MH note for CACNA1S/RYR1 — same yellow callout style */
-    display: block;
-    margin-top: 4px;
-    font-size: 12.5px;
-    font-style: italic;
+
+  /* No-Data table — identical structure to Normal table. The description
+     cell also hosts an inline <details> toggle for each gene's affected
+     medications, so expanding a row reveals the drug list within that cell. */
+  .nodata-intro {
+    margin: 8px 0 12px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  table.nodata-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-top: 10px;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  table.nodata-table th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    background: #FAFAFA;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  table.nodata-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  table.nodata-table tr:last-child td { border-bottom: none; }
+  table.nodata-table td.gene-col {
+    font-weight: 700;
+    white-space: nowrap;
+    width: 1%;
+  }
+  table.nodata-table td.type-col {
+    white-space: nowrap;
+    width: 1%;
+  }
+  table.nodata-table td.desc-col {
+    color: var(--text);
+  }
+  /* Section-level consolidated note (e.g., MH explanation for the Normal
+     block) — same yellow-callout style as the per-gene note, but wider and
+     a touch more prominent since it serves multiple genes at once. */
+  .consolidated-note {
+    margin-top: 16px;
+    margin-bottom: 4px;
+    font-size: 13.5px;
+    line-height: 1.55;
     color: var(--text);
     background: #FFF8E1;
     border-left: 3px solid #F9A825;
-    padding: 6px 10px;
+    padding: 10px 14px;
     border-radius: 0 4px 4px 0;
   }
+  .consolidated-note strong { font-weight: 700; }
   .gene-row .protein-type {
     /* re-use the existing tag styles — no overrides needed */
   }
@@ -442,10 +522,11 @@
     padding: 1px 6px;
     margin-right: 4px;
   }
-  .normal-gene-roles .gene-note,
-  .gene-block .gene-note {
+  /* Yellow-callout note attached to a single gene (CFTR, CACNA1S, RYR1 etc.).
+     Applied anywhere a `.gene-note` element appears. */
+  .gene-note {
     display: block;
-    margin-top: 4px;
+    margin-top: 8px;
     font-size: 12.5px;
     color: var(--text);
     font-style: italic;
@@ -453,6 +534,7 @@
     border-left: 3px solid #F9A825;
     padding: 6px 10px;
     border-radius: 0 4px 4px 0;
+    line-height: 1.5;
   }
 
   details.affected-meds-fallback {
@@ -598,7 +680,7 @@
 
 {% if review_drugs %}
 <div class="med-table-wrap review">
-  <h3>{{ action_symbols.review }} {{ review_total }} medication{{ '' if review_total == 1 else 's' }} linked to your genetic results</h3>
+  <h3>{{ action_symbols.review }} {{ review_total }} medication{{ '' if review_total == 1 else 's' }} that may need a dose adjustment or extra monitoring</h3>
   <p class="review-intro">
     Your genetic results may affect how these medications work for you.
     <strong>You don't need to act on this list right now.</strong>
@@ -640,9 +722,8 @@
   <div class="gene-row-header">
     <span class="sym-inline sym-{{ g.risk_level }}">{{ g.symbol }}</span>
     <span class="gene-name">{{ g.gene }}</span>
-    {% if g.phenotype_short %}<span class="phenotype-pill">{{ g.phenotype_short }}</span>{% endif %}
     {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
-    <span class="label-tag label-{{ g.risk_level }}">{{ g.label }}</span>
+    {% if g.phenotype_short %}<span class="phenotype-pill">{{ g.phenotype_short }}</span>{% endif %}
   </div>
   <div class="gene-row-body">
     <p>
@@ -658,7 +739,7 @@
     {% if g.affected_drugs and g.risk_level != "nodata" %}
     <p class="affected-meds">
       <strong>Affected medications:</strong>
-      {% for d in g.affected_drugs %}<span class="drug-pill {{ d.risk_level }}" title="{{ 'Discuss before prescription' if d.risk_level == 'action' else 'Mention at next visit' }}">{{ d.symbol }} {{ d.drug }}</span>{% endfor %}
+      {% for d in g.affected_drugs %}<span class="drug-pill {{ d.risk_level }}" title="{{ 'Discuss before prescription' if d.risk_level == 'action' else 'Mention at next visit' }}">{{ d.drug }}</span>{% endfor %}
     </p>
     {% endif %}
     {% if g.risk_level == "nodata" and g.affected_drugs %}
@@ -697,23 +778,69 @@
   <p class="normal-intro">
     These genes are working as expected — standard dosing applies for related medications. No action needed.
   </p>
-  <ul class="normal-flat-list">
-    {% for g in grouped_by_risk.normal %}
-    <li>
-      <strong>{{ g.gene }}</strong>
-      {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
-      {% if g.description %} — {{ g.description }}{% endif %}
-      {% if g.note %}<span class="gene-note">{{ g.note }}</span>{% endif %}
-    </li>
-    {% endfor %}
-  </ul>
+  <table class="normal-table">
+    <thead>
+      <tr>
+        <th>Gene</th>
+        <th>Type</th>
+        <th>What it does</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in grouped_by_risk.normal %}
+      <tr>
+        <td class="gene-col"><strong>{{ g.gene }}</strong></td>
+        <td class="type-col">{% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}</td>
+        <td class="desc-col">{% if g.description %}{{ g.description }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if normal_mh_note %}
+  <div class="consolidated-note">{{ normal_mh_note | safe }}</div>
+  {% endif %}
 </section>
 {% endif %}
 
 {% if grouped_by_risk.no_call %}
 <section class="risk-section nodata">
   <h3><span class="risk-section-symbol">{{ action_symbols.nodata }}</span> No Data</h3>
-  {% for g in grouped_by_risk.no_call %}{{ gene_row(g) }}{% endfor %}
+  <p class="nodata-intro">
+    These genes couldn't be analyzed from your sample. Clinical pharmacogenomic testing can be ordered if a result for any of these is needed before prescribing.
+  </p>
+  <table class="nodata-table">
+    <thead>
+      <tr>
+        <th>Gene</th>
+        <th>Type</th>
+        <th>What it does</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in grouped_by_risk.no_call %}
+      <tr>
+        <td class="gene-col"><strong>{{ g.gene }}</strong></td>
+        <td class="type-col">{% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}</td>
+        <td class="desc-col">
+          {% if g.description %}{{ g.description }}.{% endif %}
+          {% if g.affected_drugs %}
+          <details class="affected-meds-fallback">
+            <summary>Medications that depend on {{ g.gene }}</summary>
+            <ul>
+              {% for cat, drugs in g.affected_drugs.items() %}
+              <li><strong>{{ cat }}:</strong> {{ drugs | join(', ') }}</li>
+              {% endfor %}
+            </ul>
+          </details>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if nodata_cyp2d6_caveat %}
+  <div class="consolidated-note">{{ nodata_cyp2d6_caveat }}</div>
+  {% endif %}
 </section>
 {% endif %}
 

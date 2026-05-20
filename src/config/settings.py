@@ -148,14 +148,14 @@ GENE_DESCRIPTIONS: dict[str, str] = {
     "CYP2B6": "helps process certain HIV medications and the smoking cessation drug bupropion",
     "CYP4F2": "affects how the body uses vitamin K, which influences warfarin dosing",
     "DPYD": "determines how the body handles fluoropyrimidine chemotherapy drugs",
-    "TPMT": "affects how the body processes thiopurine medications used for cancer and autoimmune conditions",
-    "NUDT15": "also affects thiopurine medication processing, similar to TPMT",
+    "TPMT": "helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression)",
+    "NUDT15": "helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression)",
     "VKORC1": "controls sensitivity to warfarin, a common blood thinner",
     "SLCO1B1": "affects how the body transports statin medications used to lower cholesterol",
     "UGT1A1": "helps the body process certain medications and bilirubin (a waste product)",
     "ABCG2": "is a transporter protein that affects how the body absorbs certain medications",
     "CACNA1S": "is related to response to certain anesthetics used during surgery",
-    "CFTR": "is related to cystic fibrosis and affects certain medication responses",
+    "CFTR": "mutations can cause cystic fibrosis (CF), and the specific mutation determines which CF medications will help",
     "G6PD": "affects red blood cells' sensitivity to certain medications",
     "HLA-A": "is part of the immune system and affects risk of severe drug reactions",
     "HLA-B": "is part of the immune system and affects risk of severe drug reactions to specific drugs",
@@ -167,20 +167,35 @@ GENE_DESCRIPTIONS: dict[str, str] = {
     "F5": "affects blood clotting and may influence response to anticoagulant medications",
 }
 
+# Each gene's role in drug response — written in patient-friendly terms so
+# the tag is meaningful in the medication context of the report (rather than
+# the strict molecular protein type, which can be jargon to non-professionals).
+# The categories answer "why does this gene matter to me when I take medicine?"
 GENE_PROTEIN_TYPE: dict[str, str] = {
-    "CYP2C19": "Liver enzyme", "CYP2C9": "Liver enzyme", "CYP2D6": "Liver enzyme",
-    "CYP3A4": "Liver enzyme", "CYP3A5": "Liver enzyme", "CYP2B6": "Liver enzyme",
-    "CYP4F2": "Liver enzyme",
-    "DPYD": "Metabolic enzyme", "TPMT": "Metabolic enzyme", "NUDT15": "Metabolic enzyme",
-    "NAT2": "Metabolic enzyme", "UGT1A1": "Metabolic enzyme",
-    "G6PD": "Red-blood-cell enzyme",
-    "VKORC1": "Drug target",
+    # Drug-breakdown enzymes (CYPs + Phase II metabolism)
+    "CYP2C19": "Drug breakdown", "CYP2C9": "Drug breakdown",
+    "CYP2D6": "Drug breakdown", "CYP3A4": "Drug breakdown",
+    "CYP3A5": "Drug breakdown", "CYP2B6": "Drug breakdown",
+    "CYP4F2": "Drug breakdown",
+    "DPYD": "Drug breakdown", "TPMT": "Drug breakdown",
+    "NUDT15": "Drug breakdown", "NAT2": "Drug breakdown",
+    "UGT1A1": "Drug breakdown",
+    # Drug transporters — move drugs in and out of cells
     "SLCO1B1": "Drug transporter", "ABCG2": "Drug transporter",
-    "CACNA1S": "Ion channel", "RYR1": "Ion channel", "CFTR": "Ion channel",
-    "HLA-A": "Immune marker", "HLA-B": "Immune marker",
-    "IFNL3": "Immune signaling",
-    "MT-RNR1": "Mitochondrial RNA",
-    "F2": "Clotting factor", "F5": "Clotting factor",
+    # Drug targets — the drug acts directly on this gene's product
+    "VKORC1": "Drug target",
+    # Disease-specific contexts
+    "CFTR": "Cystic-fibrosis drug response",
+    # Anesthesia response (malignant-hyperthermia genes)
+    "CACNA1S": "Anesthesia response", "RYR1": "Anesthesia response",
+    # Immune response — risk of allergic-type drug reactions
+    "HLA-A": "Immune response", "HLA-B": "Immune response",
+    # Specific clinical contexts
+    "IFNL3": "Hepatitis-C drug response",
+    "MT-RNR1": "Antibiotic sensitivity",
+    "G6PD": "Red-blood-cell drug response",
+    # Blood clotting / anticoagulant response
+    "F2": "Blood clotting", "F5": "Blood clotting",
 }
 
 

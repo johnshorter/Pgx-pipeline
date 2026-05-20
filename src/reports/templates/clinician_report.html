@@ -50,6 +50,55 @@
   }
   details summary { cursor: pointer; font-weight: 600; }
   details[open] { background: #FAFAFA; }
+
+  /* Clinical Priority Summary at the top — the clinician's at-a-glance
+     answer to "what genes need attention first?". Mirrors the patient
+     dashboard's banded-row layout. */
+  .priority-block {
+    border-left: 4px solid var(--border);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    margin: 8px 0;
+  }
+  .priority-block.action { background: var(--action-bg); border-left-color: var(--action); }
+  .priority-block.review { background: var(--review-bg); border-left-color: var(--review); }
+  .priority-block.empty  { background: #FAFAFA; border-left-color: var(--border); color: var(--text-light); font-style: italic; }
+  .priority-block > h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .priority-block.action > h4 { color: var(--action); }
+  .priority-block.review > h4 { color: var(--review); }
+  .priority-block ul { margin: 0 0 0 18px; padding: 0; }
+  .priority-block li { margin: 4px 0; font-size: 13.5px; line-height: 1.45; }
+  .priority-block .pri-gene { font-weight: 700; }
+  .priority-block .pri-pheno { color: var(--text); }
+  .priority-block .pri-drugcount {
+    color: var(--text-light);
+    font-size: 12px;
+    margin-left: 6px;
+  }
+
+  /* Consolidated caveat block at the end of the report. */
+  .consolidated-caveats {
+    margin: 22px 0;
+  }
+  .consolidated-caveats h3 {
+    font-size: 15px;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  .consolidated-caveats .caveat-item {
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 8px 12px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
 </style>
 {% endblock %}
 
@@ -83,6 +132,46 @@
   </div>
 </div>
 
+{# ── Clinical Priority Summary ────────────────────────────────── #}
+{% if clinical_priority.action or clinical_priority.review %}
+<h2>Clinical Priority Summary</h2>
+<p class="category-desc">Genes whose results drive Action- or Review-level CPIC/DPWG recommendations. See the detailed sections below for diplotypes, allele functions, and drug-specific guidance.</p>
+
+{% if clinical_priority.action %}
+<div class="priority-block action">
+  <h4>{{ action_symbols.action }} Action ({{ clinical_priority.action|length }})</h4>
+  <ul>
+    {% for g in clinical_priority.action %}
+    <li>
+      <span class="pri-gene">{{ g.gene }}</span> — <span class="pri-pheno">{{ g.phenotype }}</span>
+      <span class="pri-drugcount">
+        ({{ g.action_drug_count }} action drug{{ '' if g.action_drug_count == 1 else 's' }}{% if g.review_drug_count %}, {{ g.review_drug_count }} review{% endif %})
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<div class="priority-block empty">No genes drive Action-level recommendations for this sample.</div>
+{% endif %}
+
+{% if clinical_priority.review %}
+<div class="priority-block review">
+  <h4>{{ action_symbols.review }} Review ({{ clinical_priority.review|length }})</h4>
+  <ul>
+    {% for g in clinical_priority.review %}
+    <li>
+      <span class="pri-gene">{{ g.gene }}</span> — <span class="pri-pheno">{{ g.phenotype }}</span>
+      <span class="pri-drugcount">
+        ({{ g.review_drug_count }} review drug{{ '' if g.review_drug_count == 1 else 's' }}{% if g.action_drug_count %}, {{ g.action_drug_count }} action{% endif %})
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endif %}
+
 {# ── Definitive results ───────────────────────────────────────── #}
 {% if definitive_by_category %}
 <h2>Definitive Results</h2>
@@ -108,9 +197,6 @@
           {{ g.allele2_name }}: {{ g.allele2_function }}
         </td>
       </tr>
-      {% if g.caveat %}
-      <tr><td colspan="7"><div class="caveat">{{ g.caveat }}</div></td></tr>
-      {% endif %}
       {% if g.drug_recs %}
       <tr><td colspan="7">
         <details>
@@ -170,7 +256,6 @@
       {% endfor %}
     </ul>
     {% endif %}
-    {% if g.caveat %}<div class="caveat">{{ g.caveat }}</div>{% endif %}
   </div>
   {% endfor %}
 </section>
@@ -202,9 +287,6 @@
           {% else %}—{% endif %}
         </td>
       </tr>
-      {% if g.caveat %}
-      <tr><td colspan="4"><div class="caveat">{{ g.caveat }}</div></td></tr>
-      {% endif %}
       {% endfor %}
     </tbody>
   </table>
@@ -241,6 +323,16 @@
   </table>
 </details>
 {% endfor %}
+{% endif %}
+
+{# ── Consolidated caveats (e.g. CYP2D6 short-read warning) ──── #}
+{% if consolidated_caveats %}
+<section class="consolidated-caveats">
+  <h3>Caveats</h3>
+  {% for c in consolidated_caveats %}
+  <div class="caveat-item">{{ c }}</div>
+  {% endfor %}
+</section>
 {% endif %}
 
 {# ── Citations ────────────────────────────────────────────────── #}

@@ -352,6 +352,34 @@ def _build_context(parsed: ParsedResults) -> dict:
     summary_sentence = _summary_sentence(counts)
     next_steps = _build_next_steps(counts, drug_view["action_drugs"])
 
+    # Consolidated MH note: if CACNA1S and/or RYR1 are in the Normal bucket
+    # with their MH 'note' set, replace the per-gene yellow callouts with one
+    # explanation at the end of the Normal list.
+    normal_mh_note = None
+    if any(
+        g.get("note") and g.get("gene") in ("CACNA1S", "RYR1")
+        for g in grouped_by_risk.get("normal", [])
+    ):
+        normal_mh_note = (
+            "Malignant hyperthermia (MH) is a rare, life-threatening "
+            "reaction to certain anesthetics, most often caused by variants "
+            "in <strong>CACNA1S</strong> and <strong>RYR1</strong>. "
+            "<strong>Your test did not find any known MH variants in either "
+            "gene</strong> — the typical reassuring result. The test cannot "
+            "rule out every rare variant, so it's still worth mentioning to "
+            "an anesthesiologist before any procedure."
+        )
+
+    # Consolidated CYP2D6 caveat: if CYP2D6 is in No-Data with its caveat
+    # set (the parser attaches a caveat about short-read structural variation
+    # limitations), surface it once at the bottom of the No-Data section
+    # instead of per-row inside the table.
+    nodata_cyp2d6_caveat = None
+    for g in grouped_by_risk.get("no_call", []):
+        if g.get("gene") == "CYP2D6" and g.get("caveat"):
+            nodata_cyp2d6_caveat = g["caveat"]
+            break
+
     return {
         "title": "Your Personal Pharmacogenetics Report",
         "app_title": APP_TITLE,
@@ -366,6 +394,8 @@ def _build_context(parsed: ParsedResults) -> dict:
         "counts": counts,
         "overview_cards": overview_cards,
         "grouped_by_risk": grouped_by_risk,
+        "normal_mh_note": normal_mh_note,
+        "nodata_cyp2d6_caveat": nodata_cyp2d6_caveat,
         "action_drugs": drug_view["action_drugs"],
         "review_drugs": drug_view["review_drugs"],
         "action_total": len(drug_view["action_drugs"]),
@@ -803,10 +833,7 @@ def _enrich_definitive(
 
 def _gene_note(gene: str, phenotype: str | None) -> str | None:
     """Per-gene contextual notes for cases where the patient's genetic test
-    result has clinical relevance beyond what the drug list captures. Used
-    today for CACNA1S/RYR1 when 'Uncertain Susceptibility' — the standard
-    'negative' result that an anesthesiologist may still want to know about
-    before any procedure."""
+    result has clinical relevance beyond what the drug list captures."""
     pheno = (phenotype or "").lower().strip()
     if gene in ("CACNA1S", "RYR1") and "uncertain susceptibility" in pheno:
         return (
@@ -814,6 +841,13 @@ def _gene_note(gene: str, phenotype: str | None) -> str | None:
             "Worth mentioning to an anesthesiologist before any procedure — "
             "the test cannot rule out every rare variant, but no catalogued "
             "susceptibility variant is present."
+        )
+    if gene == "CFTR" and ("ivacaftor" in pheno or "cf patients" in pheno):
+        return (
+            "This finding only matters if you have a clinical cystic fibrosis "
+            "diagnosis. Ivacaftor and other CF modulator drugs aren't "
+            "prescribed without one. If you don't have CF, this result has "
+            "no practical impact on your medication care."
         )
     return None
 
@@ -945,7 +979,7 @@ def _build_drug_view(parsed: ParsedResults) -> dict:
             })
 
     action_drugs.sort(key=lambda d: (d["therapeutic_category"], d["drug"]))
-    review_drugs.sort(key=lambda d: d["drug"])
+    review_drugs.sort(key=lambda d: (d["therapeutic_category"], d["drug"]))
 
     return {
         "action_drugs": action_drugs,

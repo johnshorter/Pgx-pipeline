@@ -54,7 +54,9 @@ from preprocessing.clean_vcf import clean_vcf
 from preprocessing.filter_vcf import FilterError, filter_vcf
 from preprocessing.reference_fill import reference_fill_vcf
 from reports.clinician_report import generate_clinician_report
+from reports.clinician_report_v2 import generate_clinician_report_v2
 from reports.patient_report import generate_patient_report
+from reports.patient_report_v2 import generate_patient_report_v2
 from screening.screen_pharmacogenes import print_screening_report, screen_vcf
 
 
@@ -318,6 +320,8 @@ def main() -> int:
     log.info("Step: Generating reports...")
     patient_files = generate_patient_report(parsed, sample_out)
     clinician_files = generate_clinician_report(parsed, sample_out)
+    patient_v2_files = generate_patient_report_v2(parsed, sample_out)
+    clinician_v2_files = generate_clinician_report_v2(parsed, sample_out)
 
     # Cleanup intermediates if requested
     if not args.keep_intermediate:
@@ -334,6 +338,8 @@ def main() -> int:
     log.info("  clinician_report.html     → %s", clinician_files["html"])
     if "pdf" in clinician_files:
         log.info("  clinician_report.pdf      → %s", clinician_files["pdf"])
+    log.info("  patient_report_v2.html    → %s", patient_v2_files["html"])
+    log.info("  clinician_report_v2.html  → %s", clinician_v2_files["html"])
     log.info("Done.")
     return 0
 

@@ -1,0 +1,875 @@
+{% extends "base.html" %}
+
+{# Brief Action/Review definitions live inline on the Drug Index section
+   headers, so the standalone "How to read this report" legend is dropped. #}
+{% block legend %}{% endblock %}
+
+{% block extra_styles %}
+<style>
+  /* Coverage summary — kept from v1, four-cell grid */
+  .coverage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0 24px;
+  }
+  .cov-cell {
+    flex: 1 1 160px;
+    background: #FAFAFA;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+  }
+  .cov-cell .label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.4px; }
+  .cov-cell .count { font-size: 24px; font-weight: 700; display: block; margin-top: 2px; }
+  .cov-cell .sublabel { font-size: 11.5px; color: var(--text-light); display: block; margin-top: 2px; }
+
+  /* Gene Overview — four stacked single-line bands, one per risk bucket. */
+  .gene-overview { margin: 8px 0 16px; }
+  .overview-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 8px 14px;
+    border-left: 4px solid var(--border);
+    border-radius: 0 4px 4px 0;
+    margin: 4px 0;
+    font-size: 13.5px;
+    line-height: 1.45;
+  }
+  .overview-row.action { background: var(--action-bg); border-left-color: var(--action); }
+  .overview-row.review { background: var(--review-bg); border-left-color: var(--review); }
+  .overview-row.normal { background: var(--normal-bg); border-left-color: var(--normal); }
+  .overview-row.no_data { background: var(--nodata-bg); border-left-color: var(--nodata); }
+  .overview-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 130px;
+    flex: 0 0 auto;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-size: 12.5px;
+  }
+  .overview-row.action .overview-label { color: var(--action); }
+  .overview-row.review .overview-label { color: var(--review); }
+  .overview-row.normal .overview-label { color: var(--normal); }
+  .overview-row.no_data .overview-label { color: var(--nodata); }
+  .overview-sym { font-size: 15px; line-height: 1; }
+  .overview-count {
+    font-weight: 400;
+    color: var(--text-light);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .overview-genes {
+    flex: 1 1 auto;
+    color: var(--text);
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .overview-gene {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dotted transparent;
+  }
+  .overview-gene:hover {
+    border-bottom-color: var(--text-light);
+  }
+  .overview-empty {
+    color: var(--text-light);
+    font-style: italic;
+  }
+
+  /* Risk-bucket sections */
+  .risk-section { margin: 28px 0 16px; }
+  .risk-section > h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    padding: 8px 14px;
+    border-left: 4px solid var(--border);
+    border-radius: 0 4px 4px 0;
+    margin: 0 0 12px;
+    font-weight: 700;
+  }
+  .risk-section.action > h3 { background: var(--action-bg); border-left-color: var(--action); color: var(--action); }
+  .risk-section.review > h3 { background: var(--review-bg); border-left-color: var(--review); color: var(--review); }
+  .risk-section.normal > h3 { background: var(--normal-bg); border-left-color: var(--normal); color: var(--normal); }
+  .risk-section.nodata > h3 { background: var(--nodata-bg); border-left-color: var(--nodata); color: var(--nodata); }
+  .risk-section .risk-symbol {
+    font-size: 22px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Gene cards (clinician-detail layout) */
+  .gene-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    background: #fff;
+  }
+  .gene-card.action { border-left: 4px solid var(--action); }
+  .gene-card.review { border-left: 4px solid var(--review); }
+  .gene-card.normal { border-left: 4px solid var(--normal); }
+  .gene-card.nodata { border-left: 4px solid var(--nodata); }
+
+  .gene-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .gene-card-header .gene-name {
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .gene-card-header .protein-type {
+    font-size: 11px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    background: #F0F0F0;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  /* Sub-section header (one per protein-type subgroup within a risk block). */
+  .protein-subgroup {
+    margin: 12px 0 4px;
+  }
+  .protein-subgroup-title {
+    font-size: 13px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    margin: 16px 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .protein-subgroup-title .count {
+    color: var(--text-light);
+    font-weight: 400;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .gene-card-header .phenotype-pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  .gene-card.action .phenotype-pill { background: var(--action-bg); color: var(--action); }
+  .gene-card.review .phenotype-pill { background: var(--review-bg); color: var(--review); }
+  .gene-card.normal .phenotype-pill { background: var(--normal-bg); color: var(--normal); }
+  .gene-card.nodata .phenotype-pill { background: var(--nodata-bg); color: var(--nodata); }
+
+  /* Technical meta line (diplotype, activity, coverage, alleles) */
+  .gene-meta-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 4px 12px;
+    font-size: 13px;
+    margin: 6px 0 10px;
+  }
+  .gene-meta-grid dt {
+    color: var(--text-light);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    padding-top: 1px;
+  }
+  .gene-meta-grid dd {
+    margin: 0;
+    color: var(--text);
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+  }
+
+  /* Gene description (plain-language, from GENE_DESCRIPTIONS). */
+  .gene-card .gene-description {
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.55;
+    margin: 6px 0 10px;
+  }
+
+  /* Mechanism brief — the (gene, phenotype) → drug-effect sentence. */
+  .gene-card .gene-mechanism {
+    background: #F5F7FA;
+    border-left: 3px solid #B0BEC5;
+    padding: 8px 12px;
+    margin: 8px 0 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    border-radius: 0 4px 4px 0;
+  }
+  .gene-card .gene-mechanism .mech-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    font-weight: 700;
+    margin-right: 6px;
+  }
+
+  /* Affected medications inside a gene monograph */
+  .gene-card .gene-drugs {
+    margin-top: 12px;
+  }
+  .gene-card .gene-drugs-header {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+    font-weight: 700;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 3px;
+    margin-bottom: 6px;
+  }
+  .drug-block {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    margin: 6px 0;
+    background: #FCFCFC;
+    overflow: hidden;
+  }
+  .drug-block .drug-block-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #FAFAFA;
+    border-bottom: 1px solid var(--border);
+  }
+  .drug-block .drug-block-symbol { font-size: 16px; line-height: 1; }
+  .drug-block.action .drug-block-symbol { color: var(--action); }
+  .drug-block.review .drug-block-symbol { color: var(--review); }
+  .drug-block .drug-block-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .drug-block .drug-block-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    background: #E3F2FD;
+    color: #1565C0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+  }
+  .drug-block .drug-block-sources {
+    padding: 4px 10px 8px;
+  }
+  .drug-block .src-entry {
+    margin: 6px 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .drug-block .src-entry + .src-entry {
+    border-top: 1px dashed var(--border);
+    padding-top: 6px;
+  }
+  .drug-block .src-meta {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .drug-block .src-meta .src-tag {
+    display: inline-block;
+    background: #ECEFF1;
+    color: #37474F;
+    padding: 0 6px;
+    border-radius: 3px;
+    margin-right: 4px;
+    letter-spacing: 0.3px;
+  }
+  .drug-block .src-meta .cls-tag {
+    display: inline-block;
+    background: #FFF3E0;
+    color: #E65100;
+    padding: 0 6px;
+    border-radius: 3px;
+    margin-right: 4px;
+  }
+  .drug-block .src-rec {
+    color: var(--text);
+  }
+  /* DPWG annotations embed <ul>/<li> for structured arms. Render them
+     compactly inside the source entry so the recommendation block doesn't
+     bloat vertically. */
+  .drug-block .src-rec ul {
+    margin: 4px 0 4px 18px;
+    padding: 0;
+  }
+  .drug-block .src-rec li {
+    margin: 1px 0;
+  }
+  .drug-block .src-rec br {
+    /* PharmCAT's <br /> tags often abut newlines; suppress excess vertical gap */
+    content: " ";
+  }
+  /* Collapsed FDA-source disclosure inside each drug-block.
+     Quiet by default — click to reveal the verbatim label text. */
+  .drug-block details.fda-fold {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+  }
+  .drug-block details.fda-fold > summary {
+    cursor: pointer;
+    font-size: 11.5px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    list-style: none;
+  }
+  .drug-block details.fda-fold > summary::before {
+    content: "▸ ";
+    font-size: 10px;
+  }
+  .drug-block details.fda-fold[open] > summary::before { content: "▾ "; }
+  .drug-block details.fda-fold[open] > summary { margin-bottom: 4px; }
+
+  /* Legacy class kept for the no-data variant only */
+  .gene-card .affected-pills {
+    margin-top: 8px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .gene-card .affected-pills-label {
+    font-size: 12px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+
+  /* Drug Index — compact navigation table linking each affected drug to
+     its gene monograph below. Single source of truth for "what's
+     affected" + jump-to-detail; the deep prose lives inside the gene
+     blocks. */
+  table.drug-index {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 13px;
+    margin: 8px 0 4px;
+  }
+  /* Lock column widths so the Action and Review tables align identically
+     regardless of how many rows each contains. */
+  table.drug-index th:nth-child(1), table.drug-index td:nth-child(1) { width: 3%; }
+  table.drug-index th:nth-child(2), table.drug-index td:nth-child(2) { width: 19%; }
+  table.drug-index th:nth-child(3), table.drug-index td:nth-child(3) { width: 24%; }
+  table.drug-index th:nth-child(4), table.drug-index td:nth-child(4) { width: 39%; }
+  table.drug-index th:nth-child(5), table.drug-index td:nth-child(5) { width: 15%; }
+  table.drug-index th {
+    text-align: left;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    background: #FAFAFA;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+  }
+  table.drug-index td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    line-height: 1.45;
+  }
+  table.drug-index tr:last-child td { border-bottom: none; }
+  table.drug-index tr.action td.idx-sym { color: var(--action); font-weight: 700; }
+  table.drug-index tr.review td.idx-sym { color: var(--review); font-weight: 700; }
+  table.drug-index td.idx-drug { font-weight: 700; color: var(--text); white-space: nowrap; }
+  table.drug-index td.idx-cat {
+    font-size: 11.5px;
+    color: var(--text-light);
+  }
+  table.drug-index td.idx-trigger { font-size: 12.5px; }
+  table.drug-index td.idx-trigger .idx-gene {
+    font-family: "SF Mono", Consolas, monospace;
+    font-weight: 700;
+    color: var(--text);
+  }
+  table.drug-index td.idx-trigger .idx-pheno {
+    display: inline-block;
+    font-size: 11.5px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  table.drug-index tr.action .idx-pheno { background: var(--action-bg); color: var(--action); }
+  table.drug-index tr.review .idx-pheno { background: var(--review-bg); color: var(--review); }
+  table.drug-index td.idx-jump { white-space: nowrap; text-align: right; }
+  table.drug-index td.idx-jump a {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #1565C0;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  table.drug-index td.idx-jump a:hover { text-decoration: underline; }
+
+  .drug-index-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    padding: 6px 12px;
+    border-left: 4px solid var(--border);
+    border-radius: 0 4px 4px 0;
+    margin: 16px 0 4px;
+    font-weight: 700;
+  }
+  .drug-index-section h3.action { background: var(--action-bg); border-left-color: var(--action); color: var(--action); }
+  .drug-index-section h3.review { background: var(--review-bg); border-left-color: var(--review); color: var(--review); }
+  .drug-index-section h3 .cat-sub {
+    font-weight: 400;
+    font-size: 12.5px;
+    color: var(--text-light);
+    margin-left: 4px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* No-Data card variant — affected drug list grouped by therapeutic_category */
+  .nodata-affected {
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .nodata-affected .nodata-cat {
+    margin: 4px 0;
+  }
+  .nodata-affected .nodata-cat strong {
+    color: var(--text);
+  }
+
+  /* All-drugs cross-reference (collapsed by default) */
+  details.all-drugs {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 16px 0;
+  }
+  details.all-drugs > summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  details.all-drugs[open] > summary { margin-bottom: 8px; }
+  details.all-drugs .drug-group h4 {
+    margin-top: 14px;
+    color: var(--text);
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 4px;
+  }
+  details.all-drugs table.drugs { width: 100%; border-collapse: collapse; }
+  details.all-drugs table.drugs th, details.all-drugs table.drugs td {
+    font-size: 12.5px;
+    padding: 5px 7px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    text-align: left;
+  }
+  details.all-drugs table.drugs th {
+    background: #FAFAFA;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    color: var(--text-light);
+  }
+
+  /* Consolidated caveats at end (same as v1) */
+  .consolidated-caveats {
+    margin: 22px 0;
+  }
+  .consolidated-caveats h3 {
+    font-size: 15px;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  .consolidated-caveats .caveat-item {
+    background: #FFF8E1;
+    border-left: 3px solid #F9A825;
+    padding: 8px 12px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .citations li { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+  .citations { margin: 8px 0 16px 22px; }
+  .citations a {
+    color: #1565C0;
+    text-decoration: none;
+  }
+  .citations a:hover { text-decoration: underline; }
+  .cite-marker {
+    font-size: 0.7em;
+    color: var(--text-light);
+    vertical-align: super;
+    line-height: 0;
+    margin-left: 2px;
+    font-weight: 600;
+  }
+  .cite-marker a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .cite-marker a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2>Sample Overview</h2>
+<p class="category-desc">Top: panel-level call statistics for this VCF. Bottom: all evaluated genes grouped by their effective risk for this patient — each row is a one-line snapshot, full detail is in the Gene Results section below.</p>
+
+<div class="coverage">
+  <div class="cov-cell">
+    <span class="label">Total Genes</span>
+    <span class="count">{{ coverage_summary.total_genes }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">Definitive Calls</span>
+    <span class="count">{{ coverage_summary.definitive_count }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">Ambiguous</span>
+    <span class="count">{{ coverage_summary.ambiguous_count }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">No Call</span>
+    <span class="count">{{ coverage_summary.no_call_count }}</span>
+  </div>
+  <div class="cov-cell">
+    <span class="label">Position Coverage</span>
+    <span class="count">{{ coverage_summary.coverage_percent }}%</span>
+    <span class="sublabel">{{ coverage_summary.total_positions_found }} / {{ coverage_summary.total_positions }} positions</span>
+  </div>
+</div>
+
+<div class="gene-overview">
+  {% set _buckets = [
+    ("action", "Action", action_symbols.action),
+    ("review", "Review", action_symbols.review),
+    ("normal", "Normal", action_symbols.normal),
+    ("no_data", "No data", action_symbols.nodata),
+  ] %}
+  {% for key, label, sym in _buckets %}
+  {% set genes = gene_summary_by_risk[key] %}
+  <div class="overview-row {{ key }}">
+    <div class="overview-label">
+      <span class="overview-sym">{{ sym }}</span>
+      <span class="overview-title">{{ label }}</span>
+      <span class="overview-count">({{ genes|length }})</span>
+    </div>
+    <div class="overview-genes">
+      {% if genes %}
+        {% for gene in genes %}<a class="overview-gene" href="#gene-{{ gene }}">{{ gene }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+      {% else %}
+        <span class="overview-empty">—</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# ── Drug Index ───────────────────────────────────────────────── #}
+{% if drug_index %}
+<h2>Drug Index</h2>
+<p class="category-desc">Compact navigation table — one row per medication whose Action or Review classification is driven by a non-normal phenotype for this patient. Click the gene anchor to jump to the full monograph (description, technical block, mechanism, and verbatim CPIC/DPWG recommendations) below.</p>
+
+<section class="drug-index-section">
+  {% set action_rows = drug_index | selectattr("risk_level", "equalto", "action") | list %}
+  {% set review_rows = drug_index | selectattr("risk_level", "equalto", "review") | list %}
+
+  {% if action_rows %}
+  <h3 class="action">{{ action_symbols.action }} Action ({{ action_rows|length }}) <span class="cat-sub">— decision needed before prescribing</span></h3>
+  <table class="drug-index">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Drug</th>
+        <th>Therapeutic class</th>
+        <th>Trigger</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in action_rows %}
+      <tr class="action">
+        <td class="idx-sym">{{ r.symbol }}</td>
+        <td class="idx-drug">{{ r.drug }}</td>
+        <td class="idx-cat">{{ r.therapeutic_category or '—' }}</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">{{ r.gene }}</span>
+          <span class="idx-pheno">{{ r.phenotype }}</span>
+        </td>
+        <td class="idx-jump"><a href="#{{ r.anchor }}">{{ r.gene }} ↓</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if review_rows %}
+  <h3 class="review">{{ action_symbols.review }} Review ({{ review_rows|length }}) <span class="cat-sub">— monitor or adjust dose</span></h3>
+  <table class="drug-index">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Drug</th>
+        <th>Therapeutic class</th>
+        <th>Trigger</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in review_rows %}
+      <tr class="review">
+        <td class="idx-sym">{{ r.symbol }}</td>
+        <td class="idx-drug">{{ r.drug }}</td>
+        <td class="idx-cat">{{ r.therapeutic_category or '—' }}</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">{{ r.gene }}</span>
+          <span class="idx-pheno">{{ r.phenotype }}</span>
+        </td>
+        <td class="idx-jump"><a href="#{{ r.anchor }}">{{ r.gene }} ↓</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endif %}
+
+<h2>Gene Results in Detail</h2>
+
+{# Reusable macro: clinician gene monograph.
+   Layout: header → description → technical meta block → (Action/Review only)
+   mechanism brief → per-drug verbatim recommendations grouped by source. #}
+{% macro gene_card(g) -%}
+<div class="gene-card {{ g.risk_level }}" id="{{ g.anchor }}">
+  <div class="gene-card-header">
+    <span class="sym sym-{{ g.risk_level }}">{{ g.symbol }}</span>
+    <span class="gene-name">{{ g.gene }}</span>
+    {% if g.protein_type %}<span class="protein-type">{{ g.protein_type }}</span>{% endif %}
+    {% if g.kind == "definitive" and g.phenotype %}
+      <span class="phenotype-pill">{{ g.phenotype }}</span>
+    {% elif g.kind == "ambiguous" %}
+      <span class="phenotype-pill">Inconclusive ({{ g.diplotype_count }} candidates)</span>
+    {% elif g.kind == "no_call" %}
+      <span class="phenotype-pill">No call</span>
+    {% endif %}
+  </div>
+
+  {% if g.description %}
+  <p class="gene-description"><strong>{{ g.gene }}</strong> {{ g.description }}.</p>
+  {% endif %}
+
+  {% if g.kind == "definitive" %}
+  <dl class="gene-meta-grid">
+    <dt>Diplotype</dt>          <dd>{{ g.diplotype }}</dd>
+    <dt>Activity score</dt>     <dd>{{ g.activity_score or '—' }}</dd>
+    <dt>Coverage</dt>           <dd>{{ g.positions_found }}/{{ g.positions_found + g.positions_missing }} positions</dd>
+    <dt>Allele {{ g.allele1_name }}</dt>  <dd>{{ g.allele1_function }}</dd>
+    <dt>Allele {{ g.allele2_name }}</dt>  <dd>{{ g.allele2_function }}</dd>
+  </dl>
+  {% elif g.kind == "ambiguous" %}
+  <dl class="gene-meta-grid">
+    <dt>Candidates</dt>         <dd>{{ g.diplotype_count }} possible diplotypes</dd>
+    <dt>Coverage</dt>           <dd>{{ g.positions_found }}/{{ g.positions_found + g.positions_missing }} positions</dd>
+    {% if g.phenotype_range %}
+    <dt>Phenotype range</dt>    <dd>{{ g.phenotype_range | join(', ') }}</dd>
+    {% endif %}
+    {% if g.harmful_phenotypes %}
+    <dt>Harmful in range</dt>   <dd>{{ g.harmful_phenotypes | join(', ') }}</dd>
+    {% endif %}
+  </dl>
+  {% elif g.kind == "no_call" %}
+  <dl class="gene-meta-grid">
+    <dt>Missing positions</dt>  <dd>{{ g.positions_missing }}</dd>
+  </dl>
+  {% endif %}
+
+  {% if g.mechanism and g.risk_level in ("action", "review") %}
+  <div class="gene-mechanism">
+    <span class="mech-label">Mechanism</span>{{ g.mechanism }}
+  </div>
+  {% endif %}
+
+  {% if g.drugs %}
+  <div class="gene-drugs">
+    <div class="gene-drugs-header">Affected medications &amp; recommendations ({{ g.drugs|length }})</div>
+    {% for d in g.drugs %}
+    <div class="drug-block {{ d.risk_level }}">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol">{{ d.symbol }}</span>
+        <span class="drug-block-name">{{ d.drug }}</span>
+        {% if d.therapeutic_category %}<span class="drug-block-tag">{{ d.therapeutic_category }}</span>{% endif %}
+      </div>
+      <div class="drug-block-sources">
+        {% for s in d.primary_sources %}
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">{{ s.source }}</span>
+            {% if s.classification and s.classification|lower not in ("unspecified", "no recommendation") %}<span class="cls-tag">{{ s.classification }}</span>{% endif %}
+          </div>
+          <div class="src-rec">{{ s.recommendation }}{% if s.cite_numbers %}<sup class="cite-marker">[{% for n in s.cite_numbers %}<a href="#ref-{{ n }}">{{ n }}</a>{% if not loop.last %}, {% endif %}{% endfor %}]</sup>{% endif %}</div>
+        </div>
+        {% endfor %}
+        {% if d.fda_sources %}
+        <details class="fda-fold">
+          <summary>Also cited: {{ d.fda_sources|map(attribute='source')|join(', ') }}</summary>
+          {% for s in d.fda_sources %}
+          <div class="src-entry">
+            <div class="src-meta">
+              <span class="src-tag">{{ s.source }}</span>
+              {% if s.classification and s.classification|lower not in ("unspecified", "no recommendation") %}<span class="cls-tag">{{ s.classification }}</span>{% endif %}
+            </div>
+            <div class="src-rec">{{ s.recommendation }}{% if s.cite_numbers %}<sup class="cite-marker">[{% for n in s.cite_numbers %}<a href="#ref-{{ n }}">{{ n }}</a>{% if not loop.last %}, {% endif %}{% endfor %}]</sup>{% endif %}</div>
+          </div>
+          {% endfor %}
+        </details>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif g.kind == "no_call" and g.affected_drugs %}
+  <div class="affected-pills">
+    <span class="affected-pills-label">Medications that depend on {{ g.gene }}:</span>
+    <div class="nodata-affected">
+      {% for cat, drugs in g.affected_drugs.items() %}
+      <div class="nodata-cat"><strong>{{ cat }}:</strong> {{ drugs | join(', ') }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{# Helper macro: render a risk block with protein-type subgroups inside. #}
+{% macro risk_block(label, klass, symbol, subgroups) -%}
+{% if subgroups %}
+<section class="risk-section {{ klass }}">
+  {% set total = subgroups|sum(attribute='genes', start=[])|length %}
+  <h3><span class="risk-symbol">{{ symbol }}</span> {{ label }} ({{ total }})</h3>
+  {% for sub in subgroups %}
+  <div class="protein-subgroup">
+    <div class="protein-subgroup-title">{{ sub.protein_type }}<span class="count">({{ sub.genes|length }})</span></div>
+    {% for g in sub.genes %}{{ gene_card(g) }}{% endfor %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{%- endmacro %}
+
+{{ risk_block("Action", "action", action_symbols.action, grouped_by_risk.action) }}
+{{ risk_block("Review", "review", action_symbols.review, grouped_by_risk.review) }}
+{{ risk_block("Normal", "normal", action_symbols.normal, grouped_by_risk.normal) }}
+{{ risk_block("No Data", "nodata", action_symbols.nodata, grouped_by_risk.no_data) }}
+
+{# ── All CPIC/DPWG drug recommendations (cross-reference, collapsed) ── #}
+{% if drugs_by_category %}
+<details class="all-drugs">
+  <summary>Full CPIC + DPWG recommendation table (cross-reference)</summary>
+  {% for group in drugs_by_category %}
+  <div class="drug-group">
+    <h4>{{ group.category }} ({{ group.drugs|length }})</h4>
+    <table class="drugs">
+      <thead>
+        <tr>
+          <th></th><th>Drug</th><th>Source</th><th>Genes</th>
+          <th>Phenotypes</th><th>Recommendation</th><th>Classification</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in group.drugs %}
+        <tr>
+          <td><span class="sym-inline sym-{{ d.risk_level }}">{{ d.symbol }}</span></td>
+          <td><strong>{{ d.drug }}</strong></td>
+          <td><span class="src-tag">{{ d.source }}</span></td>
+          <td>{{ d.gene_list }}</td>
+          <td>{{ d.phenotype_list }}</td>
+          <td class="rec">{{ d.recommendation }}</td>
+          <td>{{ d.classification or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</details>
+{% endif %}
+
+{# ── Consolidated caveats ─────────────────────────────────────── #}
+{% if consolidated_caveats %}
+<section class="consolidated-caveats">
+  <h3>Caveats</h3>
+  {% for c in consolidated_caveats %}
+  <div class="caveat-item">{{ c }}</div>
+  {% endfor %}
+</section>
+{% endif %}
+
+{# ── Citations ────────────────────────────────────────────────── #}
+{% if numbered_citations %}
+<h2>References</h2>
+<p class="category-desc">Numbered citations are inlined as <sup class="cite-marker">[N]</sup> markers next to each recommendation that uses them. Only citations attached to drug recommendations actually shown in the body are listed.</p>
+<ol class="citations numbered">
+  {% for entry in numbered_citations %}
+  <li id="ref-{{ entry.number }}" value="{{ entry.number }}">
+    {% if entry.citation.title %}
+      {% if entry.citation.pmid %}
+        <a href="https://pubmed.ncbi.nlm.nih.gov/{{ entry.citation.pmid }}/" target="_blank" rel="noopener">{{ entry.citation.title }}</a>
+      {% else %}
+        {{ entry.citation.title }}
+      {% endif %}
+    {% endif %}
+    {% if entry.citation.journal %}<em>{{ entry.citation.journal }}</em>{% endif %}
+    {% if entry.citation.year %}({{ entry.citation.year }}){% endif %}
+    {% if entry.citation.pmid %} &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/{{ entry.citation.pmid }}/" target="_blank" rel="noopener">{{ entry.citation.pmid }}</a>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% endif %}
+
+{# ── Pipeline messages ────────────────────────────────────────── #}
+{% if messages %}
+<h2>Pipeline Messages</h2>
+<ul style="margin-left: 18px; font-size: 13px;">
+  {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

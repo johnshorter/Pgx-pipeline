@@ -21,6 +21,53 @@ from pharmcat.output_parser import ParsedResults
 from reports._render import html_and_pdf
 
 
+# Phenotype strings considered "normal-equivalent" — drugs whose recommendation
+# lists the patient's gene at one of these phenotypes don't drive the gene's
+# risk classification. Mirrors the same set used by patient_report_v2 so both
+# reports bucket genes the same way.
+_NORMAL_PHENOTYPES_LOWER = {
+    "normal metabolizer",
+    "extensive metabolizer",
+    "normal function",
+    "normal",
+    "uncertain susceptibility",
+    "n/a",
+    "",
+    "no result",
+}
+
+
+def _is_normal_pheno(p: str | None) -> bool:
+    return (p or "").lower().strip() in _NORMAL_PHENOTYPES_LOWER
+
+
+def _effective_gene_risk(parsed: ParsedResults) -> dict[str, str]:
+    """Each gene's effective risk = max risk among drugs whose recommendation
+    this gene's phenotype actually drives. Falls back to the gene's own
+    phenotype-derived risk_level when no drugs contribute. Same logic as in
+    patient_report_v2 so the two reports agree on which bucket a gene
+    belongs to."""
+    drug_derived: dict[str, str] = {}
+    for d in parsed.drugs:
+        for gene in d.affected_genes:
+            if _is_normal_pheno(d.phenotypes.get(gene, "")):
+                continue
+            current = drug_derived.get(gene)
+            if (
+                current is None
+                or RISK_PRIORITY.get(d.risk_level, 3)
+                < RISK_PRIORITY.get(current, 3)
+            ):
+                drug_derived[gene] = d.risk_level
+
+    effective: dict[str, str] = {}
+    for g in parsed.definitive_genes:
+        effective[g.gene] = drug_derived.get(g.gene, g.risk_level)
+    for g in parsed.ambiguous_genes:
+        effective[g.gene] = drug_derived.get(g.gene, g.risk_level)
+    return effective
+
+
 def generate_clinician_report(
     parsed: ParsedResults,
     output_dir: str | Path,
@@ -38,20 +85,27 @@ def _build_context(parsed: ParsedResults) -> dict:
     coverage = _coverage_summary(parsed)
     cpic_dpwg = _filter_cpic_dpwg(parsed)
     gene_drug_map = _build_gene_drug_map(cpic_dpwg)
+    effective_risk = _effective_gene_risk(parsed)
 
-    # Bucket-by-category groupings so the template can show all three
-    # buckets organised by functional category.
-    definitive_by_cat = _group_by_category(
-        [_enrich_drugs(_enrich_definitive(g), gene_drug_map) for g in parsed.definitive_genes]
-    )
+    # Bucket-by-category groupings, with per-gene risk now derived from drug
+    # recommendations rather than the phenotype name alone.
+    definitive_by_cat = _group_by_category([
+        _enrich_drugs(_enrich_definitive(g, effective_risk), gene_drug_map)
+        for g in parsed.definitive_genes
+    ])
     ambiguous_by_cat = _group_by_category(
-        [_enrich_ambiguous(g) for g in parsed.ambiguous_genes]
+        [_enrich_ambiguous(g, effective_risk) for g in parsed.ambiguous_genes]
     )
     no_call_by_cat = _group_by_category(
         [_enrich_no_call(g) for g in parsed.no_call_genes]
     )
 
     drugs_by_category = _group_drugs_by_category(cpic_dpwg)
+
+    clinical_priority = _build_clinical_priority(
+        parsed, effective_risk, gene_drug_map,
+    )
+    consolidated_caveats = _consolidated_caveats(parsed)
 
     return {
         "title": "Pharmacogenomic Analysis Report",
@@ -64,6 +118,7 @@ def _build_context(parsed: ParsedResults) -> dict:
         "action_symbols": ACTION_SYMBOLS,
         "action_labels": ACTION_LABELS,
         "coverage_summary": coverage,
+        "clinical_priority": clinical_priority,
         "definitive_by_category": definitive_by_cat,
         "ambiguous_by_category": ambiguous_by_cat,
         "no_call_by_category": no_call_by_cat,
@@ -71,11 +126,78 @@ def _build_context(parsed: ParsedResults) -> dict:
         "all_drugs": cpic_dpwg,
         "citations": parsed.citations,
         "gene_drug_map": gene_drug_map,
+        "consolidated_caveats": consolidated_caveats,
         "category_order": CATEGORY_ORDER,
         "category_descriptions": {
             k: v["description"] for k, v in GENE_CATEGORIES.items()
         },
     }
+
+
+def _build_clinical_priority(
+    parsed: ParsedResults,
+    effective_risk: dict[str, str],
+    gene_drug_map: dict[str, list[dict]],
+) -> dict:
+    """Build the per-risk priority summary at the top of the report: Action
+    and Review genes with a one-line headline (phenotype + driven-drug count)
+    so a clinician can see at-a-glance which gene results need attention."""
+
+    def _entry(gene: str, phenotype: str) -> dict:
+        drugs = gene_drug_map.get(gene, [])
+        action_count = sum(1 for d in drugs if d["risk_level"] == "action")
+        review_count = sum(1 for d in drugs if d["risk_level"] == "review")
+        return {
+            "gene": gene,
+            "phenotype": phenotype or "—",
+            "action_drug_count": action_count,
+            "review_drug_count": review_count,
+        }
+
+    action: list[dict] = []
+    review: list[dict] = []
+
+    for g in parsed.definitive_genes:
+        risk = effective_risk.get(g.gene, g.risk_level)
+        if risk == "action":
+            action.append(_entry(g.gene, g.phenotype))
+        elif risk == "review":
+            review.append(_entry(g.gene, g.phenotype))
+
+    for g in parsed.ambiguous_genes:
+        risk = effective_risk.get(g.gene, g.risk_level)
+        pheno_summary = "Inconclusive (" + str(g.diplotype_count) + " candidates)"
+        if risk == "action":
+            action.append(_entry(g.gene, pheno_summary))
+        elif risk == "review":
+            review.append(_entry(g.gene, pheno_summary))
+
+    action.sort(key=lambda e: e["gene"])
+    review.sort(key=lambda e: e["gene"])
+
+    return {
+        "action": action,
+        "review": review,
+    }
+
+
+def _consolidated_caveats(parsed: ParsedResults) -> list[str]:
+    """Collect unique caveat strings across all gene buckets. The only
+    caveat currently used is the CYP2D6 short-read warning, but the
+    mechanism generalises to any per-gene caveat the parser sets."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for bucket in (
+        parsed.definitive_genes,
+        parsed.ambiguous_genes,
+        parsed.no_call_genes,
+    ):
+        for g in bucket:
+            cav = getattr(g, "caveat", None)
+            if cav and cav not in seen:
+                seen.add(cav)
+                out.append(cav)
+    return out
 
 
 def _coverage_summary(parsed: ParsedResults) -> dict:
@@ -88,6 +210,11 @@ def _coverage_summary(parsed: ParsedResults) -> dict:
         + sum(g.positions_missing for g in parsed.ambiguous_genes)
         + sum(g.positions_missing for g in parsed.no_call_genes)
     )
+    total_positions = total_found + total_missing
+    coverage_percent = (
+        int(100 * total_found / total_positions)
+        if total_positions else 0
+    )
     return {
         "total_genes": (
             len(parsed.definitive_genes)
@@ -99,6 +226,8 @@ def _coverage_summary(parsed: ParsedResults) -> dict:
         "no_call_count": len(parsed.no_call_genes),
         "total_positions_found": total_found,
         "total_positions_missing": total_missing,
+        "total_positions": total_positions,
+        "coverage_percent": coverage_percent,
     }
 
 
@@ -106,7 +235,8 @@ def _coverage_summary(parsed: ParsedResults) -> dict:
 # Gene enrichment
 # ---------------------------------------------------------------------------
 
-def _enrich_definitive(g) -> dict:
+def _enrich_definitive(g, effective_risk: dict[str, str]) -> dict:
+    risk = effective_risk.get(g.gene, g.risk_level)
     return {
         "gene": g.gene,
         "diplotype": g.diplotype,
@@ -117,28 +247,32 @@ def _enrich_definitive(g) -> dict:
         "allele1_function": g.allele1_function,
         "allele2_name": g.allele2_name,
         "allele2_function": g.allele2_function,
-        "risk_level": g.risk_level,
-        "symbol": ACTION_SYMBOLS[g.risk_level],
-        "label": ACTION_LABELS[g.risk_level],
+        "risk_level": risk,
+        "symbol": ACTION_SYMBOLS[risk],
+        "label": ACTION_LABELS[risk],
         "category": g.category,
         "category_desc": g.category_desc,
         "positions_found": g.positions_found,
         "positions_missing": g.positions_missing,
         "related_drugs": g.related_drugs,
+        # Per-gene caveat is suppressed in the template (hoisted to one
+        # consolidated block at the end of the report). Keep on the dict
+        # for downstream code that may still want it.
         "caveat": g.caveat,
         "drug_recs": [],
     }
 
 
-def _enrich_ambiguous(g) -> dict:
+def _enrich_ambiguous(g, effective_risk: dict[str, str]) -> dict:
+    risk = effective_risk.get(g.gene, g.risk_level)
     return {
         "gene": g.gene,
         "diplotype_count": g.diplotype_count,
         "phenotype_range": g.phenotype_range,
         "harmful_phenotypes": g.harmful_phenotypes,
-        "risk_level": g.risk_level,
-        "symbol": ACTION_SYMBOLS[g.risk_level],
-        "label": ACTION_LABELS[g.risk_level],
+        "risk_level": risk,
+        "symbol": ACTION_SYMBOLS[risk],
+        "label": ACTION_LABELS[risk],
         "category": g.category,
         "category_desc": g.category_desc,
         "positions_found": g.positions_found,

@@ -33,11 +33,11 @@ PHENOTYPE_PLAIN: dict[str, dict] = {
         "detail": "",
     },
     "intermediate metabolizer": {
-        "brief": "You carry variants with somewhat reduced enzyme activity, so related medications may be processed a bit more slowly than usual.",
+        "brief": "You carry variants with somewhat reduced enzyme activity. Affected medications or their byproducts may build up to higher-than-usual levels, raising the risk of side effects — a reduced starting dose with extra monitoring is typically recommended.",
         "detail": "",
     },
     "poor metabolizer": {
-        "brief": "You carry variants with significantly reduced enzyme activity — affected drugs may build up and cause more side effects than usual.",
+        "brief": "You carry variants with significantly reduced enzyme activity — affected drugs or their byproducts can build up to dangerously high levels, raising the risk of severe side effects. Substantial dose reduction (or an alternative drug) is typically needed.",
         "detail": "",
     },
     "rapid metabolizer": {
