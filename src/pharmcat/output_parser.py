@@ -487,7 +487,10 @@ def _parse_drugs(report: dict) -> list[DrugRecommendation]:
                     phenotype_map = ann.get("phenotypes", {}) or {}
                     population = ann.get("population", "") or ""
                     affected_genes = list(phenotype_map.keys())
-                    risk_level = _drug_risk_level(recommendation, classification)
+                    risk_level = _drug_risk_level(
+                        recommendation, classification,
+                        list(phenotype_map.values()),
+                    )
 
                     out.append(DrugRecommendation(
                         drug=drug_name,
@@ -508,7 +511,61 @@ def _parse_drugs(report: dict) -> list[DrugRecommendation]:
     return out
 
 
-def _drug_risk_level(recommendation: str, classification: str) -> str:
+# Phenotype phrases that may appear in a recommendation as a "gate" — they
+# restrict an action keyword to a specific population (e.g. "consider
+# alternative in poor metabolizers"). If the patient doesn't have that
+# phenotype, the action keyword shouldn't apply to them.
+_PHENOTYPE_GATE_KEYWORDS = (
+    "normal metabolizer", "normal metabolizers",
+    "intermediate metabolizer", "intermediate metabolizers",
+    "poor metabolizer", "poor metabolizers",
+    "rapid metabolizer", "rapid metabolizers",
+    "ultrarapid metabolizer", "ultrarapid metabolizers",
+    "extensive metabolizer", "extensive metabolizers",
+    "normal function", "increased function", "decreased function",
+    "poor function",
+)
+
+
+def _action_kw_gated_to_other_phenotype(
+    rec_lower: str, kw_pos: int, patient_phenotypes: list[str],
+) -> bool:
+    """True if the action keyword starting at `kw_pos` is followed (within
+    the same sentence) by an "in/for/with [phenotype]" clause whose phenotype
+    is NOT in the patient's phenotype list. This catches cases like FDA-label
+    text saying "Consider alternative therapy in poor metabolizers" when the
+    patient is an intermediate metabolizer — the action recommendation is
+    for a different population.
+
+    If `patient_phenotypes` is empty, the heuristic can't decide and returns
+    False (no suppression) — safer to keep the action trigger than to silently
+    hide it."""
+    if not patient_phenotypes:
+        return False
+
+    # Bound the search to the current sentence — avoid bleed-over to the
+    # next sentence's gating phrase.
+    sentence_end = rec_lower.find(". ", kw_pos)
+    if sentence_end == -1:
+        sentence_end = len(rec_lower)
+    window = rec_lower[kw_pos:sentence_end]
+    patient_text = " ".join(p.lower() for p in patient_phenotypes)
+
+    for ph in _PHENOTYPE_GATE_KEYWORDS:
+        for prep in ("in ", "for ", "with "):
+            if prep + ph in window:
+                # Found gating. If the patient matches it, keep the trigger.
+                if ph.rstrip("s") in patient_text or ph in patient_text:
+                    return False
+                return True
+    return False
+
+
+def _drug_risk_level(
+    recommendation: str,
+    classification: str,
+    patient_phenotypes: list[str] | None = None,
+) -> str:
     """Map a drug recommendation to the 4-level risk vocabulary.
 
     The CPIC `classification` field describes the strength of the underlying
@@ -517,18 +574,33 @@ def _drug_risk_level(recommendation: str, classification: str) -> str:
     evidence that the normal dose is appropriate", which is patient-normal.
     So we read the recommendation TEXT first and fall back to classification
     only when the text is silent.
+
+    `patient_phenotypes` carries the per-gene phenotypes that this annotation
+    applies to. They're used to suppress action keywords that are gated to a
+    different phenotype than the patient has (e.g. "consider alternative in
+    poor metabolizers" should not flag Action for an intermediate metabolizer).
     """
     cls = classification.lower().strip()
     rec = (recommendation or "").lower()
+    patient_phenotypes = patient_phenotypes or []
 
     # 0. Catch CPIC reassurance phrasings that contain an action keyword but
     #    are negating it ("No reason to avoid", "not contraindicated", …).
     if any(phrase in rec for phrase in _FALSE_ACTION_PHRASES):
         return "normal"
 
-    # 1. Explicit "avoid / contraindicated / consider alternative" → action
-    if any(kw in rec for kw in _ACTION_KEYWORDS):
-        return "action"
+    # 1. Explicit "avoid / contraindicated / consider alternative" → action,
+    #    but suppress action keywords that are gated to a phenotype the
+    #    patient doesn't have.
+    for kw in _ACTION_KEYWORDS:
+        pos = 0
+        while True:
+            idx = rec.find(kw, pos)
+            if idx == -1:
+                break
+            if not _action_kw_gated_to_other_phenotype(rec, idx, patient_phenotypes):
+                return "action"
+            pos = idx + 1
 
     # 2. Explicit "use standard / label-recommended / usual dose" → normal,
     #    even when CPIC classification is "Strong".
