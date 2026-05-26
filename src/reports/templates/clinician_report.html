@@ -181,7 +181,7 @@
   <p class="category-desc">{{ cat.description }}</p>
   <table class="tech">
     <thead>
-      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Activity</th><th>Coverage</th><th>Allele Functions</th></tr>
+      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Coverage</th><th>Allele Functions</th></tr>
     </thead>
     <tbody>
       {% for g in cat.genes %}
@@ -190,7 +190,6 @@
         <td><strong>{{ g.gene }}</strong></td>
         <td class="diplo">{{ g.diplotype }}</td>
         <td>{{ g.phenotype }}</td>
-        <td>{{ g.activity_score or '—' }}</td>
         <td>{{ g.positions_found }}/{{ g.positions_found + g.positions_missing }}</td>
         <td class="alleles">
           {{ g.allele1_name }}: {{ g.allele1_function }}<br>

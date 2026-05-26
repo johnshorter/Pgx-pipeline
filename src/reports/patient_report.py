@@ -92,21 +92,23 @@ PHENOTYPE_PLAIN: dict[str, dict] = {
         "brief": "Your CFTR variant is one of the types ivacaftor (Kalydeco) is designed to treat — this drug is likely to be effective.",
         "detail": "",
     },
-    # VKORC1 — reported as a literal SNP genotype string
+    # VKORC1 — reported as a literal SNP genotype string. The gene description
+    # already names the coumarin class (warfarin, acenocoumarol, phenprocoumon),
+    # so the briefs don't repeat the drug list.
     "-1639 aa": {
-        "brief": "You carry the variant that increases warfarin sensitivity — lower-than-usual doses are typically needed to control blood clotting safely.",
+        "brief": "You carry both copies of the variant that increases sensitivity — substantially lower-than-usual doses are typically needed to control blood clotting safely.",
         "detail": "",
     },
     "-1639 ag": {
-        "brief": "You carry one copy of the warfarin-sensitivity variant — your prescriber may adjust the starting dose accordingly.",
+        "brief": "You carry one copy of the variant that increases sensitivity — your prescriber may adjust the starting dose accordingly.",
         "detail": "",
     },
     "-1639 ga": {  # same as AG depending on allele order
-        "brief": "You carry one copy of the warfarin-sensitivity variant — your prescriber may adjust the starting dose accordingly.",
+        "brief": "You carry one copy of the variant that increases sensitivity — your prescriber may adjust the starting dose accordingly.",
         "detail": "",
     },
     "-1639 gg": {
-        "brief": "Standard warfarin sensitivity — typical dosing applies.",
+        "brief": "Standard sensitivity — typical dosing applies.",
         "detail": "",
     },
     # Less common metabolizer / function labels
@@ -172,7 +174,7 @@ def _build_context(parsed: ParsedResults) -> dict:
     summary_sentence = _summary_sentence(counts, parsed)
 
     return {
-        "title": "Your Personal Pharmacogenetics Report",
+        "title": "Patient report",
         "app_title": APP_TITLE,
         "report_date": date.today().strftime("%B %d, %Y"),
         "sample_id": parsed.sample_id,

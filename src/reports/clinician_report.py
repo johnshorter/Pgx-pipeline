@@ -108,7 +108,7 @@ def _build_context(parsed: ParsedResults) -> dict:
     consolidated_caveats = _consolidated_caveats(parsed)
 
     return {
-        "title": "Pharmacogenomic Analysis Report",
+        "title": "Clinician report",
         "app_title": APP_TITLE,
         "report_date": datetime.now().strftime("%B %d, %Y"),
         "sample_id": parsed.sample_id or "Unknown",
@@ -241,7 +241,6 @@ def _enrich_definitive(g, effective_risk: dict[str, str]) -> dict:
         "gene": g.gene,
         "diplotype": g.diplotype,
         "phenotype": g.phenotype,
-        "activity_score": g.activity_score,
         "star_alleles": g.star_alleles,
         "allele1_name": g.allele1_name,
         "allele1_function": g.allele1_function,

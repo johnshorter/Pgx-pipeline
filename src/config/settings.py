@@ -146,11 +146,11 @@ GENE_DESCRIPTIONS: dict[str, str] = {
     "CYP3A4": "is the most important drug-metabolizing enzyme, involved in processing nearly half of all medications",
     "CYP3A5": "helps process immunosuppressants like tacrolimus and some blood pressure medications",
     "CYP2B6": "helps process certain HIV medications and the smoking cessation drug bupropion",
-    "CYP4F2": "affects how the body uses vitamin K, which influences warfarin dosing",
+    "CYP4F2": "contributes to sensitivity to the blood thinner warfarin alongside VKORC1",
     "DPYD": "determines how the body handles fluoropyrimidine chemotherapy drugs",
     "TPMT": "helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression)",
     "NUDT15": "helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression)",
-    "VKORC1": "controls sensitivity to warfarin, a common blood thinner",
+    "VKORC1": "controls sensitivity to a class of blood thinners called coumarins (warfarin, acenocoumarol, phenprocoumon)",
     "SLCO1B1": "affects how the body transports statin medications used to lower cholesterol",
     "UGT1A1": "helps the body process certain medications and bilirubin (a waste product)",
     "ABCG2": "is a transporter protein that affects how the body absorbs certain medications",
@@ -161,7 +161,7 @@ GENE_DESCRIPTIONS: dict[str, str] = {
     "HLA-B": "is part of the immune system and affects risk of severe drug reactions to specific drugs",
     "IFNL3": "affects response to hepatitis C treatments",
     "MT-RNR1": "affects sensitivity to aminoglycoside antibiotics that can cause hearing loss",
-    "NAT2": "helps the body process certain medications including some antibiotics",
+    "NAT2": "prepares certain medications for elimination from the body — affects mainly medications used for tuberculosis, high blood pressure, and some antibiotics",
     "RYR1": "is related to risk of malignant hyperthermia, a rare reaction to anesthetics",
     "F2": "affects blood clotting and may influence response to anticoagulant medications",
     "F5": "affects blood clotting and may influence response to anticoagulant medications",
@@ -172,18 +172,25 @@ GENE_DESCRIPTIONS: dict[str, str] = {
 # the strict molecular protein type, which can be jargon to non-professionals).
 # The categories answer "why does this gene matter to me when I take medicine?"
 GENE_PROTEIN_TYPE: dict[str, str] = {
-    # Drug-breakdown enzymes (CYPs + Phase II metabolism)
+    # Drug-breakdown enzymes (CYPs + Phase II metabolism). CYP4F2 is
+    # deliberately NOT in this group: although it is a CYP biochemically,
+    # its only clinical PGx role is contributing to warfarin dose
+    # calculations, so it lives under "Blood-thinner response" below.
     "CYP2C19": "Drug breakdown", "CYP2C9": "Drug breakdown",
     "CYP2D6": "Drug breakdown", "CYP3A4": "Drug breakdown",
     "CYP3A5": "Drug breakdown", "CYP2B6": "Drug breakdown",
-    "CYP4F2": "Drug breakdown",
     "DPYD": "Drug breakdown", "TPMT": "Drug breakdown",
     "NUDT15": "Drug breakdown", "NAT2": "Drug breakdown",
     "UGT1A1": "Drug breakdown",
     # Drug transporters — move drugs in and out of cells
     "SLCO1B1": "Drug transporter", "ABCG2": "Drug transporter",
-    # Drug targets — the drug acts directly on this gene's product
-    "VKORC1": "Drug target",
+    # Blood-thinner response — VKORC1 is the direct target of warfarin and
+    # related coumarin anticoagulants (acenocoumarol, phenprocoumon).
+    # CYP4F2 modulates warfarin sensitivity alongside VKORC1 (CPIC's
+    # warfarin dosing algorithm uses both), but is not actionable for
+    # acenocoumarol or phenprocoumon — so its scope is warfarin-only.
+    "VKORC1": "Blood-thinner response",
+    "CYP4F2": "Blood-thinner response",
     # Disease-specific contexts
     "CFTR": "Cystic-fibrosis drug response",
     # Anesthesia response (malignant-hyperthermia genes)

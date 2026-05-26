@@ -347,8 +347,16 @@ def _build_context(parsed: ParsedResults) -> dict:
         1 for drugs in drugs_by_gene.values()
         if any(d["risk_level"] == "review" for d in drugs)
     )
-    grouped_by_risk = _group_by_risk(parsed, drugs_by_gene, effective_risk)
+    # Build drug view first so we can order the Action/Review gene buckets
+    # to follow the order the patient sees in the medication list above.
     drug_view = _build_drug_view(parsed)
+    action_gene_order = _gene_order_from_drugs(drug_view["action_drugs"])
+    review_gene_order = _gene_order_from_drugs(drug_view["review_drugs"])
+    grouped_by_risk = _group_by_risk(
+        parsed, drugs_by_gene, effective_risk,
+        action_gene_order=action_gene_order,
+        review_gene_order=review_gene_order,
+    )
     summary_sentence = _summary_sentence(counts)
     next_steps = _build_next_steps(counts, drug_view["action_drugs"])
 
@@ -381,7 +389,7 @@ def _build_context(parsed: ParsedResults) -> dict:
             break
 
     return {
-        "title": "Your Personal Pharmacogenetics Report",
+        "title": "Patient report",
         "app_title": APP_TITLE,
         "report_date": date.today().strftime("%B %d, %Y"),
         "sample_id": parsed.sample_id,
@@ -441,11 +449,13 @@ PHENOTYPE_DISPLAY: dict[str, str] = {
     # CFTR-specific
     "ivacaftor non-responsive in CF patients": "Non-responsive to ivacaftor",
     "ivacaftor responsive in CF patients": "Responsive to ivacaftor",
-    # VKORC1 (literal genotype labels — translated to functional meaning)
-    "-1639 AA": "Warfarin-sensitive variant",
-    "-1639 GA": "Intermediate warfarin sensitivity",
-    "-1639 AG": "Intermediate warfarin sensitivity",
-    "-1639 GG": "Standard warfarin response",
+    # VKORC1 (literal genotype labels — translated to functional meaning
+    # framed against the coumarin drug class, since VKORC1 affects warfarin,
+    # acenocoumarol, and phenprocoumon equivalently)
+    "-1639 AA": "Highly increased coumarin sensitivity",
+    "-1639 GA": "Increased coumarin sensitivity",
+    "-1639 AG": "Increased coumarin sensitivity",
+    "-1639 GG": "Normal coumarin sensitivity",
     # No result / not tested — unified label
     "No Result": "Not tested",
     "n/a": "Not tested",
@@ -453,10 +463,29 @@ PHENOTYPE_DISPLAY: dict[str, str] = {
 }
 
 
-def _display_phenotype(raw: str | None) -> str:
+# Gene-specific overrides for phenotype display, applied when the raw
+# phenotype string lacks a meaningful label (e.g. CYP4F2 *1/*1 and IFNL3
+# rs12979860 C/C both come through as "No Result"/"n/a" because CPIC
+# doesn't assign a diplotype-level phenotype to those genes). Keyed by
+# (gene, raw_phenotype.lower()); the parser reclassifies these to Normal
+# risk via _benign_call, so the pill should reflect that.
+_GENE_PHENOTYPE_OVERRIDES: dict[tuple[str, str], str] = {
+    ("CYP4F2", "no result"): "Normal function",
+    ("IFNL3", "n/a"): "Favorable variant",
+}
+
+
+def _display_phenotype(raw: str | None, gene: str | None = None) -> str:
     """Map a raw CPIC phenotype string to the patient-facing display label.
     Falls back to 'Not tested' for empty/unknown inputs (rather than leaking
-    raw clinical strings into the overview card)."""
+    raw clinical strings into the overview card). When `gene` is supplied,
+    a (gene, raw) override map is consulted first — used for genes where
+    PharmCAT returns an empty phenotype but the diplotype call is still
+    clinically meaningful."""
+    if gene is not None and raw is not None:
+        override = _GENE_PHENOTYPE_OVERRIDES.get((gene, raw.strip().lower()))
+        if override is not None:
+            return override
     if not raw:
         return "Not tested"
     canonical = PHENOTYPE_DISPLAY.get(raw.strip())
@@ -502,7 +531,7 @@ def _build_overview_cards(
             "risk_level": risk,
             "symbol": ACTION_SYMBOLS[risk],
             "label": ACTION_LABELS[risk],
-            "phenotype_short": _display_phenotype(g.phenotype),
+            "phenotype_short": _display_phenotype(g.phenotype, g.gene),
             "med_count": _affected_count(g.gene),
             **_tissue(g.gene),
         })
@@ -745,15 +774,29 @@ def _group_normal_definitives(normals: list[dict]) -> list[dict]:
     return list(groups.values())
 
 
+def _gene_order_from_drugs(drugs: list[dict]) -> dict[str, int]:
+    """Map each contributing gene to its first appearance in the medication
+    list. A drug's `gene` field can be a comma-joined list when multiple
+    genes co-trigger the same drug — each contributes a position."""
+    out: dict[str, int] = {}
+    for i, d in enumerate(drugs):
+        for gene in (g.strip() for g in (d.get("gene") or "").split(",")):
+            if gene:
+                out.setdefault(gene, i)
+    return out
+
+
 def _group_by_risk(
     parsed: ParsedResults,
     drugs_by_gene: dict[str, list[dict]],
     effective_risk: dict[str, str],
+    action_gene_order: dict[str, int] | None = None,
+    review_gene_order: dict[str, int] | None = None,
 ) -> dict:
     """Group enriched gene cards by risk bucket (action / review / normal /
-    no_call) instead of by functional category. Sorting within each bucket
-    is (protein_type, gene) so similar protein types cluster naturally,
-    with no sub-headings between them."""
+    no_call). Action and Review buckets follow drug-list order (genes appear
+    in the order their first medication appears in the medication list);
+    Normal/No-Data fall back to (protein_type, gene)."""
     action: list[dict] = []
     review: list[dict] = []
     normal_raw: list[dict] = []
@@ -797,8 +840,17 @@ def _group_by_risk(
     def _sort_key(d: dict) -> tuple[str, str]:
         return (d.get("protein_type") or "", d["gene"])
 
-    action.sort(key=_sort_key)
-    review.sort(key=_sort_key)
+    def _drug_order_key(order: dict[str, int]):
+        return lambda d: (order.get(d["gene"], 10_000), d["gene"])
+
+    if action_gene_order is not None:
+        action.sort(key=_drug_order_key(action_gene_order))
+    else:
+        action.sort(key=_sort_key)
+    if review_gene_order is not None:
+        review.sort(key=_drug_order_key(review_gene_order))
+    else:
+        review.sort(key=_sort_key)
     normal_raw.sort(key=_sort_key)
     no_call.sort(key=_sort_key)
 
@@ -821,7 +873,7 @@ def _enrich_definitive(
         "label": ACTION_LABELS[risk_level],
         "description": g.description,
         "protein_type": g.protein_type,
-        "phenotype_short": _display_phenotype(g.phenotype),
+        "phenotype_short": _display_phenotype(g.phenotype, g.gene),
         "plain_language": explanations["brief"],
         "detail": explanations["detail"],
         "caveat": g.caveat,

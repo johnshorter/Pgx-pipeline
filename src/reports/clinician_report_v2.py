@@ -7,8 +7,8 @@ Differences from v1:
   (Phase I / Phase II / Transporters / HLA / Other) becomes a tag next to
   each gene name within the risk bucket.
 - Per-gene CPIC/DPWG drug recommendations are rendered visibly (no toggle).
-- All technical fields (diplotype, activity score, allele names + functions,
-  coverage stats) preserved per gene.
+- All technical fields (diplotype, allele names + functions, coverage stats)
+  preserved per gene.
 - Clinical Priority Summary up top.
 - Consolidated caveats at the end (same as v1).
 - The full Drug Recommendations table at the bottom is kept as a
@@ -306,17 +306,16 @@ def _number_citations_in_body(
     order: list[str] = []
 
     for bucket in ("action", "review"):
-        for sub in grouped.get(bucket, []):
-            for g in sub["genes"]:
-                for d in (g.get("drugs") or []):
-                    for s in d.get("sources", []):
-                        nums = []
-                        for k in s.get("citation_keys") or []:
-                            if k not in key_to_num:
-                                key_to_num[k] = len(order) + 1
-                                order.append(k)
-                            nums.append(key_to_num[k])
-                        s["cite_numbers"] = nums
+        for g in _iter_genes(grouped.get(bucket, [])):
+            for d in (g.get("drugs") or []):
+                for s in d.get("sources", []):
+                    nums = []
+                    for k in s.get("citation_keys") or []:
+                        if k not in key_to_num:
+                            key_to_num[k] = len(order) + 1
+                            order.append(k)
+                        nums.append(key_to_num[k])
+                    s["cite_numbers"] = nums
 
     return [
         {"number": key_to_num[k], "citation": canonical[k]}
@@ -351,7 +350,7 @@ def _build_drug_index(parsed: ParsedResults) -> list[dict]:
                 "label": ACTION_LABELS[d.risk_level],
                 "therapeutic_category": d.therapeutic_category,
                 "gene": gene,
-                "phenotype": pheno,
+                "phenotype": _display_phenotype(gene, pheno),
                 "anchor": f"gene-{gene}",
             })
     rows.sort(key=lambda r: (
@@ -471,7 +470,14 @@ def _build_context(parsed: ParsedResults) -> dict:
     gene_drug_map = _build_gene_drug_map(cpic_dpwg)
     effective_risk = _effective_gene_risk(parsed)
 
-    grouped = _group_by_risk(parsed, effective_risk)
+    # Drug Index — compact navigation table. One row per (drug, contributing
+    # gene) pair, with an anchor linking to the gene monograph in the body.
+    # Built first so the Action/Review gene buckets can be ordered to match
+    # the drug-index order (the clinician reads the index, then jumps to
+    # gene monographs in the same sequence).
+    drug_index = _build_drug_index(parsed)
+
+    grouped = _group_by_risk(parsed, effective_risk, drug_index)
     # Filter + number citations to only those backing surviving body content.
     # Mutates source entries inside `grouped` so the template can stamp
     # `[N]` markers next to each cited recommendation.
@@ -479,25 +485,17 @@ def _build_context(parsed: ParsedResults) -> dict:
     consolidated_caveats = _consolidated_caveats(parsed)
     drugs_by_category = _group_drugs_by_category(cpic_dpwg)
 
-    # Drug Index — compact navigation table. One row per (drug, contributing
-    # gene) pair, with an anchor linking to the gene monograph in the body.
-    drug_index = _build_drug_index(parsed)
-
     # Gene-overview summary: just the gene names per risk bucket, in a flat
     # alphabetical list. Used by the four single-line "Gene Overview" blocks
     # at the top of the report so the prescriber sees the full panel at a
     # glance before diving into the monographs.
     gene_summary_by_risk = {
-        bucket: sorted(
-            g["gene"]
-            for sub in grouped[bucket]
-            for g in sub["genes"]
-        )
+        bucket: sorted(g["gene"] for g in _iter_genes(grouped[bucket]))
         for bucket in ("action", "review", "normal", "no_data")
     }
 
     return {
-        "title": "Pharmacogenomic Analysis Report",
+        "title": "Clinician report",
         "app_title": APP_TITLE,
         "report_date": datetime.now().strftime("%B %d, %Y"),
         "sample_id": parsed.sample_id or "Unknown",
@@ -525,7 +523,16 @@ def _build_context(parsed: ParsedResults) -> dict:
 def _group_by_risk(
     parsed: ParsedResults,
     effective_risk: dict[str, str],
+    drug_index: list[dict] | None = None,
 ) -> dict[str, list[dict]]:
+    """Group genes by risk bucket.
+
+    Action/Review come back as **flat** gene lists ordered by first appearance
+    in `drug_index`, so the gene monograph order matches the order the
+    clinician scans in the Drug Index above. Normal/No-Data come back as
+    protein-type subgroups (`[{protein_type, genes}, ...]`) since drug order
+    doesn't apply there.
+    """
     action: list[dict] = []
     review: list[dict] = []
     normal: list[dict] = []
@@ -546,12 +553,44 @@ def _group_by_risk(
     for g in parsed.no_call_genes:
         no_data.append(_enrich_no_call(g))
 
+    # Sort Action/Review by first appearance in drug_index (a gene with no
+    # drug-index row sinks to the end, then sorted by gene name as tiebreak).
+    action_order = _gene_order_from_drug_index(drug_index or [], "action")
+    review_order = _gene_order_from_drug_index(drug_index or [], "review")
+    action.sort(key=lambda g: (action_order.get(g["gene"], 10_000), g["gene"]))
+    review.sort(key=lambda g: (review_order.get(g["gene"], 10_000), g["gene"]))
+
     return {
-        "action": _subgroup_by_protein_type(action),
-        "review": _subgroup_by_protein_type(review),
+        "action": action,
+        "review": review,
         "normal": _subgroup_by_protein_type(normal),
         "no_data": _subgroup_by_protein_type(no_data),
     }
+
+
+def _gene_order_from_drug_index(drug_index: list[dict], risk_level: str) -> dict[str, int]:
+    """Map each gene to its first-row position among `drug_index` rows of
+    the given risk level. The drug_index is already sorted by therapeutic
+    category and drug name, so this preserves that ordering."""
+    out: dict[str, int] = {}
+    for i, r in enumerate(drug_index):
+        if r.get("risk_level") != risk_level:
+            continue
+        out.setdefault(r["gene"], i)
+    return out
+
+
+def _iter_genes(bucket_value: list[dict]):
+    """Iterate gene dicts from a risk bucket, transparently handling both
+    flat lists (Action/Review) and protein-type subgroup lists
+    (Normal/No-Data)."""
+    if not bucket_value:
+        return
+    if isinstance(bucket_value[0], dict) and "genes" in bucket_value[0]:
+        for sub in bucket_value:
+            yield from sub["genes"]
+    else:
+        yield from bucket_value
 
 
 def _subgroup_by_protein_type(genes: list[dict]) -> list[dict]:
@@ -577,6 +616,32 @@ def _subgroup_by_protein_type(genes: list[dict]) -> list[dict]:
 # Gene enrichment (keep all technical clinician-facing fields)
 # ---------------------------------------------------------------------------
 
+# Genes whose raw PharmCAT "phenotype" is a genotype string rather than a
+# functional label. Translated to a functional phrase so the clinician's
+# phenotype pill reads as the clinical meaning, not the SNP shorthand.
+_PHENOTYPE_DISPLAY_OVERRIDES: dict[tuple[str, str], str] = {
+    ("VKORC1", "-1639 AA"): "Highly increased coumarin sensitivity",
+    ("VKORC1", "-1639 GA"): "Increased coumarin sensitivity",
+    ("VKORC1", "-1639 AG"): "Increased coumarin sensitivity",
+    ("VKORC1", "-1639 GG"): "Normal coumarin sensitivity",
+    # CYP4F2 *1/*1 and IFNL3 rs12979860 C/C are reclassified to Normal in
+    # the parser (see _benign_call). The raw phenotype is "No Result" /
+    # "n/a" because CPIC has no diplotype-level phenotype label — these
+    # overrides give the pill a meaningful label that matches the bucket.
+    ("CYP4F2", "No Result"): "Normal function",
+    ("IFNL3", "n/a"): "Favorable variant",
+}
+
+
+def _display_phenotype(gene: str, raw: str | None) -> str:
+    """Override raw phenotype strings for genes where PharmCAT returns a
+    genotype-style label that isn't clinician-readable on its own. Anything
+    not in the override map passes through unchanged."""
+    if not raw:
+        return raw or ""
+    return _PHENOTYPE_DISPLAY_OVERRIDES.get((gene, raw.strip()), raw)
+
+
 def _enrich_definitive(g, risk: str, parsed: ParsedResults) -> dict:
     mechanism = (
         _mechanism_for(g.gene, g.phenotype)
@@ -589,8 +654,7 @@ def _enrich_definitive(g, risk: str, parsed: ParsedResults) -> dict:
         "protein_type": g.protein_type,
         "description": GENE_DESCRIPTIONS.get(g.gene),
         "diplotype": g.diplotype,
-        "phenotype": g.phenotype,
-        "activity_score": g.activity_score,
+        "phenotype": _display_phenotype(g.gene, g.phenotype),
         "star_alleles": g.star_alleles,
         "allele1_name": g.allele1_name,
         "allele1_function": g.allele1_function,

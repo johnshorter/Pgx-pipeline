@@ -304,9 +304,10 @@
   }
   .drug-block .src-meta .cls-tag {
     display: inline-block;
-    background: #FFF3E0;
-    color: #E65100;
-    padding: 0 6px;
+    background: transparent;
+    color: #607D8B;
+    border: 1px solid #B0BEC5;
+    padding: 0 5px;
     border-radius: 3px;
     margin-right: 4px;
   }
@@ -697,7 +698,6 @@
   {% if g.kind == "definitive" %}
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>{{ g.diplotype }}</dd>
-    <dt>Activity score</dt>     <dd>{{ g.activity_score or '—' }}</dd>
     <dt>Coverage</dt>           <dd>{{ g.positions_found }}/{{ g.positions_found + g.positions_missing }} positions</dd>
     <dt>Allele {{ g.allele1_name }}</dt>  <dd>{{ g.allele1_function }}</dd>
     <dt>Allele {{ g.allele2_name }}</dt>  <dd>{{ g.allele2_function }}</dd>
@@ -776,24 +776,30 @@
 </div>
 {%- endmacro %}
 
-{# Helper macro: render a risk block with protein-type subgroups inside. #}
-{% macro risk_block(label, klass, symbol, subgroups) -%}
-{% if subgroups %}
+{# Helper macro: render a risk block. `items` is either a flat list of gene
+   cards (Action/Review — drug-index order) or a list of protein-type
+   subgroups (Normal/No-Data). #}
+{% macro risk_block(label, klass, symbol, items, flat=False) -%}
+{% if items %}
 <section class="risk-section {{ klass }}">
-  {% set total = subgroups|sum(attribute='genes', start=[])|length %}
+  {% set total = items|length if flat else items|sum(attribute='genes', start=[])|length %}
   <h3><span class="risk-symbol">{{ symbol }}</span> {{ label }} ({{ total }})</h3>
-  {% for sub in subgroups %}
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">{{ sub.protein_type }}<span class="count">({{ sub.genes|length }})</span></div>
-    {% for g in sub.genes %}{{ gene_card(g) }}{% endfor %}
-  </div>
-  {% endfor %}
+  {% if flat %}
+    {% for g in items %}{{ gene_card(g) }}{% endfor %}
+  {% else %}
+    {% for sub in items %}
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">{{ sub.protein_type }}<span class="count">({{ sub.genes|length }})</span></div>
+      {% for g in sub.genes %}{{ gene_card(g) }}{% endfor %}
+    </div>
+    {% endfor %}
+  {% endif %}
 </section>
 {% endif %}
 {%- endmacro %}
 
-{{ risk_block("Action", "action", action_symbols.action, grouped_by_risk.action) }}
-{{ risk_block("Review", "review", action_symbols.review, grouped_by_risk.review) }}
+{{ risk_block("Action", "action", action_symbols.action, grouped_by_risk.action, flat=True) }}
+{{ risk_block("Review", "review", action_symbols.review, grouped_by_risk.review, flat=True) }}
 {{ risk_block("Normal", "normal", action_symbols.normal, grouped_by_risk.normal) }}
 {{ risk_block("No Data", "nodata", action_symbols.nodata, grouped_by_risk.no_data) }}
 
