@@ -314,12 +314,46 @@ def _classify_gene(
         ))
 
 
+_BENIGN_FUNCTION_KEYWORDS = ("normal function", "favorable")
+_REFERENCE_ALLELE_NAMES = {"*1", "reference"}
+
+
+def _is_benign_allele(name: str | None, function: str | None) -> bool:
+    """True if a single allele looks unambiguously normal — either the
+    canonical reference star allele (`*1`) or a function string PharmCAT
+    explicitly tags as benign ('Normal function', 'Favorable response
+    allele', etc.)."""
+    if name and any(ref in name.lower() for ref in _REFERENCE_ALLELE_NAMES):
+        return True
+    if function:
+        lowered = function.lower()
+        return any(kw in lowered for kw in _BENIGN_FUNCTION_KEYWORDS)
+    return False
+
+
+def _benign_call(
+    a1_name: str | None, a1_function: str | None,
+    a2_name: str | None, a2_function: str | None,
+) -> bool:
+    """True when both alleles of a called diplotype look benign. Used to
+    reclassify phenotype-less but definitively-called genes (CYP4F2 *1/*1,
+    IFNL3 rs12979860 C/C) from 'nodata' to 'normal'."""
+    return (
+        _is_benign_allele(a1_name, a1_function)
+        and _is_benign_allele(a2_name, a2_function)
+    )
+
+
 def _is_unknown_diplotype(diplotypes_report: list[dict]) -> bool:
+    """True when PharmCAT couldn't determine a diplotype. The label is
+    `Unknown/Unknown` (or `Unknown` for haploid genes like MT-RNR1), and
+    the phenotypes field is either `["No Result"]` (most genes) or `[]`
+    (HLA-A/HLA-B emit an empty list)."""
     if not diplotypes_report:
         return True
     return all(
         sd.get("label", "") in ("Unknown/Unknown", "Unknown", "")
-        and sd.get("phenotypes", ["No Result"]) == ["No Result"]
+        and (sd.get("phenotypes") or ["No Result"]) == ["No Result"]
         for sd in diplotypes_report
     )
 
@@ -340,7 +374,19 @@ def _build_definitive(
     a2 = top.get("allele2") or {}
     a1_name = a1.get("name", "Unknown")
     a2_name = a2.get("name", "Unknown")
+    a1_function = a1.get("function", "Unknown")
+    a2_function = a2.get("function", "Unknown")
     star_alleles = [a for a in (a1_name, a2_name) if a and a != "Unknown"]
+
+    # Some genes (CYP4F2, IFNL3) have a definitive diplotype call but CPIC
+    # doesn't define a diplotype-level phenotype — CYP4F2 only contributes
+    # to the warfarin dosing algorithm, IFNL3 is interpreted at the allele
+    # level. If both alleles look benign (reference *1, or function strings
+    # tagged 'Normal'/'Favorable'), classify as normal rather than nodata
+    # so the patient isn't mis-told their gene is unknown.
+    risk_level = phenotype_to_risk(phenotype)
+    if risk_level == "nodata" and _benign_call(a1_name, a1_function, a2_name, a2_function):
+        risk_level = "normal"
 
     return DefinitiveGene(
         gene=gene_symbol,
@@ -348,11 +394,11 @@ def _build_definitive(
         phenotype=phenotype,
         activity_score=activity_score,
         star_alleles=star_alleles,
-        risk_level=phenotype_to_risk(phenotype),
+        risk_level=risk_level,
         allele1_name=a1_name,
-        allele1_function=a1.get("function", "Unknown"),
+        allele1_function=a1_function,
         allele2_name=a2_name,
-        allele2_function=a2.get("function", "Unknown"),
+        allele2_function=a2_function,
         positions_found=n_found,
         positions_missing=n_missing,
         related_drugs=related_drugs,
