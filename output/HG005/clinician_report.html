@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pharmacogenomic Analysis Report</title>
+<title>Clinician report</title>
 <style>
   /* ── Colorblind-safe palette ─────────────────────────────────── */
   :root {
@@ -323,10 +323,10 @@
 <div class="container">
 
   <header class="report-header">
-    <h1>Pharmacogenomic Analysis Report</h1>
+    <h1>Clinician report</h1>
     <div class="meta">
-      May 17, 2026
- &middot; Sample: <strong>HG005</strong> &middot; PharmCAT 3.2.0    </div>
+      May 27, 2026
+ &middot; Sample: <strong>HG005_GRCh38_1_22_v4.2.1_benchmark</strong> &middot; PharmCAT 3.2.0    </div>
   </header>
 
   <div class="legend">
@@ -346,7 +346,7 @@
   </div>
   <div class="cov-cell">
     <span class="label">Definitive Calls</span>
-    <span class="count">21</span>
+    <span class="count">19</span>
   </div>
   <div class="cov-cell">
     <span class="label">Ambiguous</span>
@@ -354,7 +354,7 @@
   </div>
   <div class="cov-cell">
     <span class="label">No Call</span>
-    <span class="count">2</span>
+    <span class="count">4</span>
   </div>
   <div class="cov-cell">
     <span class="label">Positions Found</span>
@@ -423,7 +423,7 @@
   <p class="category-desc">Cytochrome P450 enzymes are the body&#39;s primary drug-metabolizing system. They break down many common medications in the liver.</p>
   <table class="tech">
     <thead>
-      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Activity</th><th>Coverage</th><th>Allele Functions</th></tr>
+      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Coverage</th><th>Allele Functions</th></tr>
     </thead>
     <tbody>
       <tr>
@@ -431,7 +431,6 @@
         <td><strong>CYP3A5</strong></td>
         <td class="diplo">*3/*3</td>
         <td>Poor Metabolizer</td>
-        <td>—</td>
         <td>5/5</td>
         <td class="alleles">
           *3: No function<br>
@@ -465,7 +464,6 @@
         <td><strong>CYP2B6</strong></td>
         <td class="diplo">*1/*1</td>
         <td>Normal Metabolizer</td>
-        <td>—</td>
         <td>48/48</td>
         <td class="alleles">
           *1: Normal function<br>
@@ -505,7 +503,6 @@
         <td><strong>CYP2C19</strong></td>
         <td class="diplo">*1/*1</td>
         <td>Normal Metabolizer</td>
-        <td>—</td>
         <td>35/35</td>
         <td class="alleles">
           *1: Normal function<br>
@@ -699,7 +696,6 @@ Monitor for efficacy.</td>
         <td><strong>CYP2C9</strong></td>
         <td class="diplo">*1/*1</td>
         <td>Normal Metabolizer</td>
-        <td>2.0</td>
         <td>83/83</td>
         <td class="alleles">
           *1: Normal function<br>
@@ -811,7 +807,6 @@ Monitor for efficacy.</td>
         <td><strong>CYP3A4</strong></td>
         <td class="diplo">*1/*1</td>
         <td>Normal Metabolizer</td>
-        <td>—</td>
         <td>43/43</td>
         <td class="alleles">
           *1: Normal function<br>
@@ -835,11 +830,10 @@ Monitor for efficacy.</td>
         </details>
       </td></tr>
       <tr>
-        <td><span class="sym sym-nodata">—</span></td>
+        <td><span class="sym sym-normal">✓</span></td>
         <td><strong>CYP4F2</strong></td>
         <td class="diplo">*1/*1</td>
         <td>No Result</td>
-        <td>—</td>
         <td>20/20</td>
         <td class="alleles">
           *1: None<br>
@@ -854,7 +848,7 @@ Monitor for efficacy.</td>
   <p class="category-desc">These enzymes modify drugs and their breakdown products to make them easier to eliminate. Variations can affect how the body handles certain chemotherapy agents and other medications.</p>
   <table class="tech">
     <thead>
-      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Activity</th><th>Coverage</th><th>Allele Functions</th></tr>
+      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Coverage</th><th>Allele Functions</th></tr>
     </thead>
     <tbody>
       <tr>
@@ -862,7 +856,6 @@ Monitor for efficacy.</td>
         <td><strong>NAT2</strong></td>
         <td class="diplo">*4/*4</td>
         <td>Rapid Metabolizer</td>
-        <td>—</td>
         <td>47/47</td>
         <td class="alleles">
           *4: Increased function<br>
@@ -890,7 +883,6 @@ Monitor for efficacy.</td>
         <td><strong>NUDT15</strong></td>
         <td class="diplo">*1/*3</td>
         <td>Intermediate Metabolizer</td>
-        <td>—</td>
         <td>17/18</td>
         <td class="alleles">
           *1: Normal function<br>
@@ -980,7 +972,6 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td><strong>UGT1A1</strong></td>
         <td class="diplo">*1/*6</td>
         <td>Intermediate Metabolizer</td>
-        <td>—</td>
         <td>4/4</td>
         <td class="alleles">
           *1: Normal function<br>
@@ -1020,7 +1011,6 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td><strong>DPYD</strong></td>
         <td class="diplo">c.85T&gt;C (*9A) (heterozygous)</td>
         <td>Normal Metabolizer</td>
-        <td>2.0</td>
         <td>83/83</td>
         <td class="alleles">
           Reference: Normal function<br>
@@ -1078,7 +1068,6 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td><strong>TPMT</strong></td>
         <td class="diplo">*1/*1</td>
         <td>Normal Metabolizer</td>
-        <td>—</td>
         <td>45/45</td>
         <td class="alleles">
           *1: Normal function<br>
@@ -1139,7 +1128,7 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
   <p class="category-desc">Transporter proteins move drugs into and out of cells. Variations can alter drug absorption and distribution, affecting how much medication reaches its target.</p>
   <table class="tech">
     <thead>
-      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Activity</th><th>Coverage</th><th>Allele Functions</th></tr>
+      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Coverage</th><th>Allele Functions</th></tr>
     </thead>
     <tbody>
       <tr>
@@ -1147,7 +1136,6 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td><strong>ABCG2</strong></td>
         <td class="diplo">rs2231142 reference (G)/rs2231142 reference (G)</td>
         <td>Normal Function</td>
-        <td>—</td>
         <td>1/1</td>
         <td class="alleles">
           rs2231142 reference (G): Normal function<br>
@@ -1181,7 +1169,6 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td><strong>SLCO1B1</strong></td>
         <td class="diplo">*37/*37</td>
         <td>Normal Function</td>
-        <td>—</td>
         <td>35/35</td>
         <td class="alleles">
           *37: Normal function<br>
@@ -1262,46 +1249,11 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
   </table>
 </section>
 <section class="category">
-  <h3>Immune Markers (HLA)</h3>
-  <p class="category-desc">HLA genes help the immune system distinguish the body&#39;s own cells from foreign substances. Certain HLA variants are associated with severe drug hypersensitivity reactions.</p>
-  <table class="tech">
-    <thead>
-      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Activity</th><th>Coverage</th><th>Allele Functions</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="sym sym-nodata">—</span></td>
-        <td><strong>HLA-A</strong></td>
-        <td class="diplo">Unknown/Unknown</td>
-        <td>No Result</td>
-        <td>—</td>
-        <td>0/0</td>
-        <td class="alleles">
-          Unknown: None<br>
-          Unknown: None
-        </td>
-      </tr>
-      <tr>
-        <td><span class="sym sym-nodata">—</span></td>
-        <td><strong>HLA-B</strong></td>
-        <td class="diplo">Unknown/Unknown</td>
-        <td>No Result</td>
-        <td>—</td>
-        <td>0/0</td>
-        <td class="alleles">
-          Unknown: None<br>
-          Unknown: None
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-<section class="category">
   <h3>Other Pharmacogenes</h3>
   <p class="category-desc">Additional genes that influence drug response through various mechanisms including drug targets, enzyme deficiencies, and receptor sensitivity.</p>
   <table class="tech">
     <thead>
-      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Activity</th><th>Coverage</th><th>Allele Functions</th></tr>
+      <tr><th></th><th>Gene</th><th>Diplotype</th><th>Phenotype</th><th>Coverage</th><th>Allele Functions</th></tr>
     </thead>
     <tbody>
       <tr>
@@ -1309,7 +1261,6 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td><strong>CFTR</strong></td>
         <td class="diplo">Reference/Reference</td>
         <td>ivacaftor non-responsive in CF patients</td>
-        <td>—</td>
         <td>93/93</td>
         <td class="alleles">
           ivacaftor non-responsive CFTR sequence: ivacaftor non-responsive<br>
@@ -1337,7 +1288,6 @@ Note: more stringent dose reductions are necessary if the patient is also TPMT I
         <td><strong>VKORC1</strong></td>
         <td class="diplo">rs9923231 variant (T)/rs9923231 variant (T)</td>
         <td>-1639 AA</td>
-        <td>—</td>
         <td>1/1</td>
         <td class="alleles">
           rs9923231 variant (T): Higher coumarin sensitivity<br>
@@ -1410,7 +1360,6 @@ From day 6 on the standard algorithm without genotype information can be used to
         <td><strong>CACNA1S</strong></td>
         <td class="diplo">Reference/Reference</td>
         <td>Uncertain Susceptibility</td>
-        <td>—</td>
         <td>2/2</td>
         <td class="alleles">
           Reference: Normal function<br>
@@ -1474,7 +1423,6 @@ From day 6 on the standard algorithm without genotype information can be used to
         <td><strong>G6PD</strong></td>
         <td class="diplo">B (reference)/B (reference)</td>
         <td>Normal</td>
-        <td>—</td>
         <td>171/171</td>
         <td class="alleles">
           B (reference): IV/Normal<br>
@@ -1541,10 +1489,20 @@ From day 6 on the standard algorithm without genotype information can be used to
       </td></tr>
       <tr>
         <td><span class="sym sym-normal">✓</span></td>
+        <td><strong>IFNL3</strong></td>
+        <td class="diplo">rs12979860 reference (C)/rs12979860 reference (C)</td>
+        <td>n/a</td>
+        <td>1/1</td>
+        <td class="alleles">
+          rs12979860 reference (C): Favorable response allele<br>
+          rs12979860 reference (C): Favorable response allele
+        </td>
+      </tr>
+      <tr>
+        <td><span class="sym sym-normal">✓</span></td>
         <td><strong>RYR1</strong></td>
         <td class="diplo">Reference/Reference</td>
         <td>Uncertain Susceptibility</td>
-        <td>—</td>
         <td>313/313</td>
         <td class="alleles">
           Reference: Normal function<br>
@@ -1603,18 +1561,6 @@ From day 6 on the standard algorithm without genotype information can be used to
           </table>
         </details>
       </td></tr>
-      <tr>
-        <td><span class="sym sym-nodata">—</span></td>
-        <td><strong>IFNL3</strong></td>
-        <td class="diplo">rs12979860 reference (C)/rs12979860 reference (C)</td>
-        <td>n/a</td>
-        <td>—</td>
-        <td>1/1</td>
-        <td class="alleles">
-          rs12979860 reference (C): Favorable response allele<br>
-          rs12979860 reference (C): Favorable response allele
-        </td>
-      </tr>
     </tbody>
   </table>
 </section>
@@ -1648,6 +1594,35 @@ From day 6 on the standard algorithm without genotype information can be used to
             <div><strong>Other medications:</strong> acetaminophen / caffeine / dihydrocodeine, aripiprazole lauroxil, cevimeline, darifenacin, deutetrabenazine, dextromethorphan / quinidine, dextromethorphan hydrobromide / bupropion hydrochloride, fesoterodine, fluoxetine / olanzapine, meclizine, mirabegron, oliceridine, tamsulosin, tetrabenazine, tolterodine, valbenazine</div>
             <div><strong>Pain medications:</strong> codeine, hydrocodone, tramadol</div>
             <div><strong>Targeted cancer therapy:</strong> gefitinib</div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+<section class="category">
+  <h3>Immune Markers (HLA)</h3>
+  <table>
+    <thead>
+      <tr><th></th><th>Gene</th><th>Missing positions</th><th>Affected medications</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="sym sym-nodata">—</span></td>
+        <td><strong>HLA-A</strong></td>
+        <td>0</td>
+        <td>
+            <div><strong>Antiepileptics:</strong> carbamazepine</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="sym sym-nodata">—</span></td>
+        <td><strong>HLA-B</strong></td>
+        <td>0</td>
+        <td>
+            <div><strong>Antiepileptics:</strong> carbamazepine, oxcarbazepine, phenytoin</div>
+            <div><strong>Antivirals (HIV):</strong> abacavir</div>
+            <div><strong>Gout medications:</strong> allopurinol</div>
+            <div><strong>Other medications:</strong> flucloxacillin, fosphenytoin, lamotrigine, pazopanib</div>
         </td>
       </tr>
     </tbody>
@@ -2923,7 +2898,7 @@ FDA Table of Pharmacogenetic Associations(-1)  </li>
   </div>
 
   <footer>
-    Generated by PGx Reporter &middot; May 17, 2026
+    Generated by PGx Reporter &middot; May 27, 2026
   </footer>
 </div>
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Personal Pharmacogenetics Report</title>
+<title>Patient report</title>
 <style>
   /* ── Colorblind-safe palette ─────────────────────────────────── */
   :root {
@@ -788,8 +788,8 @@
 <div class="container">
 
   <header class="report-header">
-    <h1>Your Personal Pharmacogenetics Report</h1>
-<div class="meta">May 17, 2026 &middot; Sample: <strong>HG005</strong></div>
+    <h1>Patient report</h1>
+<div class="meta">May 27, 2026 &middot; Sample: <strong>HG005_GRCh38_1_22_v4.2.1_benchmark</strong></div>
   </header>
 
 
@@ -813,14 +813,14 @@
   <section class="dash-row dash-row-normal">
     <div class="dash-row-label"><span class="dash-row-symbol">✓</span> Normal</div>
     <p class="dash-row-text">
-        <strong>11</strong> genes work as expected — standard dosing applies for the related medications.
+        <strong>13</strong> genes work as expected — standard dosing applies for the related medications.
     </p>
   </section>
 
   <section class="dash-row dash-row-nodata">
     <div class="dash-row-label"><span class="dash-row-symbol">—</span> No Data</div>
     <p class="dash-row-text">
-        <strong>6</strong> genes couldn't be tested from this sample — clinical testing may be useful if any related medication is prescribed.
+        <strong>4</strong> genes couldn't be tested from this sample — clinical testing may be useful if any related medication is prescribed.
     </p>
   </section>
 
@@ -868,7 +868,7 @@
       <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
       <span class="gene-name">VKORC1</span>
     </div>
-    <div class="pheno">Warfarin-sensitive variant</div>
+    <div class="pheno">Highly increased coumarin sensitivity</div>
 <div class="meds">affects 3 medications</div>  </div>
   <div class="ov-card normal">
     <div class="gene">
@@ -915,6 +915,13 @@
   <div class="ov-card normal">
     <div class="gene">
       <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">CYP4F2</span>
+    </div>
+    <div class="pheno">Normal function</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
       <span class="gene-name">DPYD</span>
     </div>
     <div class="pheno">Normal metabolizer</div>
@@ -925,6 +932,13 @@
       <span class="gene-name">G6PD</span>
     </div>
     <div class="pheno">Normal function</div>
+  </div>
+  <div class="ov-card normal">
+    <div class="gene">
+      <span class="sym-inline sym-normal">✓</span>
+      <span class="gene-name">IFNL3</span>
+    </div>
+    <div class="pheno">Favorable variant</div>
   </div>
   <div class="ov-card normal">
     <div class="gene">
@@ -957,13 +971,6 @@
   <div class="ov-card nodata">
     <div class="gene">
       <span class="sym-inline sym-nodata">—</span>
-      <span class="gene-name">CYP4F2</span>
-    </div>
-    <div class="pheno">Not tested</div>
-  </div>
-  <div class="ov-card nodata">
-    <div class="gene">
-      <span class="sym-inline sym-nodata">—</span>
       <span class="gene-name">HLA-A</span>
     </div>
     <div class="pheno">Not tested</div>
@@ -972,13 +979,6 @@
     <div class="gene">
       <span class="sym-inline sym-nodata">—</span>
       <span class="gene-name">HLA-B</span>
-    </div>
-    <div class="pheno">Not tested</div>
-  </div>
-  <div class="ov-card nodata">
-    <div class="gene">
-      <span class="sym-inline sym-nodata">—</span>
-      <span class="gene-name">IFNL3</span>
     </div>
     <div class="pheno">Not tested</div>
   </div>
@@ -1153,15 +1153,15 @@ CFTR mutations can cause cystic fibrosis (CF), and the specific mutation determi
 <div class="gene-row gene-row-review">
   <div class="gene-row-header">
     <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-    <span class="gene-name">CYP3A5</span>
-<span class="protein-type">Drug breakdown</span><span class="phenotype-pill">Slow metabolizer</span>  </div>
+    <span class="gene-name">VKORC1</span>
+<span class="protein-type">Blood-thinner response</span><span class="phenotype-pill">Highly increased coumarin sensitivity</span>  </div>
   <div class="gene-row-body">
     <p>
-CYP3A5 helps process immunosuppressants like tacrolimus and some blood pressure medications.        You carry variants with significantly reduced enzyme activity — affected drugs or their byproducts can build up to dangerously high levels, raising the risk of severe side effects. Substantial dose reduction (or an alternative drug) is typically needed.
+VKORC1 controls sensitivity to a class of blood thinners called coumarins (warfarin, acenocoumarol, phenprocoumon).        You carry both copies of the variant that increases sensitivity — substantially lower-than-usual doses are typically needed to control blood clotting safely.
     </p>
     <p class="affected-meds">
       <strong>Affected medications:</strong>
-<span class="drug-pill review" title="Mention at next visit">tacrolimus</span>    </p>
+<span class="drug-pill review" title="Mention at next visit">acenocoumarol</span><span class="drug-pill review" title="Mention at next visit">phenprocoumon</span><span class="drug-pill review" title="Mention at next visit">warfarin</span>    </p>
   </div>
 </div><div class="gene-row gene-row-review">
   <div class="gene-row-header">
@@ -1170,24 +1170,11 @@ CYP3A5 helps process immunosuppressants like tacrolimus and some blood pressure 
 <span class="protein-type">Drug breakdown</span><span class="phenotype-pill">Rapid metabolizer</span>  </div>
   <div class="gene-row-body">
     <p>
-NAT2 helps the body process certain medications including some antibiotics.        You carry variants with increased enzyme activity — affected medications may break down faster than usual, potentially reducing their effect.
+NAT2 prepares certain medications for elimination from the body — affects mainly medications used for tuberculosis, high blood pressure, and some antibiotics.        You carry variants with increased enzyme activity — affected medications may break down faster than usual, potentially reducing their effect.
     </p>
     <p class="affected-meds">
       <strong>Affected medications:</strong>
 <span class="drug-pill review" title="Mention at next visit">hydralazine</span>    </p>
-  </div>
-</div><div class="gene-row gene-row-review">
-  <div class="gene-row-header">
-    <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-    <span class="gene-name">NUDT15</span>
-<span class="protein-type">Drug breakdown</span><span class="phenotype-pill">Intermediate metabolizer</span>  </div>
-  <div class="gene-row-body">
-    <p>
-NUDT15 helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression).        You carry variants with somewhat reduced enzyme activity. Affected medications or their byproducts may build up to higher-than-usual levels, raising the risk of side effects — a reduced starting dose with extra monitoring is typically recommended.
-    </p>
-    <p class="affected-meds">
-      <strong>Affected medications:</strong>
-<span class="drug-pill review" title="Mention at next visit">azathioprine</span><span class="drug-pill review" title="Mention at next visit">mercaptopurine</span><span class="drug-pill review" title="Mention at next visit">thioguanine</span>    </p>
   </div>
 </div><div class="gene-row gene-row-review">
   <div class="gene-row-header">
@@ -1205,15 +1192,28 @@ UGT1A1 helps the body process certain medications and bilirubin (a waste product
 </div><div class="gene-row gene-row-review">
   <div class="gene-row-header">
     <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
-    <span class="gene-name">VKORC1</span>
-<span class="protein-type">Drug target</span><span class="phenotype-pill">Warfarin-sensitive variant</span>  </div>
+    <span class="gene-name">NUDT15</span>
+<span class="protein-type">Drug breakdown</span><span class="phenotype-pill">Intermediate metabolizer</span>  </div>
   <div class="gene-row-body">
     <p>
-VKORC1 controls sensitivity to warfarin, a common blood thinner.        You carry the variant that increases warfarin sensitivity — lower-than-usual doses are typically needed to control blood clotting safely.
+NUDT15 helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression).        You carry variants with somewhat reduced enzyme activity. Affected medications or their byproducts may build up to higher-than-usual levels, raising the risk of side effects — a reduced starting dose with extra monitoring is typically recommended.
     </p>
     <p class="affected-meds">
       <strong>Affected medications:</strong>
-<span class="drug-pill review" title="Mention at next visit">acenocoumarol</span><span class="drug-pill review" title="Mention at next visit">phenprocoumon</span><span class="drug-pill review" title="Mention at next visit">warfarin</span>    </p>
+<span class="drug-pill review" title="Mention at next visit">azathioprine</span><span class="drug-pill review" title="Mention at next visit">mercaptopurine</span><span class="drug-pill review" title="Mention at next visit">thioguanine</span>    </p>
+  </div>
+</div><div class="gene-row gene-row-review">
+  <div class="gene-row-header">
+    <span class="sym-inline sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">CYP3A5</span>
+<span class="protein-type">Drug breakdown</span><span class="phenotype-pill">Slow metabolizer</span>  </div>
+  <div class="gene-row-body">
+    <p>
+CYP3A5 helps process immunosuppressants like tacrolimus and some blood pressure medications.        You carry variants with significantly reduced enzyme activity — affected drugs or their byproducts can build up to dangerously high levels, raising the risk of severe side effects. Substantial dose reduction (or an alternative drug) is typically needed.
+    </p>
+    <p class="affected-meds">
+      <strong>Affected medications:</strong>
+<span class="drug-pill review" title="Mention at next visit">tacrolimus</span>    </p>
   </div>
 </div></section>
 
@@ -1240,6 +1240,11 @@ VKORC1 controls sensitivity to warfarin, a common blood thinner.        You carr
         <td class="gene-col"><strong>RYR1</strong></td>
         <td class="type-col"><span class="protein-type">Anesthesia response</span></td>
         <td class="desc-col">is related to risk of malignant hyperthermia, a rare reaction to anesthetics</td>
+      </tr>
+      <tr>
+        <td class="gene-col"><strong>CYP4F2</strong></td>
+        <td class="type-col"><span class="protein-type">Blood-thinner response</span></td>
+        <td class="desc-col">contributes to sensitivity to the blood thinner warfarin alongside VKORC1</td>
       </tr>
       <tr>
         <td class="gene-col"><strong>CYP2B6</strong></td>
@@ -1280,6 +1285,11 @@ VKORC1 controls sensitivity to warfarin, a common blood thinner.        You carr
         <td class="gene-col"><strong>SLCO1B1</strong></td>
         <td class="type-col"><span class="protein-type">Drug transporter</span></td>
         <td class="desc-col">affects how the body transports statin medications used to lower cholesterol</td>
+      </tr>
+      <tr>
+        <td class="gene-col"><strong>IFNL3</strong></td>
+        <td class="type-col"><span class="protein-type">Hepatitis-C drug response</span></td>
+        <td class="desc-col">affects response to hepatitis C treatments</td>
       </tr>
       <tr>
         <td class="gene-col"><strong>G6PD</strong></td>
@@ -1343,30 +1353,6 @@ is involved in processing about 25% of all medications, including many antidepre
         </td>
       </tr>
       <tr>
-        <td class="gene-col"><strong>CYP4F2</strong></td>
-        <td class="type-col"><span class="protein-type">Drug breakdown</span></td>
-        <td class="desc-col">
-affects how the body uses vitamin K, which influences warfarin dosing.          <details class="affected-meds-fallback">
-            <summary>Medications that depend on CYP4F2</summary>
-            <ul>
-              <li><strong>Antiplatelet / Anticoagulant agents:</strong> warfarin</li>
-            </ul>
-          </details>
-        </td>
-      </tr>
-      <tr>
-        <td class="gene-col"><strong>IFNL3</strong></td>
-        <td class="type-col"><span class="protein-type">Hepatitis-C drug response</span></td>
-        <td class="desc-col">
-affects response to hepatitis C treatments.          <details class="affected-meds-fallback">
-            <summary>Medications that depend on IFNL3</summary>
-            <ul>
-              <li><strong>Other medications:</strong> peginterferon alfa-2a, peginterferon alfa-2b, ribavirin</li>
-            </ul>
-          </details>
-        </td>
-      </tr>
-      <tr>
         <td class="gene-col"><strong>HLA-A</strong></td>
         <td class="type-col"><span class="protein-type">Immune response</span></td>
         <td class="desc-col">
@@ -1403,7 +1389,7 @@ is part of the immune system and affects risk of severe drug reactions to specif
   <ul>
     <li><span class="step-icon">🩺</span><span>Bring this report to your healthcare provider — especially before starting a new prescription.</span></li>
     <li><span class="step-icon">⚠️</span><span>Pay special attention to: ivacaftor. If any of these are prescribed, mention this report first.</span></li>
-    <li><span class="step-icon">🔬</span><span>6 genes were not testable from this sample. If a doctor needs a result for one of these, ask about clinical pharmacogenomic testing.</span></li>
+    <li><span class="step-icon">🔬</span><span>4 genes were not testable from this sample. If a doctor needs a result for one of these, ask about clinical pharmacogenomic testing.</span></li>
     <li><span class="step-icon">✅</span><span>Results should be confirmed by a CLIA-certified lab before any prescribing decisions are made.</span></li>
   </ul>
 </div>
@@ -1430,7 +1416,7 @@ is part of the immune system and affects risk of severe drug reactions to specif
   </div>
 
   <footer>
-    Generated by PGx Reporter &middot; May 17, 2026
+    Generated by PGx Reporter &middot; May 27, 2026
   </footer>
 </div>
 </body>

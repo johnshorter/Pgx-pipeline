@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pharmacogenomic Analysis Report</title>
+<title>Clinician report</title>
 <style>
   /* ── Colorblind-safe palette ─────────────────────────────────── */
   :root {
@@ -237,33 +237,65 @@
   }
   .cov-cell .label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.4px; }
   .cov-cell .count { font-size: 24px; font-weight: 700; display: block; margin-top: 2px; }
+  .cov-cell .sublabel { font-size: 11.5px; color: var(--text-light); display: block; margin-top: 2px; }
 
-  /* Clinical Priority Summary (same as v1) */
-  .priority-block {
+  /* Gene Overview — four stacked single-line bands, one per risk bucket. */
+  .gene-overview { margin: 8px 0 16px; }
+  .overview-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 8px 14px;
     border-left: 4px solid var(--border);
-    border-radius: 0 6px 6px 0;
-    padding: 10px 14px;
-    margin: 8px 0;
+    border-radius: 0 4px 4px 0;
+    margin: 4px 0;
+    font-size: 13.5px;
+    line-height: 1.45;
   }
-  .priority-block.action { background: var(--action-bg); border-left-color: var(--action); }
-  .priority-block.review { background: var(--review-bg); border-left-color: var(--review); }
-  .priority-block.empty  { background: #FAFAFA; border-left-color: var(--border); color: var(--text-light); font-style: italic; }
-  .priority-block > h4 {
-    margin: 0 0 6px;
-    font-size: 13px;
+  .overview-row.action { background: var(--action-bg); border-left-color: var(--action); }
+  .overview-row.review { background: var(--review-bg); border-left-color: var(--review); }
+  .overview-row.normal { background: var(--normal-bg); border-left-color: var(--normal); }
+  .overview-row.no_data { background: var(--nodata-bg); border-left-color: var(--nodata); }
+  .overview-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 130px;
+    flex: 0 0 auto;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
+    font-size: 12.5px;
   }
-  .priority-block.action > h4 { color: var(--action); }
-  .priority-block.review > h4 { color: var(--review); }
-  .priority-block ul { margin: 0 0 0 18px; padding: 0; }
-  .priority-block li { margin: 4px 0; font-size: 13.5px; line-height: 1.45; }
-  .priority-block .pri-gene { font-weight: 700; }
-  .priority-block .pri-pheno { color: var(--text); }
-  .priority-block .pri-drugcount {
+  .overview-row.action .overview-label { color: var(--action); }
+  .overview-row.review .overview-label { color: var(--review); }
+  .overview-row.normal .overview-label { color: var(--normal); }
+  .overview-row.no_data .overview-label { color: var(--nodata); }
+  .overview-sym { font-size: 15px; line-height: 1; }
+  .overview-count {
+    font-weight: 400;
     color: var(--text-light);
-    font-size: 12px;
-    margin-left: 6px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .overview-genes {
+    flex: 1 1 auto;
+    color: var(--text);
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .overview-gene {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dotted transparent;
+  }
+  .overview-gene:hover {
+    border-bottom-color: var(--text-light);
+  }
+  .overview-empty {
+    color: var(--text-light);
+    font-style: italic;
   }
 
   /* Risk-bucket sections */
@@ -379,9 +411,166 @@
     font-size: 13px;
   }
 
-  /* Per-gene drug-pill summary (the contributing Action/Review drugs).
-     The detailed recommendation text lives in the Medication Guidance
-     section, not here. */
+  /* Gene description (plain-language, from GENE_DESCRIPTIONS). */
+  .gene-card .gene-description {
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.55;
+    margin: 6px 0 10px;
+  }
+
+  /* Mechanism brief — the (gene, phenotype) → drug-effect sentence. */
+  .gene-card .gene-mechanism {
+    background: #F5F7FA;
+    border-left: 3px solid #B0BEC5;
+    padding: 8px 12px;
+    margin: 8px 0 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    border-radius: 0 4px 4px 0;
+  }
+  .gene-card .gene-mechanism .mech-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    font-weight: 700;
+    margin-right: 6px;
+  }
+
+  /* Affected medications inside a gene monograph */
+  .gene-card .gene-drugs {
+    margin-top: 12px;
+  }
+  .gene-card .gene-drugs-header {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+    font-weight: 700;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 3px;
+    margin-bottom: 6px;
+  }
+  .drug-block {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    margin: 6px 0;
+    background: #FCFCFC;
+    overflow: hidden;
+  }
+  .drug-block .drug-block-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #FAFAFA;
+    border-bottom: 1px solid var(--border);
+  }
+  .drug-block .drug-block-symbol { font-size: 16px; line-height: 1; }
+  .drug-block.action .drug-block-symbol { color: var(--action); }
+  .drug-block.review .drug-block-symbol { color: var(--review); }
+  .drug-block .drug-block-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .drug-block .drug-block-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    background: #E3F2FD;
+    color: #1565C0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+  }
+  .drug-block .drug-block-sources {
+    padding: 4px 10px 8px;
+  }
+  .drug-block .src-entry {
+    margin: 6px 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .drug-block .src-entry + .src-entry {
+    border-top: 1px dashed var(--border);
+    padding-top: 6px;
+  }
+  .drug-block .src-meta {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .drug-block .src-meta .src-tag {
+    display: inline-block;
+    background: #ECEFF1;
+    color: #37474F;
+    padding: 0 6px;
+    border-radius: 3px;
+    margin-right: 4px;
+    letter-spacing: 0.3px;
+  }
+  .drug-block .src-meta .cls-tag {
+    display: inline-block;
+    background: transparent;
+    color: #607D8B;
+    border: 1px solid #B0BEC5;
+    padding: 0 5px;
+    border-radius: 3px;
+    margin-right: 4px;
+  }
+  .drug-block .src-rec {
+    color: var(--text);
+  }
+  /* DPWG annotations embed <ul>/<li> for structured arms. Render them
+     compactly inside the source entry so the recommendation block doesn't
+     bloat vertically. */
+  .drug-block .src-rec ul {
+    margin: 4px 0 4px 18px;
+    padding: 0;
+  }
+  .drug-block .src-rec li {
+    margin: 1px 0;
+  }
+  .drug-block .src-rec br {
+    /* PharmCAT's <br /> tags often abut newlines; suppress excess vertical gap */
+    content: " ";
+  }
+  /* Collapsed FDA-source disclosure inside each drug-block.
+     Quiet by default — click to reveal the verbatim label text. */
+  .drug-block details.fda-fold {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+  }
+  .drug-block details.fda-fold > summary {
+    cursor: pointer;
+    font-size: 11.5px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    list-style: none;
+  }
+  .drug-block details.fda-fold > summary::before {
+    content: "▸ ";
+    font-size: 10px;
+  }
+  .drug-block details.fda-fold[open] > summary::before { content: "▾ "; }
+  .drug-block details.fda-fold[open] > summary { margin-bottom: 4px; }
+
+  /* Legacy class kept for the no-data variant only */
+  .gene-card .affected-pills {
+    margin-top: 8px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
   .gene-card .affected-pills-label {
     font-size: 12px;
     color: var(--text-light);
@@ -390,78 +579,98 @@
     font-weight: 600;
     margin-right: 6px;
   }
-  .gene-card .affected-pills {
-    margin-top: 8px;
-    font-size: 13.5px;
-    line-height: 1.6;
-  }
-  .gene-card .affected-pills .drug-pill {
-    font-weight: 600;
-    margin-right: 2px;
-  }
-  .gene-card .affected-pills .drug-pill.action { color: var(--action); }
-  .gene-card .affected-pills .drug-pill.review { color: var(--review); }
-  .gene-card .affected-pills .drug-pill + .drug-pill::before {
-    content: ", ";
-    color: var(--text-light);
-    font-weight: 400;
-  }
 
-  /* Medication Guidance section — drug-first tables (Action and Review)
-     with full CPIC/DPWG recommendation detail. */
-  .med-section {
-    margin: 16px 0 22px;
-  }
-  .med-section > h3 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    padding: 8px 14px;
-    border-left: 4px solid var(--border);
-    border-radius: 0 4px 4px 0;
-    margin: 0 0 8px;
-    font-weight: 700;
-  }
-  .med-section.action > h3 { background: var(--action-bg); border-left-color: var(--action); color: var(--action); }
-  .med-section.review > h3 { background: var(--review-bg); border-left-color: var(--review); color: var(--review); }
-  table.med-guidance {
+  /* Drug Index — compact navigation table linking each affected drug to
+     its gene monograph below. Single source of truth for "what's
+     affected" + jump-to-detail; the deep prose lives inside the gene
+     blocks. */
+  table.drug-index {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     font-size: 13px;
+    margin: 8px 0 4px;
   }
-  table.med-guidance th {
+  /* Lock column widths so the Action and Review tables align identically
+     regardless of how many rows each contains. */
+  table.drug-index th:nth-child(1), table.drug-index td:nth-child(1) { width: 3%; }
+  table.drug-index th:nth-child(2), table.drug-index td:nth-child(2) { width: 19%; }
+  table.drug-index th:nth-child(3), table.drug-index td:nth-child(3) { width: 24%; }
+  table.drug-index th:nth-child(4), table.drug-index td:nth-child(4) { width: 39%; }
+  table.drug-index th:nth-child(5), table.drug-index td:nth-child(5) { width: 15%; }
+  table.drug-index th {
     text-align: left;
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.4px;
     color: var(--text-light);
     background: #FAFAFA;
     padding: 6px 8px;
     border-bottom: 1px solid var(--border);
-    font-weight: 600;
+    font-weight: 700;
   }
-  table.med-guidance td {
-    padding: 6px 8px;
+  table.drug-index td {
+    padding: 7px 8px;
     border-bottom: 1px solid var(--border);
-    vertical-align: top;
-    line-height: 1.5;
+    vertical-align: middle;
+    line-height: 1.45;
   }
-  table.med-guidance tr:last-child td { border-bottom: none; }
-  table.med-guidance td.col-drug { white-space: nowrap; font-weight: 700; }
-  table.med-guidance .src-tag {
+  table.drug-index tr:last-child td { border-bottom: none; }
+  table.drug-index tr.action td.idx-sym { color: var(--action); font-weight: 700; }
+  table.drug-index tr.review td.idx-sym { color: var(--review); font-weight: 700; }
+  table.drug-index td.idx-drug { font-weight: 700; color: var(--text); white-space: nowrap; }
+  table.drug-index td.idx-cat {
+    font-size: 11.5px;
+    color: var(--text-light);
+  }
+  table.drug-index td.idx-trigger { font-size: 12.5px; }
+  table.drug-index td.idx-trigger .idx-gene {
+    font-family: "SF Mono", Consolas, monospace;
+    font-weight: 700;
+    color: var(--text);
+  }
+  table.drug-index td.idx-trigger .idx-pheno {
     display: inline-block;
-    font-size: 10px;
+    font-size: 11.5px;
     padding: 1px 6px;
     border-radius: 3px;
-    background: #ECEFF1;
-    color: #37474F;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  table.drug-index tr.action .idx-pheno { background: var(--action-bg); color: var(--action); }
+  table.drug-index tr.review .idx-pheno { background: var(--review-bg); color: var(--review); }
+  table.drug-index td.idx-jump { white-space: nowrap; text-align: right; }
+  table.drug-index td.idx-jump a {
+    font-size: 11.5px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    margin-right: 4px;
+    color: #1565C0;
+    text-decoration: none;
+    font-weight: 600;
   }
-  table.med-guidance td.col-rec { color: var(--text); }
-  table.med-guidance td.col-symbol { white-space: nowrap; }
+  table.drug-index td.idx-jump a:hover { text-decoration: underline; }
+
+  .drug-index-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    padding: 6px 12px;
+    border-left: 4px solid var(--border);
+    border-radius: 0 4px 4px 0;
+    margin: 16px 0 4px;
+    font-weight: 700;
+  }
+  .drug-index-section h3.action { background: var(--action-bg); border-left-color: var(--action); color: var(--action); }
+  .drug-index-section h3.review { background: var(--review-bg); border-left-color: var(--review); color: var(--review); }
+  .drug-index-section h3 .cat-sub {
+    font-weight: 400;
+    font-size: 12.5px;
+    color: var(--text-light);
+    margin-left: 4px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
 
   /* No-Data card variant — affected drug list grouped by therapeutic_category */
   .nodata-affected {
@@ -531,28 +740,41 @@
 
   .citations li { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
   .citations { margin: 8px 0 16px 22px; }
+  .citations a {
+    color: #1565C0;
+    text-decoration: none;
+  }
+  .citations a:hover { text-decoration: underline; }
+  .cite-marker {
+    font-size: 0.7em;
+    color: var(--text-light);
+    vertical-align: super;
+    line-height: 0;
+    margin-left: 2px;
+    font-weight: 600;
+  }
+  .cite-marker a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .cite-marker a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 <div class="container">
 
   <header class="report-header">
-    <h1>Pharmacogenomic Analysis Report</h1>
+    <h1>Clinician report</h1>
     <div class="meta">
-      May 17, 2026
- &middot; Sample: <strong>HG005</strong> &middot; PharmCAT 3.2.0    </div>
+      May 27, 2026
+ &middot; Sample: <strong>HG005_GRCh38_1_22_v4.2.1_benchmark</strong> &middot; PharmCAT 3.2.0    </div>
   </header>
 
-  <div class="legend">
-    <strong style="display:block;margin-bottom:6px;">How to read this report</strong>
-    <div class="legend-row"><span class="sym sym-action">▲</span><span><strong>Action</strong> — discuss with your healthcare provider</span></div>
-    <div class="legend-row"><span class="sym sym-review">◆</span><span><strong>Review</strong> — monitor or consider adjustment</span></div>
-    <div class="legend-row"><span class="sym sym-normal">✓</span><span><strong>Normal</strong> — typical processing, no special action</span></div>
-    <div class="legend-row"><span class="sym sym-nodata">—</span><span><strong>No Data</strong> — could not be determined from this VCF</span></div>
-  </div>
 
 
-<h2>Coverage Summary</h2>
+<h2>Sample Overview</h2>
+<p class="category-desc">Top: panel-level call statistics for this VCF. Bottom: all evaluated genes grouped by their effective risk for this patient — each row is a one-line snapshot, full detail is in the Gene Results section below.</p>
+
 <div class="coverage">
   <div class="cov-cell">
     <span class="label">Total Genes</span>
@@ -560,7 +782,7 @@
   </div>
   <div class="cov-cell">
     <span class="label">Definitive Calls</span>
-    <span class="count">21</span>
+    <span class="count">19</span>
   </div>
   <div class="cov-cell">
     <span class="label">Ambiguous</span>
@@ -568,422 +790,185 @@
   </div>
   <div class="cov-cell">
     <span class="label">No Call</span>
-    <span class="count">2</span>
+    <span class="count">4</span>
   </div>
   <div class="cov-cell">
-    <span class="label">Positions Found</span>
-    <span class="count">1047</span>
-  </div>
-  <div class="cov-cell">
-    <span class="label">Positions Missing</span>
-    <span class="count">1</span>
+    <span class="label">Position Coverage</span>
+    <span class="count">99%</span>
+    <span class="sublabel">1047 / 1048 positions</span>
   </div>
 </div>
 
-<h2>Clinical Priority Summary</h2>
-<p class="category-desc">Genes whose results drive Action- or Review-level CPIC/DPWG recommendations. Each entry below is detailed further in the Gene Results section.</p>
-
-<div class="priority-block action">
-  <h4>▲ Action (1)</h4>
-  <ul>
-    <li>
-      <span class="pri-gene">CFTR</span> — <span class="pri-pheno">ivacaftor non-responsive in CF patients</span>
-      <span class="pri-drugcount">
-        (1 action drug)
-      </span>
-    </li>
-  </ul>
+<div class="gene-overview">
+  <div class="overview-row action">
+    <div class="overview-label">
+      <span class="overview-sym">!</span>
+      <span class="overview-title">Action</span>
+      <span class="overview-count">(1)</span>
+    </div>
+    <div class="overview-genes">
+<a class="overview-gene" href="#gene-CFTR">CFTR</a>    </div>
+  </div>
+  <div class="overview-row review">
+    <div class="overview-label">
+      <span class="overview-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="overview-title">Review</span>
+      <span class="overview-count">(5)</span>
+    </div>
+    <div class="overview-genes">
+<a class="overview-gene" href="#gene-CYP3A5">CYP3A5</a>, <a class="overview-gene" href="#gene-NAT2">NAT2</a>, <a class="overview-gene" href="#gene-NUDT15">NUDT15</a>, <a class="overview-gene" href="#gene-UGT1A1">UGT1A1</a>, <a class="overview-gene" href="#gene-VKORC1">VKORC1</a>    </div>
+  </div>
+  <div class="overview-row normal">
+    <div class="overview-label">
+      <span class="overview-sym">✓</span>
+      <span class="overview-title">Normal</span>
+      <span class="overview-count">(13)</span>
+    </div>
+    <div class="overview-genes">
+<a class="overview-gene" href="#gene-ABCG2">ABCG2</a>, <a class="overview-gene" href="#gene-CACNA1S">CACNA1S</a>, <a class="overview-gene" href="#gene-CYP2B6">CYP2B6</a>, <a class="overview-gene" href="#gene-CYP2C19">CYP2C19</a>, <a class="overview-gene" href="#gene-CYP2C9">CYP2C9</a>, <a class="overview-gene" href="#gene-CYP3A4">CYP3A4</a>, <a class="overview-gene" href="#gene-CYP4F2">CYP4F2</a>, <a class="overview-gene" href="#gene-DPYD">DPYD</a>, <a class="overview-gene" href="#gene-G6PD">G6PD</a>, <a class="overview-gene" href="#gene-IFNL3">IFNL3</a>, <a class="overview-gene" href="#gene-RYR1">RYR1</a>, <a class="overview-gene" href="#gene-SLCO1B1">SLCO1B1</a>, <a class="overview-gene" href="#gene-TPMT">TPMT</a>    </div>
+  </div>
+  <div class="overview-row no_data">
+    <div class="overview-label">
+      <span class="overview-sym">—</span>
+      <span class="overview-title">No data</span>
+      <span class="overview-count">(4)</span>
+    </div>
+    <div class="overview-genes">
+<a class="overview-gene" href="#gene-CYP2D6">CYP2D6</a>, <a class="overview-gene" href="#gene-HLA-A">HLA-A</a>, <a class="overview-gene" href="#gene-HLA-B">HLA-B</a>, <a class="overview-gene" href="#gene-MT-RNR1">MT-RNR1</a>    </div>
+  </div>
 </div>
 
-<div class="priority-block review">
-  <h4>◆ Review (5)</h4>
-  <ul>
-    <li>
-      <span class="pri-gene">CYP3A5</span> — <span class="pri-pheno">Poor Metabolizer</span>
-      <span class="pri-drugcount">
-        (1 review drug)
-      </span>
-    </li>
-    <li>
-      <span class="pri-gene">NAT2</span> — <span class="pri-pheno">Rapid Metabolizer</span>
-      <span class="pri-drugcount">
-        (1 review drug)
-      </span>
-    </li>
-    <li>
-      <span class="pri-gene">NUDT15</span> — <span class="pri-pheno">Intermediate Metabolizer</span>
-      <span class="pri-drugcount">
-        (4 review drugs)
-      </span>
-    </li>
-    <li>
-      <span class="pri-gene">UGT1A1</span> — <span class="pri-pheno">Intermediate Metabolizer</span>
-      <span class="pri-drugcount">
-        (0 review drugs)
-      </span>
-    </li>
-    <li>
-      <span class="pri-gene">VKORC1</span> — <span class="pri-pheno">-1639 AA</span>
-      <span class="pri-drugcount">
-        (2 review drugs)
-      </span>
-    </li>
-  </ul>
-</div>
+<h2>Drug Index</h2>
+<p class="category-desc">Compact navigation table — one row per medication whose Action or Review classification is driven by a non-normal phenotype for this patient. Click the gene anchor to jump to the full monograph (description, technical block, mechanism, and verbatim CPIC/DPWG recommendations) below.</p>
 
-<h2>Medication Guidance</h2>
-<p class="category-desc">Drug-first view of all CPIC + DPWG recommendations whose risk classification is Action or Review (Normal-dose recommendations are in the collapsed cross-reference below). Each annotation source is listed separately to preserve source-specific recommendation text.</p>
+<section class="drug-index-section">
 
-<section class="med-section action">
-  <h3>▲ Action — pre-prescription discussion warranted</h3>
-  <table class="med-guidance">
+  <h3 class="action">! Action (1) <span class="cat-sub">— decision needed before prescribing</span></h3>
+  <table class="drug-index">
     <thead>
       <tr>
         <th></th>
         <th>Drug</th>
-        <th>Source</th>
-        <th>Class</th>
-        <th>Gene + Phenotype</th>
-        <th>Recommendation</th>
+        <th>Therapeutic class</th>
+        <th>Trigger</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-action">▲</span></td>
-        <td class="col-drug">ivacaftor</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Moderate</td>
-        <td>CFTR: ivacaftor non-responsive in CF patients</td>
-        <td class="col-rec">Ivacaftor is not recommended</td>
+      <tr class="action">
+        <td class="idx-sym">!</td>
+        <td class="idx-drug">ivacaftor</td>
+        <td class="idx-cat">Cystic Fibrosis Modulators</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">CFTR</span>
+          <span class="idx-pheno">ivacaftor non-responsive in CF patients</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-CFTR">CFTR ↓</a></td>
       </tr>
     </tbody>
   </table>
-</section>
 
-<section class="med-section review">
-  <h3>◆ Review — monitoring or adjustment may be required</h3>
-  <table class="med-guidance">
+  <h3 class="review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Review (9) <span class="cat-sub">— monitor or adjust dose</span></h3>
+  <table class="drug-index">
     <thead>
       <tr>
         <th></th>
         <th>Drug</th>
-        <th>Source</th>
-        <th>Class</th>
-        <th>Gene + Phenotype</th>
-        <th>Recommendation</th>
+        <th>Therapeutic class</th>
+        <th>Trigger</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">desflurane</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="col-rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">acenocoumarol</td>
+        <td class="idx-cat">Antiplatelet / Anticoagulant agents</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">VKORC1</span>
+          <span class="idx-pheno">Highly increased coumarin sensitivity</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-VKORC1">VKORC1 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">enflurane</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="col-rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">phenprocoumon</td>
+        <td class="idx-cat">Antiplatelet / Anticoagulant agents</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">VKORC1</span>
+          <span class="idx-pheno">Highly increased coumarin sensitivity</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-VKORC1">VKORC1 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">halothane</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="col-rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">warfarin</td>
+        <td class="idx-cat">Antiplatelet / Anticoagulant agents</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">VKORC1</span>
+          <span class="idx-pheno">Highly increased coumarin sensitivity</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-VKORC1">VKORC1 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">isoflurane</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="col-rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">hydralazine</td>
+        <td class="idx-cat">Cardiovascular</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">NAT2</span>
+          <span class="idx-pheno">Rapid Metabolizer</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-NAT2">NAT2 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">sevoflurane</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="col-rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">irinotecan</td>
+        <td class="idx-cat">Chemotherapy</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">UGT1A1</span>
+          <span class="idx-pheno">Intermediate Metabolizer</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-UGT1A1">UGT1A1 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">succinylcholine</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="col-rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">azathioprine</td>
+        <td class="idx-cat">Chemotherapy / Immunosuppressants</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">NUDT15</span>
+          <span class="idx-pheno">Intermediate Metabolizer</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-NUDT15">NUDT15 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">phenytoin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="col-rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">mercaptopurine</td>
+        <td class="idx-cat">Chemotherapy / Immunosuppressants</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">NUDT15</span>
+          <span class="idx-pheno">Intermediate Metabolizer</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-NUDT15">NUDT15 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">phenytoin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="col-rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">thioguanine</td>
+        <td class="idx-cat">Chemotherapy / Immunosuppressants</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">NUDT15</span>
+          <span class="idx-pheno">Intermediate Metabolizer</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-NUDT15">NUDT15 ↓</a></td>
       </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">voriconazole</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP2C19: Normal Metabolizer</td>
-        <td class="col-rec">Initiate therapy with recommended standard of care dosing</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">voriconazole</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP2C19: Normal Metabolizer</td>
-        <td class="col-rec">Initiate therapy with recommended standard of care dosing</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">acenocoumarol</td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>Unspecified</td>
-        <td>VKORC1: -1639 AA</td>
-        <td class="col-rec">Monitoring by the ANTICOAGULATION CLINIC (National INR Monitoring Service):
-&lt;ul&gt;
-&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
-&lt;/ul&gt;
-OTHERWISE:
-&lt;ul&gt;
-&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
-&lt;li&gt;recommend more frequent monitoring of the INR&lt;/li&gt;
-&lt;/ul&gt;
-The initial dose and the maintenance dose can be calculated using an algorithm.
-However, for patients with two or more VKORC1 and/or CYP2C9 variations, the algorithm used in EU-PACT
-(see &lt;a rel=&#34;noopener noreferrer&#34; href=&#34;https://www.knmp.nl/patientenzorg/medicatiebewaking/farmacogenetica&#34; target=&#34;_blank&#34;&gt;knmp&lt;/a&gt; for a calculation tool in the form of an Excel file) did not result in a significant reduction in the incidence of INRs above the target range when
-compared to an algorithm without genetic information. We are therefore unable to recommend the use of this
-algorithm at this time.
-A (non-validated) algorithm has been prescribed for children that should result in a better prediction of the
-maintenance dose for AA than the current guideline used by the Anticoagulation Clinic [Article:&lt;a href=&#34;/pmid/29935043&#34;&gt;29935043&lt;/a&gt;].</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">phenprocoumon</td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>Unspecified</td>
-        <td>VKORC1: -1639 AA</td>
-        <td class="col-rec">Monitoring by a ANTICOAGULATION CLINIC:
-&lt;ul&gt;
-&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
-&lt;/ul&gt;
-NO monitoring by a anticoagulation clinic:
-&lt;ul&gt;
-&lt;li&gt;recommend to use 50% of the standard initial dose&lt;/li&gt;
-&lt;li&gt;recommend more frequent monitoring of the INR&lt;/li&gt;
-&lt;/ul&gt;
-For patients younger than 75 years, the initial dose and the maintenance dose can be calculated using an
-algorithm as found in EU-PACT:
-see &lt;a rel=&#34;noopener noreferrer&#34; href=&#34;https://www.knmp.nl/patientenzorg/medicatiebewaking/farmacogenetica&#34; target=&#34;_blank&#34;&gt;knmp&lt;/a&gt; for a calculation tool in the form
-of an Excel file.
-However, for patients aged 75 years and older, this algorithm increases the risk of an INR above the
-therapeutic range compared to an algorithm without gene variations. Therefore, use of this algorithm is not
-recommended for these patients.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">hydralazine</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Moderate</td>
-        <td>NAT2: Rapid Metabolizer</td>
-        <td class="col-rec">Consider a starting total daily dose of at least 75 mg. Titrate up to 300 mg total daily hydralazine dose as tolerated. NAT2 rapid metabolizers typically require a 50-100% higher maintenance dose compared to poor metabolizers.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">azathioprine</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>NUDT15: Intermediate Metabolizer; TPMT: Normal Metabolizer</td>
-        <td class="col-rec">Initiate therapy with reduced starting doses (30-80% of standard starting dose) if standard starting dose is ≥2 mg/kg/day. If starting dose is already below standard starting dose, dose reduction might not be necessary. During therapy, adjust the doses of azathioprine based on the degree of myelosuppression and disease-specific guidelines. It usually takes at least 2-4 weeks of stable dosing to reach steady state after each dose adjustment.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">mercaptopurine</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>NUDT15: Intermediate Metabolizer; TPMT: Normal Metabolizer</td>
-        <td class="col-rec">Initiate therapy with decreased starting doses (30-80% of standard starting dose) if starting dose is ≥75 mg/m2/day (for malignancy) or ≥1.5 mg/kg/day (for nonmalignancy). If starting dose is already below standard starting dose, dose reduction might not be necessary. During therapy, adjust mercaptopurine doses based on the degree of myelosuppression and disease-specific guidelines. It usually takes at least 2-4 weeks of stable dosing to reach steady state after each dose adjustment. If myelosuppression occurs, and the patient is on combination therapy, emphasis should be on reducing mercaptopurine over other agents.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">thioguanine</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Moderate</td>
-        <td>NUDT15: Intermediate Metabolizer; TPMT: Normal Metabolizer</td>
-        <td class="col-rec">Initiate therapy with decreased starting doses (30-80% of standard starting dose) if standard starting dose is ≥40 mg/m2/day. If starting dose is already below standard starting dose, dose reduction might not be necessary. During therapy, adjust the doses of thioguanine based on the degree of myelosuppression and disease-specific guidelines. It usually takes at least 2-4 weeks of stable dosing to reach steady state after each dose adjustment. If myelosuppression occurs, and the patient is on combination therapy, emphasis should be on reducing thioguanine over other agents.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">thioguanine</td>
-        <td><span class="src-tag">DPWG Guideline Annotation</span></td>
-        <td>Unspecified</td>
-        <td>NUDT15: Intermediate Metabolizer</td>
-        <td class="col-rec">&lt;ul&gt;
-&lt;li&gt;IMMUNOSUPPRESSION:
-&lt;ul&gt;
-&lt;li&gt;start with 50% of the normal dose&lt;/li&gt;
-&lt;li&gt;Adjustment of the initial dose should be guided by toxicity (monitoring of the blood count) and effectiveness.&lt;/li&gt;
-&lt;li&gt;Monitoring should be performed at an increased frequency.&lt;br /&gt;
-NOTE: The percentage of 50% is based on the analogy with azathioprine and 6-mercaptopurine, that form
-the same active metabolite as thioguanine.&lt;br /&gt;
-NOTE: Dose adjustment based on the total of 6-TGN metabolites is not possible for these patients, as
-they develop toxicity within the therapeutic range that applies for patients without gene variants.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;LEUKAEMIA:&lt;/li&gt;
-&lt;li&gt;start with 50% of the normal tioguanine dose or start with the normal dose and reduce to 50% if side effects necessitate a dose reduction&lt;br /&gt;
-It is not known whether dose reduction in advance results in the same efficacy as dose reduction based on toxicity.&lt;/li&gt;
-&lt;li&gt;Adjustment of the initial dose should be guided by toxicity (monitoring of blood count) and effectiveness.&lt;/li&gt;
-&lt;li&gt;Monitoring should be performed at an increased frequency.&lt;br /&gt;
-NOTE: The percentage of 50% is based on the analogy with azathioprine and 6-mercaptopurine, that form
-the same active metabolite as thioguanine.&lt;br /&gt;
-NOTE: Dose adjustment based on the total of 6-TGN metabolites is not possible for these patients, as they develop toxicity within the therapeutic range that applies for patients without gene variants.&lt;br /&gt;
-NOTE: more stringent dose reductions are necessary if the patient is also TPMT IM or TPMT PM.&lt;/li&gt;
-&lt;/ul&gt;</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">tacrolimus</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP3A5: Poor Metabolizer</td>
-        <td class="col-rec">Initiate therapy with standard recommended dose. Use therapeutic drug monitoring to guide dose adjustments.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">fosphenytoin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="col-rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">fosphenytoin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP2C9: Normal Metabolizer</td>
-        <td class="col-rec">No adjustments needed from typical dosing strategies. Subsequent doses should be adjusted according to therapeutic drug monitoring, response, and side effects. An HLA-B*15:02 negative test does not eliminate the risk of phenytoin-induced SJS/TEN and patients should be carefully monitored according to a usual standard.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">methoxyflurane</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CACNA1S: Uncertain Susceptibility; RYR1: Uncertain Susceptibility</td>
-        <td class="col-rec">Clinical findings, family history, further genetic testing and other laboratory data should guide use of halogenated volatile anesthetics or depolarizing muscle relaxants.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">dexlansoprazole</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Optional</td>
-        <td>CYP2C19: Normal Metabolizer</td>
-        <td class="col-rec">Initiate standard starting daily dose. Consider increasing dose by 50-100% for the treatment of H. pylori infection and erosive esophagitis. Daily dose may be given in divided doses.
-Monitor for efficacy.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">lansoprazole</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Moderate</td>
-        <td>CYP2C19: Normal Metabolizer</td>
-        <td class="col-rec">Initiate standard starting daily dose. Consider increasing dose by 50-100% for the treatment of H. pylori infection and erosive esophagitis. Daily dose may be given in divided doses.
-Monitor for efficacy.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">omeprazole</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Moderate</td>
-        <td>CYP2C19: Normal Metabolizer</td>
-        <td class="col-rec">Initiate standard starting daily dose. Consider increasing dose by 50-100% for the treatment of H. pylori infection and erosive esophagitis. Daily dose may be given in divided doses.
-Monitor for efficacy.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">pantoprazole</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Moderate</td>
-        <td>CYP2C19: Normal Metabolizer</td>
-        <td class="col-rec">Initiate standard starting daily dose. Consider increasing dose by 50-100% for the treatment of H. pylori infection and erosive esophagitis. Daily dose may be given in divided doses.
-Monitor for efficacy.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">atorvastatin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>SLCO1B1: Normal Function</td>
-        <td class="col-rec">Prescribe desired starting dose and adjust doses based on disease-specific guidelines.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">fluvastatin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>CYP2C9: Normal Metabolizer; SLCO1B1: Normal Function</td>
-        <td class="col-rec">Prescribe desired starting dose and adjust doses of fluvastatin based on disease-specific guidelines.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">lovastatin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>SLCO1B1: Normal Function</td>
-        <td class="col-rec">Prescribe desired starting dose and adjust doses based on disease-specific guidelines.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">pitavastatin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>SLCO1B1: Normal Function</td>
-        <td class="col-rec">Prescribe desired starting dose and adjust doses based on disease-specific guidelines.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">pravastatin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>SLCO1B1: Normal Function</td>
-        <td class="col-rec">Prescribe desired starting dose and adjust doses based on disease-specific guidelines.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">rosuvastatin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>ABCG2: Normal Function; SLCO1B1: Normal Function</td>
-        <td class="col-rec">Prescribe desired starting dose and adjust doses of rosuvastatin based on disease-specific and specific population guidelines.</td>
-      </tr>
-      <tr>
-        <td class="col-symbol"><span class="sym-inline sym-review">◆</span></td>
-        <td class="col-drug">simvastatin</td>
-        <td><span class="src-tag">CPIC Guideline Annotation</span></td>
-        <td>Strong</td>
-        <td>SLCO1B1: Normal Function</td>
-        <td class="col-rec">Prescribe desired starting dose and adjust doses based on disease-specific guidelines.</td>
+      <tr class="review">
+        <td class="idx-sym"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></td>
+        <td class="idx-drug">tacrolimus</td>
+        <td class="idx-cat">Immunosuppressants</td>
+        <td class="idx-trigger">
+          <span class="idx-gene">CYP3A5</span>
+          <span class="idx-pheno">Poor Metabolizer</span>
+        </td>
+        <td class="idx-jump"><a href="#gene-CYP3A5">CYP3A5 ↓</a></td>
       </tr>
     </tbody>
   </table>
@@ -994,322 +979,608 @@ Monitor for efficacy.</td>
 
 
 <section class="risk-section action">
-  <h3><span class="risk-symbol">▲</span> Action (1)</h3>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Cystic-fibrosis drug response<span class="count">(1)</span></div>
-<div class="gene-card action">
+  <h3><span class="risk-symbol">!</span> Action (1)</h3>
+<div class="gene-card action" id="gene-CFTR">
   <div class="gene-card-header">
-    <span class="sym sym-action">▲</span>
+    <span class="sym sym-action">!</span>
     <span class="gene-name">CFTR</span>
 <span class="protein-type">Cystic-fibrosis drug response</span>      <span class="phenotype-pill">ivacaftor non-responsive in CF patients</span>
   </div>
 
+  <p class="gene-description"><strong>CFTR</strong> mutations can cause cystic fibrosis (CF), and the specific mutation determines which CF medications will help.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>Reference/Reference</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>93/93 positions</dd>
     <dt>Allele ivacaftor non-responsive CFTR sequence</dt>  <dd>ivacaftor non-responsive</dd>
     <dt>Allele ivacaftor non-responsive CFTR sequence</dt>  <dd>ivacaftor non-responsive</dd>
   </dl>
 
-  <div class="affected-pills">
-    <span class="affected-pills-label">Contributing medications:</span>
-<span class="drug-pill action">▲ ivacaftor</span>  </div>
-</div>  </div>
-</section>
+  <div class="gene-mechanism">
+    <span class="mech-label">Mechanism</span>Variant not in CFTR ivacaftor-responsive set (gating / residual-function mutations); potentiator therapy unlikely to improve channel activity.
+  </div>
+
+  <div class="gene-drugs">
+    <div class="gene-drugs-header">Affected medications &amp; recommendations (1)</div>
+    <div class="drug-block action">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol">!</span>
+        <span class="drug-block-name">ivacaftor</span>
+<span class="drug-block-tag">Cystic Fibrosis Modulators</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">CPIC Guideline Annotation</span>
+<span class="cls-tag">Moderate</span>          </div>
+          <div class="src-rec">Ivacaftor is not recommended<sup class="cite-marker">[<a href="#ref-1">1</a>]</sup></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></section>
 
 <section class="risk-section review">
-  <h3><span class="risk-symbol">◆</span> Review (5)</h3>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Drug breakdown<span class="count">(4)</span></div>
-<div class="gene-card review">
+  <h3><span class="risk-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span> Review (5)</h3>
+<div class="gene-card review" id="gene-VKORC1">
   <div class="gene-card-header">
-    <span class="sym sym-review">◆</span>
-    <span class="gene-name">CYP3A5</span>
-<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Poor Metabolizer</span>
-  </div>
-
-  <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>*3/*3</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>5/5 positions</dd>
-    <dt>Allele *3</dt>  <dd>No function</dd>
-    <dt>Allele *3</dt>  <dd>No function</dd>
-  </dl>
-
-  <div class="affected-pills">
-    <span class="affected-pills-label">Contributing medications:</span>
-<span class="drug-pill review">◆ tacrolimus</span>  </div>
-</div><div class="gene-card review">
-  <div class="gene-card-header">
-    <span class="sym sym-review">◆</span>
-    <span class="gene-name">NAT2</span>
-<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Rapid Metabolizer</span>
-  </div>
-
-  <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>*4/*4</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>47/47 positions</dd>
-    <dt>Allele *4</dt>  <dd>Increased function</dd>
-    <dt>Allele *4</dt>  <dd>Increased function</dd>
-  </dl>
-
-  <div class="affected-pills">
-    <span class="affected-pills-label">Contributing medications:</span>
-<span class="drug-pill review">◆ hydralazine</span>  </div>
-</div><div class="gene-card review">
-  <div class="gene-card-header">
-    <span class="sym sym-review">◆</span>
-    <span class="gene-name">NUDT15</span>
-<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Intermediate Metabolizer</span>
-  </div>
-
-  <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>*1/*3</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>17/18 positions</dd>
-    <dt>Allele *1</dt>  <dd>Normal function</dd>
-    <dt>Allele *3</dt>  <dd>No function</dd>
-  </dl>
-
-  <div class="affected-pills">
-    <span class="affected-pills-label">Contributing medications:</span>
-<span class="drug-pill review">◆ azathioprine</span><span class="drug-pill review">◆ mercaptopurine</span><span class="drug-pill review">◆ thioguanine</span>  </div>
-</div><div class="gene-card review">
-  <div class="gene-card-header">
-    <span class="sym sym-review">◆</span>
-    <span class="gene-name">UGT1A1</span>
-<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Intermediate Metabolizer</span>
-  </div>
-
-  <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>*1/*6</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>4/4 positions</dd>
-    <dt>Allele *1</dt>  <dd>Normal function</dd>
-    <dt>Allele *6</dt>  <dd>Decreased function</dd>
-  </dl>
-
-</div>  </div>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Drug target<span class="count">(1)</span></div>
-<div class="gene-card review">
-  <div class="gene-card-header">
-    <span class="sym sym-review">◆</span>
+    <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
     <span class="gene-name">VKORC1</span>
-<span class="protein-type">Drug target</span>      <span class="phenotype-pill">-1639 AA</span>
+<span class="protein-type">Blood-thinner response</span>      <span class="phenotype-pill">Highly increased coumarin sensitivity</span>
   </div>
+
+  <p class="gene-description"><strong>VKORC1</strong> controls sensitivity to a class of blood thinners called coumarins (warfarin, acenocoumarol, phenprocoumon).</p>
 
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>rs9923231 variant (T)/rs9923231 variant (T)</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>1/1 positions</dd>
     <dt>Allele rs9923231 variant (T)</dt>  <dd>Higher coumarin sensitivity</dd>
     <dt>Allele rs9923231 variant (T)</dt>  <dd>Higher coumarin sensitivity</dd>
   </dl>
 
-  <div class="affected-pills">
-    <span class="affected-pills-label">Contributing medications:</span>
-<span class="drug-pill review">◆ acenocoumarol</span><span class="drug-pill review">◆ phenprocoumon</span>  </div>
-</div>  </div>
-</section>
+  <div class="gene-mechanism">
+    <span class="mech-label">Mechanism</span>High-sensitivity VKORC1 haplotype (low VKORC1 expression); lower warfarin/acenocoumarol dose requirement — standard dose risks supratherapeutic INR.
+  </div>
+
+  <div class="gene-drugs">
+    <div class="gene-drugs-header">Affected medications &amp; recommendations (3)</div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">acenocoumarol</span>
+<span class="drug-block-tag">Antiplatelet / Anticoagulant agents</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">DPWG Guideline Annotation</span>
+          </div>
+          <div class="src-rec">Monitoring by the ANTICOAGULATION CLINIC (National INR Monitoring Service): <ul> <li>recommend to use 50% of the standard initial dose</li> </ul> OTHERWISE: <ul> <li>recommend to use 50% of the standard initial dose</li> <li>recommend more frequent monitoring of the INR</li> </ul> The initial dose and the maintenance dose can be calculated using an algorithm. However, for patients with two or more VKORC1 and/or CYP2C9 variations, the algorithm used in EU-PACT (see <a rel="noopener noreferrer" href="https://www.knmp.nl/patientenzorg/medicatiebewaking/farmacogenetica" target="_blank">knmp</a> for a calculation tool in the form of an Excel file) did not result in a significant reduction in the incidence of INRs above the target range when compared to an algorithm without genetic information. We are therefore unable to recommend the use of this algorithm at this time. A (non-validated) algorithm has been prescribed for children that should result in a better prediction of the maintenance dose for AA than the current guideline used by the Anticoagulation Clinic [Article:<a href="/pmid/29935043">29935043</a>].<sup class="cite-marker">[<a href="#ref-2">2</a>]</sup></div>
+        </div>
+      </div>
+    </div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">phenprocoumon</span>
+<span class="drug-block-tag">Antiplatelet / Anticoagulant agents</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">DPWG Guideline Annotation</span>
+          </div>
+          <div class="src-rec">Monitoring by a ANTICOAGULATION CLINIC: <ul> <li>recommend to use 50% of the standard initial dose</li> </ul> NO monitoring by a anticoagulation clinic: <ul> <li>recommend to use 50% of the standard initial dose</li> <li>recommend more frequent monitoring of the INR</li> </ul> For patients younger than 75 years, the initial dose and the maintenance dose can be calculated using an algorithm as found in EU-PACT: see <a rel="noopener noreferrer" href="https://www.knmp.nl/patientenzorg/medicatiebewaking/farmacogenetica" target="_blank">knmp</a> for a calculation tool in the form of an Excel file. However, for patients aged 75 years and older, this algorithm increases the risk of an INR above the therapeutic range compared to an algorithm without gene variations. Therefore, use of this algorithm is not recommended for these patients.<sup class="cite-marker">[<a href="#ref-2">2</a>]</sup></div>
+        </div>
+      </div>
+    </div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">warfarin</span>
+<span class="drug-block-tag">Antiplatelet / Anticoagulant agents</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">FDA PGx Association</span>
+          </div>
+          <div class="src-rec">"Alters dosage requirements. Select initial dosage, taking into account clinical and genetic factors. Monitor and adjust dosages based on INR."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div class="gene-card review" id="gene-NAT2">
+  <div class="gene-card-header">
+    <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">NAT2</span>
+<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Rapid Metabolizer</span>
+  </div>
+
+  <p class="gene-description"><strong>NAT2</strong> prepares certain medications for elimination from the body — affects mainly medications used for tuberculosis, high blood pressure, and some antibiotics.</p>
+
+  <dl class="gene-meta-grid">
+    <dt>Diplotype</dt>          <dd>*4/*4</dd>
+    <dt>Coverage</dt>           <dd>47/47 positions</dd>
+    <dt>Allele *4</dt>  <dd>Increased function</dd>
+    <dt>Allele *4</dt>  <dd>Increased function</dd>
+  </dl>
+
+  <div class="gene-mechanism">
+    <span class="mech-label">Mechanism</span>Accelerated N-acetylation; risk of subtherapeutic hydralazine exposure at standard doses.
+  </div>
+
+  <div class="gene-drugs">
+    <div class="gene-drugs-header">Affected medications &amp; recommendations (1)</div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">hydralazine</span>
+<span class="drug-block-tag">Cardiovascular</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">CPIC Guideline Annotation</span>
+<span class="cls-tag">Moderate</span>          </div>
+          <div class="src-rec">Consider a starting total daily dose of at least 75 mg. Titrate up to 300 mg total daily hydralazine dose as tolerated. NAT2 rapid metabolizers typically require a 50-100% higher maintenance dose compared to poor metabolizers.<sup class="cite-marker">[<a href="#ref-3">3</a>]</sup></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div class="gene-card review" id="gene-UGT1A1">
+  <div class="gene-card-header">
+    <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">UGT1A1</span>
+<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Intermediate Metabolizer</span>
+  </div>
+
+  <p class="gene-description"><strong>UGT1A1</strong> helps the body process certain medications and bilirubin (a waste product).</p>
+
+  <dl class="gene-meta-grid">
+    <dt>Diplotype</dt>          <dd>*1/*6</dd>
+    <dt>Coverage</dt>           <dd>4/4 positions</dd>
+    <dt>Allele *1</dt>  <dd>Normal function</dd>
+    <dt>Allele *6</dt>  <dd>Decreased function</dd>
+  </dl>
+
+  <div class="gene-mechanism">
+    <span class="mech-label">Mechanism</span>Reduced UGT1A1 glucuronidation (*28/*28 or similar); dose-dependent SN-38 accumulation — CPIC advises reducing irinotecan starting dose ≥150 mg/m².
+  </div>
+
+  <div class="gene-drugs">
+    <div class="gene-drugs-header">Affected medications &amp; recommendations (1)</div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">irinotecan</span>
+<span class="drug-block-tag">Chemotherapy</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">FDA Label Annotation</span>
+          </div>
+          <div class="src-rec">The CAMPTOSAR [irinotecan] label states "Individuals who are heterozygous for either the UGT1A1*28 or *6 alleles (*1/*6, *1/*28) are UGT1A1 intermediate metabolizers and may also have an increased risk of severe or life-threatening neutropenia. Published studies have shown that individuals with UGT1A1*28 and *6 alleles may be at an increased risk of severe diarrhea." "Closely monitor patients with UGT1A1*28 or *6 alleles for neutropenia during and after treatment with CAMPTOSAR." See label for more information.</div>
+        </div>
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">FDA PGx Association</span>
+          </div>
+          <div class="src-rec">"Results in higher systemic active metabolite concentrations and higher adverse reaction risk (severe or life-threatening neutropenia, severe diarrhea). Closely monitor for neutropenia during and after treatment. Consider reducing the starting dosage by at least one level in poor metabolizers and modify the dosage based on individual patient tolerance. Refer to FDA labeling for specific dosing recommendations."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div class="gene-card review" id="gene-NUDT15">
+  <div class="gene-card-header">
+    <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">NUDT15</span>
+<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Intermediate Metabolizer</span>
+  </div>
+
+  <p class="gene-description"><strong>NUDT15</strong> helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression).</p>
+
+  <dl class="gene-meta-grid">
+    <dt>Diplotype</dt>          <dd>*1/*3</dd>
+    <dt>Coverage</dt>           <dd>17/18 positions</dd>
+    <dt>Allele *1</dt>  <dd>Normal function</dd>
+    <dt>Allele *3</dt>  <dd>No function</dd>
+  </dl>
+
+  <div class="gene-mechanism">
+    <span class="mech-label">Mechanism</span>Reduced NUDT15 activity; thiopurine triphosphates accumulate — myelosuppression risk; CPIC suggests 30–50% starting-dose reduction.
+  </div>
+
+  <div class="gene-drugs">
+    <div class="gene-drugs-header">Affected medications &amp; recommendations (3)</div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">azathioprine</span>
+<span class="drug-block-tag">Chemotherapy / Immunosuppressants</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">CPIC Guideline Annotation</span>
+<span class="cls-tag">Strong</span>          </div>
+          <div class="src-rec">Initiate therapy with reduced starting doses (30-80% of standard starting dose) if standard starting dose is ≥2 mg/kg/day. If starting dose is already below standard starting dose, dose reduction might not be necessary. During therapy, adjust the doses of azathioprine based on the degree of myelosuppression and disease-specific guidelines. It usually takes at least 2-4 weeks of stable dosing to reach steady state after each dose adjustment.<sup class="cite-marker">[<a href="#ref-4">4</a>, <a href="#ref-5">5</a>, <a href="#ref-6">6</a>, <a href="#ref-7">7</a>]</sup></div>
+        </div>
+        <details class="fda-fold">
+          <summary>Also cited: FDA Label Annotation, FDA PGx Association</summary>
+          <div class="src-entry">
+            <div class="src-meta">
+              <span class="src-tag">FDA Label Annotation</span>
+            </div>
+            <div class="src-rec">"Consider...reduced dosages in patients with heterozygous [TPMT or NUDT15] deficiency...Because of the risk of increased toxicity, dosage reduction is recommended in patients known to have heterozygous deficiency of TPMT or NUDT15." See label for more information.</div>
+          </div>
+          <div class="src-entry">
+            <div class="src-meta">
+              <span class="src-tag">FDA PGx Association</span>
+            </div>
+            <div class="src-rec">"Alters systemic active metabolite concentration and dosage requirements. Results in higher adverse reaction risk (myelosuppression). Consider alternative therapy in poor metabolizers. Dosage reduction is recommended in intermediate metabolizers for NUDT15 or TPMT. Intermediate metabolizers for both genes may require more substantial dosage reductions. Refer to FDA labeling for specific dosing recommendations."</div>
+          </div>
+        </details>
+      </div>
+    </div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">mercaptopurine</span>
+<span class="drug-block-tag">Chemotherapy / Immunosuppressants</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">CPIC Guideline Annotation</span>
+<span class="cls-tag">Strong</span>          </div>
+          <div class="src-rec">Initiate therapy with decreased starting doses (30-80% of standard starting dose) if starting dose is ≥75 mg/m2/day (for malignancy) or ≥1.5 mg/kg/day (for nonmalignancy). If starting dose is already below standard starting dose, dose reduction might not be necessary. During therapy, adjust mercaptopurine doses based on the degree of myelosuppression and disease-specific guidelines. It usually takes at least 2-4 weeks of stable dosing to reach steady state after each dose adjustment. If myelosuppression occurs, and the patient is on combination therapy, emphasis should be on reducing mercaptopurine over other agents.<sup class="cite-marker">[<a href="#ref-4">4</a>, <a href="#ref-5">5</a>, <a href="#ref-6">6</a>, <a href="#ref-7">7</a>]</sup></div>
+        </div>
+        <details class="fda-fold">
+          <summary>Also cited: FDA Label Annotation, FDA PGx Association</summary>
+          <div class="src-entry">
+            <div class="src-meta">
+              <span class="src-tag">FDA Label Annotation</span>
+            </div>
+            <div class="src-rec">The mercaptopurine (PURIXAN) label states: "Heterozygous Deficiency in TPMT and/or NUDT15 … Reduce the PURIXAN dosage based on tolerability. Most patients with heterozygous TPMT or NUDT15 deficiency tolerate recommended dosage, but some require dose reduction based on adverse reactions. Patients who are heterozygous for both TPMT and NUDT15 may require more substantial dose reductions.” See label for more information.</div>
+          </div>
+          <div class="src-entry">
+            <div class="src-meta">
+              <span class="src-tag">FDA PGx Association</span>
+            </div>
+            <div class="src-rec">"Alters systemic active metabolite concentration and dosage requirements. Results in higher adverse reaction risk (myelosuppression). Initial dosages should be reduced in poor metabolizers; poor metabolizers generally tolerate 10% or less of the recommended dosage. Intermediate metabolizers may require dosage reductions based on tolerability. Intermediate metabolizers for both genes may require more substantial dosage reductions. Refer to FDA labeling for specific dosing recommendations."</div>
+          </div>
+        </details>
+      </div>
+    </div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">thioguanine</span>
+<span class="drug-block-tag">Chemotherapy / Immunosuppressants</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">CPIC Guideline Annotation</span>
+<span class="cls-tag">Moderate</span>          </div>
+          <div class="src-rec">Initiate therapy with decreased starting doses (30-80% of standard starting dose) if standard starting dose is ≥40 mg/m2/day. If starting dose is already below standard starting dose, dose reduction might not be necessary. During therapy, adjust the doses of thioguanine based on the degree of myelosuppression and disease-specific guidelines. It usually takes at least 2-4 weeks of stable dosing to reach steady state after each dose adjustment. If myelosuppression occurs, and the patient is on combination therapy, emphasis should be on reducing thioguanine over other agents.<sup class="cite-marker">[<a href="#ref-4">4</a>, <a href="#ref-5">5</a>, <a href="#ref-6">6</a>, <a href="#ref-7">7</a>]</sup></div>
+        </div>
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">DPWG Guideline Annotation</span>
+          </div>
+          <div class="src-rec"><ul> <li>IMMUNOSUPPRESSION: <ul> <li>start with 50% of the normal dose</li> <li>Adjustment of the initial dose should be guided by toxicity (monitoring of the blood count) and effectiveness.</li> <li>Monitoring should be performed at an increased frequency.<br /> NOTE: The percentage of 50% is based on the analogy with azathioprine and 6-mercaptopurine, that form the same active metabolite as thioguanine.<br /> NOTE: Dose adjustment based on the total of 6-TGN metabolites is not possible for these patients, as they develop toxicity within the therapeutic range that applies for patients without gene variants.</li> </ul> </li> <li>LEUKAEMIA:</li> <li>start with 50% of the normal tioguanine dose or start with the normal dose and reduce to 50% if side effects necessitate a dose reduction<br /> It is not known whether dose reduction in advance results in the same efficacy as dose reduction based on toxicity.</li> <li>Adjustment of the initial dose should be guided by toxicity (monitoring of blood count) and effectiveness.</li> <li>Monitoring should be performed at an increased frequency.<br /> NOTE: The percentage of 50% is based on the analogy with azathioprine and 6-mercaptopurine, that form the same active metabolite as thioguanine.<br /> NOTE: Dose adjustment based on the total of 6-TGN metabolites is not possible for these patients, as they develop toxicity within the therapeutic range that applies for patients without gene variants.<br /> NOTE: more stringent dose reductions are necessary if the patient is also TPMT IM or TPMT PM.</li> </ul><sup class="cite-marker">[<a href="#ref-2">2</a>, <a href="#ref-8">8</a>]</sup></div>
+        </div>
+        <details class="fda-fold">
+          <summary>Also cited: FDA Label Annotation, FDA PGx Association</summary>
+          <div class="src-entry">
+            <div class="src-meta">
+              <span class="src-tag">FDA Label Annotation</span>
+            </div>
+            <div class="src-rec">"Most patients with heterozygous TPMT or NUDT15 deficiency tolerate recommended thioguanine doses, but some require dose reduction based on toxicities...Reduce the dosage based on tolerability." See label for more information.</div>
+          </div>
+          <div class="src-entry">
+            <div class="src-meta">
+              <span class="src-tag">FDA PGx Association</span>
+            </div>
+            <div class="src-rec">"Alters systemic active metabolite concentration and dosage requirements. Results in higher adverse reaction risk (myelosuppression). Initial dosages should be reduced in poor metabolizers; poor metabolizers generally tolerate 10% or less of the recommended dosage. Intermediate metabolizers may require dosage reductions based on tolerability. Intermediate metabolizers for both genes may require more substantial dosage reductions. Refer to FDA labeling for specific dosing recommendations."</div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div><div class="gene-card review" id="gene-CYP3A5">
+  <div class="gene-card-header">
+    <span class="sym sym-review"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="gene-name">CYP3A5</span>
+<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Poor Metabolizer</span>
+  </div>
+
+  <p class="gene-description"><strong>CYP3A5</strong> helps process immunosuppressants like tacrolimus and some blood pressure medications.</p>
+
+  <dl class="gene-meta-grid">
+    <dt>Diplotype</dt>          <dd>*3/*3</dd>
+    <dt>Coverage</dt>           <dd>5/5 positions</dd>
+    <dt>Allele *3</dt>  <dd>No function</dd>
+    <dt>Allele *3</dt>  <dd>No function</dd>
+  </dl>
+
+  <div class="gene-mechanism">
+    <span class="mech-label">Mechanism</span>Non-expresser (*3/*3 or *6/*6 or *7/*7); CYP3A5-mediated tacrolimus clearance is ~50% of expressers — standard mg/kg risks supratherapeutic exposure.
+  </div>
+
+  <div class="gene-drugs">
+    <div class="gene-drugs-header">Affected medications &amp; recommendations (1)</div>
+    <div class="drug-block review">
+      <div class="drug-block-header">
+        <span class="drug-block-symbol"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.12em"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="drug-block-name">tacrolimus</span>
+<span class="drug-block-tag">Immunosuppressants</span>      </div>
+      <div class="drug-block-sources">
+        <div class="src-entry">
+          <div class="src-meta">
+            <span class="src-tag">CPIC Guideline Annotation</span>
+<span class="cls-tag">Strong</span>          </div>
+          <div class="src-rec">Initiate therapy with standard recommended dose. Use therapeutic drug monitoring to guide dose adjustments.<sup class="cite-marker">[<a href="#ref-9">9</a>]</sup></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></section>
 
 <section class="risk-section normal">
-  <h3><span class="risk-symbol">✓</span> Normal (11)</h3>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Anesthesia response<span class="count">(2)</span></div>
-<div class="gene-card normal">
+  <h3><span class="risk-symbol">✓</span> Normal (13)</h3>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Anesthesia response<span class="count">(2)</span></div>
+<div class="gene-card normal" id="gene-CACNA1S">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">CACNA1S</span>
 <span class="protein-type">Anesthesia response</span>      <span class="phenotype-pill">Uncertain Susceptibility</span>
   </div>
 
+  <p class="gene-description"><strong>CACNA1S</strong> is related to response to certain anesthetics used during surgery.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>Reference/Reference</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>2/2 positions</dd>
     <dt>Allele Reference</dt>  <dd>Normal function</dd>
     <dt>Allele Reference</dt>  <dd>Normal function</dd>
   </dl>
 
-</div><div class="gene-card normal">
+
+</div><div class="gene-card normal" id="gene-RYR1">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">RYR1</span>
 <span class="protein-type">Anesthesia response</span>      <span class="phenotype-pill">Uncertain Susceptibility</span>
   </div>
 
+  <p class="gene-description"><strong>RYR1</strong> is related to risk of malignant hyperthermia, a rare reaction to anesthetics.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>Reference/Reference</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>313/313 positions</dd>
     <dt>Allele Reference</dt>  <dd>Normal function</dd>
     <dt>Allele Reference</dt>  <dd>Normal function</dd>
   </dl>
 
-</div>  </div>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Drug breakdown<span class="count">(6)</span></div>
-<div class="gene-card normal">
+
+</div>    </div>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Blood-thinner response<span class="count">(1)</span></div>
+<div class="gene-card normal" id="gene-CYP4F2">
+  <div class="gene-card-header">
+    <span class="sym sym-normal">✓</span>
+    <span class="gene-name">CYP4F2</span>
+<span class="protein-type">Blood-thinner response</span>      <span class="phenotype-pill">Normal function</span>
+  </div>
+
+  <p class="gene-description"><strong>CYP4F2</strong> contributes to sensitivity to the blood thinner warfarin alongside VKORC1.</p>
+
+  <dl class="gene-meta-grid">
+    <dt>Diplotype</dt>          <dd>*1/*1</dd>
+    <dt>Coverage</dt>           <dd>20/20 positions</dd>
+    <dt>Allele *1</dt>  <dd>None</dd>
+    <dt>Allele *1</dt>  <dd>None</dd>
+  </dl>
+
+
+</div>    </div>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Drug breakdown<span class="count">(6)</span></div>
+<div class="gene-card normal" id="gene-CYP2B6">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">CYP2B6</span>
 <span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Normal Metabolizer</span>
   </div>
 
+  <p class="gene-description"><strong>CYP2B6</strong> helps process certain HIV medications and the smoking cessation drug bupropion.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>*1/*1</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>48/48 positions</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
   </dl>
 
-</div><div class="gene-card normal">
+
+</div><div class="gene-card normal" id="gene-CYP2C19">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">CYP2C19</span>
 <span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Normal Metabolizer</span>
   </div>
 
+  <p class="gene-description"><strong>CYP2C19</strong> helps the body break down many medications including blood thinners, antidepressants, and stomach acid drugs.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>*1/*1</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>35/35 positions</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
   </dl>
 
-</div><div class="gene-card normal">
+
+</div><div class="gene-card normal" id="gene-CYP2C9">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">CYP2C9</span>
 <span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Normal Metabolizer</span>
   </div>
 
+  <p class="gene-description"><strong>CYP2C9</strong> helps the body process pain medications, blood thinners like warfarin, and anti-inflammatory drugs.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>*1/*1</dd>
-    <dt>Activity score</dt>     <dd>2.0</dd>
     <dt>Coverage</dt>           <dd>83/83 positions</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
   </dl>
 
-</div><div class="gene-card normal">
+
+</div><div class="gene-card normal" id="gene-CYP3A4">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">CYP3A4</span>
 <span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Normal Metabolizer</span>
   </div>
 
+  <p class="gene-description"><strong>CYP3A4</strong> is the most important drug-metabolizing enzyme, involved in processing nearly half of all medications.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>*1/*1</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>43/43 positions</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
   </dl>
 
-</div><div class="gene-card normal">
+
+</div><div class="gene-card normal" id="gene-DPYD">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">DPYD</span>
 <span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Normal Metabolizer</span>
   </div>
 
+  <p class="gene-description"><strong>DPYD</strong> determines how the body handles fluoropyrimidine chemotherapy drugs.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>c.85T&gt;C (*9A) (heterozygous)</dd>
-    <dt>Activity score</dt>     <dd>2.0</dd>
     <dt>Coverage</dt>           <dd>83/83 positions</dd>
     <dt>Allele Reference</dt>  <dd>Normal function</dd>
     <dt>Allele c.85T&gt;C (*9A)</dt>  <dd>Normal function</dd>
   </dl>
 
-</div><div class="gene-card normal">
+
+</div><div class="gene-card normal" id="gene-TPMT">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">TPMT</span>
 <span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">Normal Metabolizer</span>
   </div>
 
+  <p class="gene-description"><strong>TPMT</strong> helps the body safely process thiopurine medications (used for cancer, autoimmune diseases, and organ-transplant immunosuppression).</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>*1/*1</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>45/45 positions</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
     <dt>Allele *1</dt>  <dd>Normal function</dd>
   </dl>
 
-</div>  </div>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Drug transporter<span class="count">(2)</span></div>
-<div class="gene-card normal">
+
+</div>    </div>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Drug transporter<span class="count">(2)</span></div>
+<div class="gene-card normal" id="gene-ABCG2">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">ABCG2</span>
 <span class="protein-type">Drug transporter</span>      <span class="phenotype-pill">Normal Function</span>
   </div>
 
+  <p class="gene-description"><strong>ABCG2</strong> is a transporter protein that affects how the body absorbs certain medications.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>rs2231142 reference (G)/rs2231142 reference (G)</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>1/1 positions</dd>
     <dt>Allele rs2231142 reference (G)</dt>  <dd>Normal function</dd>
     <dt>Allele rs2231142 reference (G)</dt>  <dd>Normal function</dd>
   </dl>
 
-</div><div class="gene-card normal">
+
+</div><div class="gene-card normal" id="gene-SLCO1B1">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">SLCO1B1</span>
 <span class="protein-type">Drug transporter</span>      <span class="phenotype-pill">Normal Function</span>
   </div>
 
+  <p class="gene-description"><strong>SLCO1B1</strong> affects how the body transports statin medications used to lower cholesterol.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>*37/*37</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>35/35 positions</dd>
     <dt>Allele *37</dt>  <dd>Normal function</dd>
     <dt>Allele *37</dt>  <dd>Normal function</dd>
   </dl>
 
-</div>  </div>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Red-blood-cell drug response<span class="count">(1)</span></div>
-<div class="gene-card normal">
+
+</div>    </div>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Hepatitis-C drug response<span class="count">(1)</span></div>
+<div class="gene-card normal" id="gene-IFNL3">
+  <div class="gene-card-header">
+    <span class="sym sym-normal">✓</span>
+    <span class="gene-name">IFNL3</span>
+<span class="protein-type">Hepatitis-C drug response</span>      <span class="phenotype-pill">Favorable variant</span>
+  </div>
+
+  <p class="gene-description"><strong>IFNL3</strong> affects response to hepatitis C treatments.</p>
+
+  <dl class="gene-meta-grid">
+    <dt>Diplotype</dt>          <dd>rs12979860 reference (C)/rs12979860 reference (C)</dd>
+    <dt>Coverage</dt>           <dd>1/1 positions</dd>
+    <dt>Allele rs12979860 reference (C)</dt>  <dd>Favorable response allele</dd>
+    <dt>Allele rs12979860 reference (C)</dt>  <dd>Favorable response allele</dd>
+  </dl>
+
+
+</div>    </div>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Red-blood-cell drug response<span class="count">(1)</span></div>
+<div class="gene-card normal" id="gene-G6PD">
   <div class="gene-card-header">
     <span class="sym sym-normal">✓</span>
     <span class="gene-name">G6PD</span>
 <span class="protein-type">Red-blood-cell drug response</span>      <span class="phenotype-pill">Normal</span>
   </div>
 
+  <p class="gene-description"><strong>G6PD</strong> affects red blood cells&#39; sensitivity to certain medications.</p>
+
   <dl class="gene-meta-grid">
     <dt>Diplotype</dt>          <dd>B (reference)/B (reference)</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
     <dt>Coverage</dt>           <dd>171/171 positions</dd>
     <dt>Allele B (reference)</dt>  <dd>IV/Normal</dd>
     <dt>Allele B (reference)</dt>  <dd>IV/Normal</dd>
   </dl>
 
-</div>  </div>
+
+</div>    </div>
 </section>
 
 <section class="risk-section nodata">
-  <h3><span class="risk-symbol">—</span> No Data (6)</h3>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Antibiotic sensitivity<span class="count">(1)</span></div>
-<div class="gene-card nodata">
+  <h3><span class="risk-symbol">—</span> No Data (4)</h3>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Antibiotic sensitivity<span class="count">(1)</span></div>
+<div class="gene-card nodata" id="gene-MT-RNR1">
   <div class="gene-card-header">
     <span class="sym sym-nodata">—</span>
     <span class="gene-name">MT-RNR1</span>
 <span class="protein-type">Antibiotic sensitivity</span>      <span class="phenotype-pill">No call</span>
   </div>
 
+  <p class="gene-description"><strong>MT-RNR1</strong> affects sensitivity to aminoglycoside antibiotics that can cause hearing loss.</p>
+
   <dl class="gene-meta-grid">
     <dt>Missing positions</dt>  <dd>0</dd>
   </dl>
+
 
   <div class="affected-pills">
     <span class="affected-pills-label">Medications that depend on MT-RNR1:</span>
@@ -1317,19 +1588,22 @@ Monitor for efficacy.</td>
       <div class="nodata-cat"><strong>Other medications:</strong> amikacin, dibekacin, gentamicin, kanamycin, neomycin, netilmicin, paromomycin, plazomicin, ribostamycin, streptomycin, tobramycin</div>
     </div>
   </div>
-</div>  </div>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Drug breakdown<span class="count">(2)</span></div>
-<div class="gene-card nodata">
+</div>    </div>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Drug breakdown<span class="count">(1)</span></div>
+<div class="gene-card nodata" id="gene-CYP2D6">
   <div class="gene-card-header">
     <span class="sym sym-nodata">—</span>
     <span class="gene-name">CYP2D6</span>
 <span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">No call</span>
   </div>
 
+  <p class="gene-description"><strong>CYP2D6</strong> is involved in processing about 25% of all medications, including many antidepressants and pain medications.</p>
+
   <dl class="gene-meta-grid">
     <dt>Missing positions</dt>  <dd>0</dd>
   </dl>
+
 
   <div class="affected-pills">
     <span class="affected-pills-label">Medications that depend on CYP2D6:</span>
@@ -1350,73 +1624,53 @@ Monitor for efficacy.</td>
       <div class="nodata-cat"><strong>Targeted cancer therapy:</strong> gefitinib</div>
     </div>
   </div>
-</div><div class="gene-card nodata">
-  <div class="gene-card-header">
-    <span class="sym sym-nodata">—</span>
-    <span class="gene-name">CYP4F2</span>
-<span class="protein-type">Drug breakdown</span>      <span class="phenotype-pill">No Result</span>
-  </div>
-
-  <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>*1/*1</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>20/20 positions</dd>
-    <dt>Allele *1</dt>  <dd>None</dd>
-    <dt>Allele *1</dt>  <dd>None</dd>
-  </dl>
-
-</div>  </div>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Hepatitis-C drug response<span class="count">(1)</span></div>
-<div class="gene-card nodata">
-  <div class="gene-card-header">
-    <span class="sym sym-nodata">—</span>
-    <span class="gene-name">IFNL3</span>
-<span class="protein-type">Hepatitis-C drug response</span>      <span class="phenotype-pill">n/a</span>
-  </div>
-
-  <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>rs12979860 reference (C)/rs12979860 reference (C)</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>1/1 positions</dd>
-    <dt>Allele rs12979860 reference (C)</dt>  <dd>Favorable response allele</dd>
-    <dt>Allele rs12979860 reference (C)</dt>  <dd>Favorable response allele</dd>
-  </dl>
-
-</div>  </div>
-  <div class="protein-subgroup">
-    <div class="protein-subgroup-title">Immune response<span class="count">(2)</span></div>
-<div class="gene-card nodata">
+</div>    </div>
+    <div class="protein-subgroup">
+      <div class="protein-subgroup-title">Immune response<span class="count">(2)</span></div>
+<div class="gene-card nodata" id="gene-HLA-A">
   <div class="gene-card-header">
     <span class="sym sym-nodata">—</span>
     <span class="gene-name">HLA-A</span>
-<span class="protein-type">Immune response</span>      <span class="phenotype-pill">No Result</span>
+<span class="protein-type">Immune response</span>      <span class="phenotype-pill">No call</span>
   </div>
 
+  <p class="gene-description"><strong>HLA-A</strong> is part of the immune system and affects risk of severe drug reactions.</p>
+
   <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>Unknown/Unknown</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>0/0 positions</dd>
-    <dt>Allele Unknown</dt>  <dd>None</dd>
-    <dt>Allele Unknown</dt>  <dd>None</dd>
+    <dt>Missing positions</dt>  <dd>0</dd>
   </dl>
 
-</div><div class="gene-card nodata">
+
+  <div class="affected-pills">
+    <span class="affected-pills-label">Medications that depend on HLA-A:</span>
+    <div class="nodata-affected">
+      <div class="nodata-cat"><strong>Antiepileptics:</strong> carbamazepine</div>
+    </div>
+  </div>
+</div><div class="gene-card nodata" id="gene-HLA-B">
   <div class="gene-card-header">
     <span class="sym sym-nodata">—</span>
     <span class="gene-name">HLA-B</span>
-<span class="protein-type">Immune response</span>      <span class="phenotype-pill">No Result</span>
+<span class="protein-type">Immune response</span>      <span class="phenotype-pill">No call</span>
   </div>
 
+  <p class="gene-description"><strong>HLA-B</strong> is part of the immune system and affects risk of severe drug reactions to specific drugs.</p>
+
   <dl class="gene-meta-grid">
-    <dt>Diplotype</dt>          <dd>Unknown/Unknown</dd>
-    <dt>Activity score</dt>     <dd>—</dd>
-    <dt>Coverage</dt>           <dd>0/0 positions</dd>
-    <dt>Allele Unknown</dt>  <dd>None</dd>
-    <dt>Allele Unknown</dt>  <dd>None</dd>
+    <dt>Missing positions</dt>  <dd>0</dd>
   </dl>
 
-</div>  </div>
+
+  <div class="affected-pills">
+    <span class="affected-pills-label">Medications that depend on HLA-B:</span>
+    <div class="nodata-affected">
+      <div class="nodata-cat"><strong>Antiepileptics:</strong> carbamazepine, oxcarbazepine, phenytoin</div>
+      <div class="nodata-cat"><strong>Antivirals (HIV):</strong> abacavir</div>
+      <div class="nodata-cat"><strong>Gout medications:</strong> allopurinol</div>
+      <div class="nodata-cat"><strong>Other medications:</strong> flucloxacillin, fosphenytoin, lamotrigine, pazopanib</div>
+    </div>
+  </div>
+</div>    </div>
 </section>
 
 
@@ -2558,111 +2812,53 @@ Monitor for efficacy.</td>
 </section>
 
 <h2>References</h2>
-<ol class="citations">
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for Thiopurine Dosing Based on TPMT and NUDT15 Genotypes: 2025 Update.<em>Clinical pharmacology and therapeutics</em>(2026) &middot; PMID: 41618934  </li>
-  <li>
-Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction between CYP2D6 and CYP2C19 and tricyclic antidepressants.<em>European journal of human genetics : EJHG</em>(2026) &middot; PMID: 41526670  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium Guideline for NAT2 Genotype and Hydralazine Therapy.<em>Clinical pharmacology and therapeutics</em>(2025) &middot; PMID: 40974042  </li>
-  <li>
-Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction between TPMT/NUDT15 and thiopurines.<em>European journal of human genetics : EJHG</em>(2025) &middot; PMID: 41318725  </li>
-  <li>
-Drugs@FDA: Drug Product Onivyde (IRINOTECAN HYDROCHLORIDE), Ipsen Biopharmaceuticals, Inc. - NDA207793/SUPPL-16, 02/13/2024(2024)  </li>
-  <li>
-Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction between CYP2D6, CYP3A4 and CYP1A2 and antipsychotics.<em>European journal of human genetics : EJHG</em>(2024) &middot; PMID: 37002327  </li>
-  <li>
-Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction between SLCO1B1 and statins and CYP2C9 and sulfonylureas.<em>European journal of human genetics : EJHG</em>(2024) &middot; PMID: 39676086  </li>
-  <li>
-Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction of CYP2C9, HLA-A and HLA-B with anti-epileptic drugs.<em>European journal of human genetics : EJHG</em>(2024) &middot; PMID: 38570725  </li>
-  <li>
-Dutch pharmacogenetics working group guideline for the gene-drug interaction of ABCG2, HLA-B and Allopurinol, and MTHFR, folic acid and methotrexate.<em>European journal of human genetics : EJHG</em>(2024) &middot; PMID: 36056234  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for CYP2D6, CYP2C19, CYP2B6, SLC6A4, and HTR2A Genotypes and Serotonin Reuptake Inhibitor Antidepressants.<em>Clinical pharmacology and therapeutics</em>(2023) &middot; PMID: 37032427  </li>
-  <li>
-Dutch pharmacogenetics working group (DPWG) guideline for the gene-drug interaction between UGT1A1 and irinotecan.<em>European journal of human genetics : EJHG</em>(2023) &middot; PMID: 36443464  </li>
-  <li>
-Expanded Clinical Pharmacogenetics Implementation Consortium Guideline for Medication Use in the Context of G6PD Genotype.<em>Clinical pharmacology and therapeutics</em>(2023) &middot; PMID: 36049896  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium Guideline for CYP2C19 Genotype and Clopidogrel Therapy: 2022 Update.<em>Clinical pharmacology and therapeutics</em>(2022) &middot; PMID: 35034351  </li>
-  <li>
-Drugs@FDA: Drug Product Camptosar (irinotecan hydrochloride), Pharmacia &amp; Upjohn Company LLC - NDA020571/SUPPL-53, 01/27/2022(2022)  </li>
-  <li>
-Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction between CYP2C19 and CYP2D6 and SSRIs.<em>European journal of human genetics : EJHG</em>(2022) &middot; PMID: 34782755  </li>
-  <li>
-The Clinical Pharmacogenetics Implementation Consortium Guideline for SLCO1B1, ABCG2, and CYP2C9 genotypes and Statin-Associated Musculoskeletal Symptoms.<em>Clinical pharmacology and therapeutics</em>(2022) &middot; PMID: 35152405  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for CYP2C19 and Proton Pump Inhibitor Dosing.<em>Clinical pharmacology and therapeutics</em>(2021) &middot; PMID: 32770672  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for CYP2C9 and HLA-B Genotypes and Phenytoin Dosing: 2020 Update.<em>Clinical pharmacology and therapeutics</em>(2021) &middot; PMID: 32779747  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium Guideline (CPIC) for CYP2C9 and Nonsteroidal Anti-Inflammatory Drugs.<em>Clinical pharmacology and therapeutics</em>(2020) &middot; PMID: 32189324  </li>
-  <li>
-Drugs@FDA: Drug Product PURINETHOL (Mercaptopurine), Quinn Pharmaceuticals - NDA009053/SUPPL-40, 12/29/2020(2020)  </li>
-  <li>
-Drugs@FDA: Drug Product PURIXAN (mercaptopurine), Nova Laboratories, Ltd - NDA205919/SUPPL-4, 04/07/2020(2020)  </li>
-  <li>
-Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction of DPYD and fluoropyrimidines.<em>European journal of human genetics : EJHG</em>(2020) &middot; PMID: 31745289  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for CYP2B6 and Efavirenz-Containing Antiretroviral Therapy.<em>Clinical pharmacology and therapeutics</em>(2019) &middot; PMID: 31006110  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for the Use of Potent Volatile Anesthetic Agents and Succinylcholine in the Context of RYR1 or CACNA1S Genotypes.<em>Clinical pharmacology and therapeutics</em>(2019) &middot; PMID: 30499100  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium Guideline for Thiopurine Dosing Based on TPMT and NUDT15 Genotypes: 2018 Update.<em>Clinical pharmacology and therapeutics</em>(2019) &middot; PMID: 30447069  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for Dihydropyrimidine Dehydrogenase Genotype and Fluoropyrimidine Dosing: 2017 Update.<em>Clinical pharmacology and therapeutics</em>(2018) &middot; PMID: 29152729  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guidelines for CYP2C19 and Voriconazole Therapy.<em>Clinical pharmacology and therapeutics</em>(2017) &middot; PMID: 27981572  </li>
-  <li>
-Clinical pharmacogenetics implementation consortium guideline (CPIC) for CYP2D6 and CYP2C19 genotypes and dosing of tricyclic antidepressants: 2016 update.<em>Clinical pharmacology and therapeutics</em>(2017) &middot; PMID: 27997040  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for UGT1A1 and Atazanavir Prescribing.<em>Clinical pharmacology and therapeutics</em>(2016) &middot; PMID: 26417955  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for CYP2D6 and CYP2C19 Genotypes and Dosing of Selective Serotonin Reuptake Inhibitors.<em>Clinical pharmacology and therapeutics</em>(2015) &middot; PMID: 25974703  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) Guidelines for CYP3A5 Genotype and Tacrolimus Dosing.<em>Clinical pharmacology and therapeutics</em>(2015) &middot; PMID: 25801146  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) guidelines for ivacaftor therapy in the context of CFTR genotype.<em>Clinical pharmacology and therapeutics</em>(2014) &middot; PMID: 24598717  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium (CPIC) guidelines for rasburicase therapy in the context of G6PD deficiency genotype.<em>Clinical pharmacology and therapeutics</em>(2014) &middot; PMID: 24787449  </li>
-  <li>
-Clinical pharmacogenetics implementation consortium guidelines for CYP2C9 and HLA-B genotypes and phenytoin dosing.<em>Clinical pharmacology and therapeutics</em>(2014) &middot; PMID: 25099164  </li>
-  <li>
-The clinical pharmacogenetics implementation consortium guideline for SLCO1B1 and simvastatin-induced myopathy: 2014 update.<em>Clinical pharmacology and therapeutics</em>(2014) &middot; PMID: 24918167  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium guideline for CYP2D6 and CYP2C19 genotypes and dosing of tricyclic antidepressants.<em>Clinical pharmacology and therapeutics</em>(2013) &middot; PMID: 23486447  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium guidelines for CYP2C19 genotype and clopidogrel therapy: 2013 update.<em>Clinical pharmacology and therapeutics</em>(2013) &middot; PMID: 23698643  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium guidelines for dihydropyrimidine dehydrogenase genotype and fluoropyrimidine dosing.<em>Clinical pharmacology and therapeutics</em>(2013) &middot; PMID: 23988873  </li>
-  <li>
-Clinical pharmacogenetics implementation consortium guidelines for thiopurine methyltransferase genotype and thiopurine dosing: 2013 update.<em>Clinical pharmacology and therapeutics</em>(2013) &middot; PMID: 23422873  </li>
-  <li>
-The clinical pharmacogenomics implementation consortium: CPIC guideline for SLCO1B1 and simvastatin-induced myopathy.<em>Clinical pharmacology and therapeutics</em>(2012) &middot; PMID: 22617227  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium guidelines for cytochrome P450-2C19 (CYP2C19) genotype and clopidogrel therapy.<em>Clinical pharmacology and therapeutics</em>(2011) &middot; PMID: 21716271  </li>
-  <li>
-Clinical Pharmacogenetics Implementation Consortium guidelines for thiopurine methyltransferase genotype and thiopurine dosing.<em>Clinical pharmacology and therapeutics</em>(2011) &middot; PMID: 21270794  </li>
-  <li>
-Pharmacogenetics: from bench to byte--an update of guidelines.<em>Clinical pharmacology and therapeutics</em>(2011) &middot; PMID: 21412232  </li>
-  <li>
-Drugs@FDA: Drug Product Anectine (Succinylcholine Chloride), NDA008453, Sandoz Inc(-1)  </li>
-  <li>
-Drugs@FDA: Drug Product COUMADIN (warfarin sodium), NDA009218, Bristol-Myers Squibb Pharma Company(-1)  </li>
-  <li>
-Drugs@FDA: Drug Product FORANE (isoflurane), NDA017624, Baxter Healthcare Corporation(-1)  </li>
-  <li>
-Drugs@FDA: Drug Product IMURAN (azathioprine), NDA016324, Sebela Pharmaceuticals Inc.(-1)  </li>
-  <li>
-Drugs@FDA: Drug Product MAYZENT (siponimod), NDA209884, Novartis Pharmaceuticals Corporation(-1)  </li>
-  <li>
-Drugs@FDA: Drug Product SUPRANE (desflurane), NDA020118, Baxter Healthcare Corporation(-1)  </li>
-  <li>
-Drugs@FDA: Drug Product TABLOID (thioguanine), NDA012429, Aspen Global Inc.(-1)  </li>
-  <li>
-Drugs@FDA: Drug Product Ultane (Sevoflurane), NDA020478, AbbVie Inc.(-1)  </li>
-  <li>
-FDA Table of Pharmacogenetic Associations(-1)  </li>
+<p class="category-desc">Numbered citations are inlined as <sup class="cite-marker">[N]</sup> markers next to each recommendation that uses them. Only citations attached to drug recommendations actually shown in the body are listed.</p>
+<ol class="citations numbered">
+  <li id="ref-1" value="1">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/24598717/" target="_blank" rel="noopener">Clinical Pharmacogenetics Implementation Consortium (CPIC) guidelines for ivacaftor therapy in the context of CFTR genotype.</a>
+<em>Clinical pharmacology and therapeutics</em>(2014) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/24598717/" target="_blank" rel="noopener">24598717</a>
+  </li>
+  <li id="ref-2" value="2">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/21412232/" target="_blank" rel="noopener">Pharmacogenetics: from bench to byte--an update of guidelines.</a>
+<em>Clinical pharmacology and therapeutics</em>(2011) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/21412232/" target="_blank" rel="noopener">21412232</a>
+  </li>
+  <li id="ref-3" value="3">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/40974042/" target="_blank" rel="noopener">Clinical Pharmacogenetics Implementation Consortium Guideline for NAT2 Genotype and Hydralazine Therapy.</a>
+<em>Clinical pharmacology and therapeutics</em>(2025) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/40974042/" target="_blank" rel="noopener">40974042</a>
+  </li>
+  <li id="ref-4" value="4">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/21270794/" target="_blank" rel="noopener">Clinical Pharmacogenetics Implementation Consortium guidelines for thiopurine methyltransferase genotype and thiopurine dosing.</a>
+<em>Clinical pharmacology and therapeutics</em>(2011) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/21270794/" target="_blank" rel="noopener">21270794</a>
+  </li>
+  <li id="ref-5" value="5">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/23422873/" target="_blank" rel="noopener">Clinical pharmacogenetics implementation consortium guidelines for thiopurine methyltransferase genotype and thiopurine dosing: 2013 update.</a>
+<em>Clinical pharmacology and therapeutics</em>(2013) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/23422873/" target="_blank" rel="noopener">23422873</a>
+  </li>
+  <li id="ref-6" value="6">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/30447069/" target="_blank" rel="noopener">Clinical Pharmacogenetics Implementation Consortium Guideline for Thiopurine Dosing Based on TPMT and NUDT15 Genotypes: 2018 Update.</a>
+<em>Clinical pharmacology and therapeutics</em>(2019) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/30447069/" target="_blank" rel="noopener">30447069</a>
+  </li>
+  <li id="ref-7" value="7">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/41618934/" target="_blank" rel="noopener">Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for Thiopurine Dosing Based on TPMT and NUDT15 Genotypes: 2025 Update.</a>
+<em>Clinical pharmacology and therapeutics</em>(2026) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/41618934/" target="_blank" rel="noopener">41618934</a>
+  </li>
+  <li id="ref-8" value="8">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/41318725/" target="_blank" rel="noopener">Dutch Pharmacogenetics Working Group (DPWG) guideline for the gene-drug interaction between TPMT/NUDT15 and thiopurines.</a>
+<em>European journal of human genetics : EJHG</em>(2025) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/41318725/" target="_blank" rel="noopener">41318725</a>
+  </li>
+  <li id="ref-9" value="9">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/25801146/" target="_blank" rel="noopener">Clinical Pharmacogenetics Implementation Consortium (CPIC) Guidelines for CYP3A5 Genotype and Tacrolimus Dosing.</a>
+<em>Clinical pharmacology and therapeutics</em>(2015) &middot; PMID:
+      <a href="https://pubmed.ncbi.nlm.nih.gov/25801146/" target="_blank" rel="noopener">25801146</a>
+  </li>
 </ol>
 
 
@@ -2673,7 +2869,7 @@ FDA Table of Pharmacogenetic Associations(-1)  </li>
   </div>
 
   <footer>
-    Generated by PGx Reporter &middot; May 17, 2026
+    Generated by PGx Reporter &middot; May 27, 2026
   </footer>
 </div>
 </body>
