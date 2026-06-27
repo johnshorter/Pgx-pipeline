@@ -39,6 +39,7 @@ marco/.venv/
 *.vcf
 !adib/examples/*.vcf
 !marco/examples/*.vcf
+!examples/*.vcf
 
 # PharmCAT JAR (too large for GitHub — download with download_pharmcat.py)
 *.jar
