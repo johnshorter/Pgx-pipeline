@@ -59,7 +59,7 @@ reporter.
 The repository ships pre-generated example output you can open in a browser. Because GitHub
 does not render raw HTML files inline, use one of these options:
 
-**Option A — view online via htmlpreview** (works once the repo is public):
+**Option A — view online via htmlpreview:**
 
 - Patient report (HG005): <https://htmlpreview.github.io/?https://github.com/johnshorter/Pgx-pipeline/blob/main/output/HG005/patient_report_v2.html>
 - Clinician report (HG005): <https://htmlpreview.github.io/?https://github.com/johnshorter/Pgx-pipeline/blob/main/output/HG005/clinician_report_v2.html>
